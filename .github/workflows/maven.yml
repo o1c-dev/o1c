@@ -1,0 +1,19 @@
+name: Continuous Integration
+on:
+  push:
+    branches:
+      - main
+  pull_requests:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15
+      - name: Maven Build
+        run: mvn -B verify
