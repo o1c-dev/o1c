@@ -24,6 +24,47 @@
   <artifactId>o1crypto-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <name>O(1) Cryptography Project</name>
+  <description>
+    O(1) Cryptography is an easy to use, hard to misuse Java cryptographic library based on O(1) cryptographic algorithms.
+  </description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <developers>
+    <developer>
+      <id>jvz</id>
+      <name>Matt Sicker</name>
+      <email>mattsicker@apache.org</email>
+      <url>https://musigma.blog/</url>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <inceptionYear>2020</inceptionYear>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/o1c-dev/o1c/issues</url>
+  </issueManagement>
+  <scm>
+    <connection>scm:git:https://github.com/o1c-dev/o1c.git</connection>
+    <developerConnection>scm:git:ssh://github.com/o1c-dev/o1c.git</developerConnection>
+    <url>https://github.com/o1c-dev/o1c</url>
+    <tag>HEAD</tag>
+  </scm>
+  <organization>
+    <name>O(1) Cryptography</name>
+    <url>https://o1c.dev/</url>
+  </organization>
+  <licenses>
+    <license>
+      <!-- TODO: Apache License metadata -->
+    </license>
+  </licenses>
 
   <build>
     <pluginManagement>
@@ -45,10 +86,14 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk15on</artifactId>
+        <version>1.67</version>
+      </dependency>
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>5.7.0</version>
-        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

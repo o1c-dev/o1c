@@ -26,6 +26,12 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>o1crypto</artifactId>
+    <name>O(1) Cryptography Distribution</name>
+    <description>
+        O(1) Cryptography is an easy to use, hard to misuse Java cryptographic library based on O(1) cryptographic algorithms.
+        This module assembles together version-specific Java code into a multi-release jar which allows for automatic support of
+        JDK cryptography library improvements.
+    </description>
     <build>
         <plugins>
             <plugin>
