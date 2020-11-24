@@ -16,10 +16,12 @@
 
 package dev.o1c.bc;
 
+import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.KeyCodec;
 import dev.o1c.spi.SignatureFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import java.security.CryptoPrimitive;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -27,12 +29,16 @@ class BouncyCastleSignatureFactory extends SignatureFactory {
     private final Curve curve;
 
     BouncyCastleSignatureFactory(Curve curve) {
+        Algorithm algorithm = curve.getAlgorithm();
+        if (algorithm.getCryptoPrimitive() != CryptoPrimitive.SIGNATURE) {
+            throw new IllegalArgumentException("Expected a signature algorithm but got " + algorithm);
+        }
         this.curve = curve;
     }
 
     @Override
     public String getAlgorithm() {
-        return curve.getAlgorithm();
+        return curve.getAlgorithm().getAlgorithm();
     }
 
     @Override

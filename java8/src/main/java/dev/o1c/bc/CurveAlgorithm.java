@@ -45,8 +45,8 @@ class CurveAlgorithm implements Curve {
     }
 
     @Override
-    public String getAlgorithm() {
-        return algorithm.getAlgorithm();
+    public Algorithm getAlgorithm() {
+        return algorithm;
     }
 
     @Override

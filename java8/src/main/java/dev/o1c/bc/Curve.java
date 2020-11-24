@@ -16,13 +16,14 @@
 
 package dev.o1c.bc;
 
+import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.KeyCodec;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
 interface Curve {
-    String getAlgorithm();
+    Algorithm getAlgorithm();
 
     KeyCodec<PrivateKey> getPrivateKeyCodec();
 
