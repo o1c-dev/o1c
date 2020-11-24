@@ -16,48 +16,40 @@
 
 package dev.o1c.jep324;
 
+import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.KeyCodec;
 import dev.o1c.spi.KeyExchangeFactory;
 
+import java.security.CryptoPrimitive;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.NamedParameterSpec;
 
 public class XDHKeyExchangeFactory extends KeyExchangeFactory {
-    private final NamedParameterSpec curve;
+    private final Algorithm algorithm;
     private final KeyCodec<PrivateKey> privateKeyCodec;
     private final KeyCodec<PublicKey> publicKeyCodec;
 
-    XDHKeyExchangeFactory(NamedParameterSpec curve) {
-        this.curve = curve;
-        int keySize;
-        switch (curve.getName()) {
-            case "X25519":
-                keySize = 32;
-                break;
-            case "X448":
-                keySize = 56;
-                break;
-
-            default:
-                throw new IllegalArgumentException("Expected an XDH curve but got " + curve.getName());
+    XDHKeyExchangeFactory(Algorithm algorithm) {
+        if (algorithm.getCryptoPrimitive() != CryptoPrimitive.KEY_AGREEMENT) {
+            throw new IllegalArgumentException("Expected a key agreement algorithm but got " + algorithm);
         }
+        this.algorithm = algorithm;
         KeyFactory keyFactory;
         try {
-            keyFactory = KeyFactory.getInstance(curve.getName());
+            keyFactory = KeyFactory.getInstance(algorithm.getAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new InvalidProviderException(e);
         }
-        privateKeyCodec = new XDHPrivateKeyCodec(curve, keyFactory, keySize);
-        publicKeyCodec = new XDHPublicKeyCodec(curve, keyFactory, keySize);
+        privateKeyCodec = new XDHPrivateKeyCodec(algorithm, keyFactory);
+        publicKeyCodec = new XDHPublicKeyCodec(algorithm, keyFactory);
     }
 
     @Override
     public String getAlgorithm() {
-        return curve.getName();
+        return algorithm.getAlgorithm();
     }
 
     @Override
@@ -77,13 +69,13 @@ public class XDHKeyExchangeFactory extends KeyExchangeFactory {
 
     public static class X25519 extends XDHKeyExchangeFactory {
         public X25519() {
-            super(NamedParameterSpec.X25519);
+            super(Algorithm.X25519);
         }
     }
 
     public static class X448 extends XDHKeyExchangeFactory {
         public X448() {
-            super(NamedParameterSpec.X448);
+            super(Algorithm.X448);
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package dev.o1c.jep324;
 
+import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.KeyCodec;
 
 import java.security.KeyFactory;
@@ -25,19 +26,19 @@ import java.security.spec.NamedParameterSpec;
 import java.security.spec.XECPrivateKeySpec;
 
 class XDHPrivateKeyCodec implements KeyCodec<PrivateKey> {
+    private final Algorithm algorithm;
     private final NamedParameterSpec curve;
     private final KeyFactory keyFactory;
-    private final int keySize;
 
-    XDHPrivateKeyCodec(NamedParameterSpec curve, KeyFactory keyFactory, int keySize) {
-        this.curve = curve;
+    XDHPrivateKeyCodec(Algorithm algorithm, KeyFactory keyFactory) {
+        this.algorithm = algorithm;
+        this.curve = new NamedParameterSpec(algorithm.getAlgorithm());
         this.keyFactory = keyFactory;
-        this.keySize = keySize;
     }
 
     @Override
     public int getKeySize() {
-        return keySize;
+        return algorithm.getKeySize();
     }
 
     @Override
