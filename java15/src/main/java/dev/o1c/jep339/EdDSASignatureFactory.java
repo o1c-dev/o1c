@@ -16,41 +16,40 @@
 
 package dev.o1c.jep339;
 
+import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.KeyCodec;
 import dev.o1c.spi.SignatureFactory;
 
+import java.security.CryptoPrimitive;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.NamedParameterSpec;
 
 public class EdDSASignatureFactory extends SignatureFactory {
-    private final NamedParameterSpec curve;
+    private final Algorithm algorithm;
     private final KeyCodec<PrivateKey> privateKeyCodec;
     private final KeyCodec<PublicKey> publicKeyCodec;
 
-    EdDSASignatureFactory(NamedParameterSpec curve) {
-        this.curve = curve;
-        int keySize = switch (curve.getName()) {
-            case "Ed25519" -> 32;
-            case "Ed448" -> 57;
-            default -> throw new IllegalArgumentException("Expected an Edwards curve but got: " + curve.getName());
-        };
+    EdDSASignatureFactory(Algorithm algorithm) {
+        if (algorithm.getCryptoPrimitive() != CryptoPrimitive.SIGNATURE) {
+            throw new IllegalArgumentException("Expected a signature algorithm but got " + algorithm);
+        }
+        this.algorithm = algorithm;
         KeyFactory keyFactory;
         try {
-            keyFactory = KeyFactory.getInstance(curve.getName());
+            keyFactory = KeyFactory.getInstance(algorithm.getAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new InvalidProviderException(e);
         }
-        privateKeyCodec = new EdDSAPrivateKeyCodec(curve, keyFactory, keySize);
-        publicKeyCodec = new EdDSAPublicKeyCodec(curve, keyFactory, keySize);
+        privateKeyCodec = new EdDSAPrivateKeyCodec(algorithm, keyFactory);
+        publicKeyCodec = new EdDSAPublicKeyCodec(algorithm, keyFactory);
     }
 
     @Override
     public String getAlgorithm() {
-        return curve.getName();
+        return algorithm.getAlgorithm();
     }
 
     @Override
@@ -70,13 +69,13 @@ public class EdDSASignatureFactory extends SignatureFactory {
 
     public static class Ed25519 extends EdDSASignatureFactory {
         public Ed25519() {
-            super(NamedParameterSpec.ED25519);
+            super(Algorithm.Ed25519);
         }
     }
 
     public static class Ed448 extends EdDSASignatureFactory {
         public Ed448() {
-            super(NamedParameterSpec.ED448);
+            super(Algorithm.Ed448);
         }
     }
 }
