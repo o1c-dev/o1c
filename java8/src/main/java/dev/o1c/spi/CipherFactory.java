@@ -39,8 +39,8 @@ public class CipherFactory implements SecurityFactory<Cipher>, KeyCodec<SecretKe
     }
 
     @Override
-    public final Cipher create() {
-        return new Cipher(getSecureRandom(), getKeyGenerator(), this, this::createCipher);
+    public Cipher create() {
+        return new DefaultCipher(getSecureRandom(), getKeyGenerator(), this, this::createCipher);
     }
 
     @Override

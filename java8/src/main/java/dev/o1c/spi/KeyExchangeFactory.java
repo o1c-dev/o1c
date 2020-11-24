@@ -25,8 +25,9 @@ import java.security.PublicKey;
 
 public abstract class KeyExchangeFactory implements SecurityFactory<KeyExchange> {
     @Override
-    public final KeyExchange create() {
-        return new KeyExchange(getPrivateKeyCodec(), getPublicKeyCodec(), getKeyPairGenerator(), this::createKeyAgreement);
+    public KeyExchange create() {
+        return new DefaultKeyExchange(getPrivateKeyCodec(), getPublicKeyCodec(), getKeyPairGenerator(),
+                this::createKeyAgreement);
     }
 
     protected abstract KeyCodec<PrivateKey> getPrivateKeyCodec();

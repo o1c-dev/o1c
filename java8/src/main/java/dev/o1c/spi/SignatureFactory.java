@@ -24,8 +24,8 @@ import java.security.PublicKey;
 
 public abstract class SignatureFactory implements SecurityFactory<Signature> {
     @Override
-    public final Signature create() {
-        return new Signature(getPrivateKeyCodec(), getPublicKeyCodec(), getKeyPairGenerator(), this::createSignature);
+    public Signature create() {
+        return new DefaultSignature(getPrivateKeyCodec(), getPublicKeyCodec(), getKeyPairGenerator(), this::createSignature);
     }
 
     protected abstract KeyCodec<PrivateKey> getPrivateKeyCodec();

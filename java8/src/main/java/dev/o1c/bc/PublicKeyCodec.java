@@ -27,7 +27,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
-public class PublicKeyCodec extends CurveCodec<PublicKey> {
+class PublicKeyCodec extends CurveCodec<PublicKey> {
     private final AlgorithmIdentifier identifier;
 
     PublicKeyCodec(Algorithm algorithm, KeyFactory keyFactory) {
