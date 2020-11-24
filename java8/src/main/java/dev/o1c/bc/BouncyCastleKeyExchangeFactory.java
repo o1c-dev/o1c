@@ -18,6 +18,7 @@ package dev.o1c.bc;
 
 import dev.o1c.spi.KeyCodec;
 import dev.o1c.spi.KeyExchangeFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -36,7 +37,7 @@ class BouncyCastleKeyExchangeFactory extends KeyExchangeFactory {
 
     @Override
     public String getProvider() {
-        return "BC";
+        return BouncyCastleProvider.PROVIDER_NAME;
     }
 
     @Override

@@ -19,6 +19,7 @@ package dev.o1c.bc;
 import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.KeyCodec;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -35,7 +36,7 @@ class CurveAlgorithm implements Curve {
         this.algorithm = algorithm;
         KeyFactory keyFactory;
         try {
-            keyFactory = KeyFactory.getInstance(algorithm.getAlgorithm(), "BC");
+            keyFactory = KeyFactory.getInstance(algorithm.getAlgorithm(), BouncyCastleProvider.PROVIDER_NAME);
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             throw new InvalidProviderException(e);
         }

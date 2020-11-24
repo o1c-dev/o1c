@@ -18,11 +18,13 @@ package dev.o1c.bc;
 
 import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.CipherFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class Provider {
     public static class ChaCha20Poly1305 extends CipherFactory {
         public ChaCha20Poly1305() {
-            super("BC");
+            // using this static reference to the BC library itself allows us to fail fast if it's not available
+            super(BouncyCastleProvider.PROVIDER_NAME);
         }
     }
 
