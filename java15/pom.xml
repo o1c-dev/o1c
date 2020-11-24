@@ -52,5 +52,10 @@
       <artifactId>bcprov-jdk15on</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>net.i2p.crypto</groupId>
+      <artifactId>eddsa</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

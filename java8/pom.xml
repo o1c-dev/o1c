@@ -37,5 +37,10 @@
       <artifactId>bcprov-jdk15on</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>net.i2p.crypto</groupId>
+      <artifactId>eddsa</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 </project>

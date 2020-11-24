@@ -16,3 +16,4 @@
 
 dev.o1c.bc.Provider$Ed25519
 dev.o1c.bc.Provider$Ed448
+dev.o1c.i2p.Ed25519SignatureFactory

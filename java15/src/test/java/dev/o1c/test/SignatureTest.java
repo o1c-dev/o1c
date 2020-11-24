@@ -20,6 +20,7 @@ import dev.o1c.spi.Signature;
 import dev.o1c.spi.SignatureFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,6 +30,11 @@ abstract class SignatureTest {
     abstract SignatureFactory getEd25519();
 
     abstract SignatureFactory getEd448();
+
+    boolean isEd448Disabled() {
+        // some EdDSA providers only support Ed25519
+        return false;
+    }
 
     // https://tools.ietf.org/html/rfc8032#section-7.1
 
@@ -131,6 +137,7 @@ abstract class SignatureTest {
     // https://tools.ietf.org/html/rfc8032#section-7.4
 
     @Test
+    @DisabledIf("isEd448Disabled")
     void ed448_emptyMessage() {
         byte[] privateKey = Hex.decode("6c82a562cb808d10d632be89c8513ebf6c929f34ddfa8c9f63c9960ef6e348a3" +
                 "528c8a3fcc2f044e39a3fc5b94492f8f032e7549a20098f95b");
@@ -147,6 +154,7 @@ abstract class SignatureTest {
     }
 
     @Test
+    @DisabledIf("isEd448Disabled")
     void ed448_oneByteMessage() {
         byte[] privateKey = Hex.decode("c4eab05d357007c632f3dbb48489924d552b08fe0c353a0d4a1f00acda2c463a" +
                 "fbea67c5e8d2877c5e3bc397a659949ef8021e954e0a12274e");
