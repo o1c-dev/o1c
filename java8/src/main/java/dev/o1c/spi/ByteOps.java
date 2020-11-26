@@ -16,6 +16,13 @@
 
 package dev.o1c.spi;
 
+import java.io.ByteArrayOutputStream;
+import java.io.CharConversionException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
+
 public final class ByteOps {
     public static void reverse(byte[] buf) {
         for (int i = 0, j = buf.length - 1; i < j; i++, j--) {
@@ -29,6 +36,96 @@ public final class ByteOps {
         byte[] copy = buf.clone();
         reverse(copy);
         return copy;
+    }
+
+    public static byte[] fromHex(CharSequence data) {
+        return HEX_DECODER.decode(data);
+    }
+
+    private static final HexDecoder HEX_DECODER = new HexDecoder();
+
+    // adapted from BouncyCastle
+    private static class HexDecoder {
+        private final byte[] decodeTable;
+
+        private HexDecoder() {
+            decodeTable = new byte[128]; // hex chars are all in ASCII range
+            Arrays.fill(decodeTable, (byte) 0xff);
+            decodeTable['0'] = 0;
+            decodeTable['1'] = 1;
+            decodeTable['2'] = 2;
+            decodeTable['3'] = 3;
+            decodeTable['4'] = 4;
+            decodeTable['5'] = 5;
+            decodeTable['6'] = 6;
+            decodeTable['7'] = 7;
+            decodeTable['8'] = 8;
+            decodeTable['9'] = 9;
+            decodeTable['a'] = 10;
+            decodeTable['b'] = 11;
+            decodeTable['c'] = 12;
+            decodeTable['d'] = 13;
+            decodeTable['e'] = 14;
+            decodeTable['f'] = 15;
+            decodeTable['A'] = 10;
+            decodeTable['B'] = 11;
+            decodeTable['C'] = 12;
+            decodeTable['D'] = 13;
+            decodeTable['E'] = 14;
+            decodeTable['F'] = 15;
+        }
+
+        byte[] decode(CharSequence data) {
+            if (data.length() == 0) {
+                return new byte[0];
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try {
+                decodeTo(data, out);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            return out.toByteArray();
+        }
+
+        void decodeTo(CharSequence data, OutputStream out) throws IOException {
+            if (data.length() == 0) {
+                return;
+            }
+            int end = data.length();
+            // stripRight
+            while (end > 0 && Character.isWhitespace(data.charAt(end - 1))) {
+                end--;
+            }
+            byte[] buf = new byte[32];
+            int off = 0;
+            int i = 0;
+            while (i < end) {
+                // stripLeft
+                while (i < end && Character.isWhitespace(data.charAt(i))) {
+                    i++;
+                }
+                byte hi = decodeTable[data.charAt(i++)];
+                // stripLeft
+                while (i < end && Character.isWhitespace(data.charAt(i))) {
+                    i++;
+                }
+                byte lo = decodeTable[data.charAt(i++)];
+                if ((hi | lo) < 0) {
+                    throw new CharConversionException("Encountered non-whitespace non-hexadecimal character in input");
+                }
+                buf[off++] = (byte) (hi << 4 | lo);
+                // flush
+                if (off == buf.length) {
+                    out.write(buf);
+                    off = 0;
+                }
+            }
+            // final flush
+            if (off > 0) {
+                out.write(buf, 0, off);
+            }
+        }
     }
 
     private ByteOps() {
