@@ -38,6 +38,10 @@ public final class ByteOps {
         return copy;
     }
 
+    public static int unpackInt(byte[] buf, int off) {
+        return (buf[off] & 0xff) << 24 | (buf[off + 1] & 0xff) << 16 | (buf[off + 2] & 0xff) << 8 | buf[off + 3] & 0xff;
+    }
+
     public static byte[] fromHex(CharSequence data) {
         return HEX_DECODER.decode(data);
     }
