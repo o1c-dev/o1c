@@ -16,17 +16,17 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.Algorithm;
+import dev.o1c.jep339.Provider;
 import dev.o1c.spi.SignatureFactory;
 
 class JEP339SignatureTest extends SignatureTest {
     @Override
     SignatureFactory getEd25519() {
-        return Algorithm.Ed25519.getFactory(SignatureFactory.class, "SunEC");
+        return new Provider.Ed25519();
     }
 
     @Override
     SignatureFactory getEd448() {
-        return Algorithm.Ed448.getFactory(SignatureFactory.class, "SunEC");
+        return new Provider.Ed448();
     }
 }

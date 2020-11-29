@@ -17,47 +17,50 @@
 package dev.o1c.spi;
 
 import javax.crypto.KeyAgreement;
+import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.function.Supplier;
 
 class DefaultKeyExchange implements KeyExchange {
-    private final KeyCodec<PrivateKey> privateKeyCodec;
-    private final KeyCodec<PublicKey> publicKeyCodec;
-    private final KeyPairGenerator keyPairGenerator;
-    private final Supplier<KeyAgreement> keyAgreementSupplier;
+    private final KeyPairCodec keyPairCodec;
 
-    DefaultKeyExchange(
-            KeyCodec<PrivateKey> privateKeyCodec, KeyCodec<PublicKey> publicKeyCodec,
-            KeyPairGenerator keyPairGenerator, Supplier<KeyAgreement> keyAgreementSupplier) {
-        this.privateKeyCodec = privateKeyCodec;
-        this.publicKeyCodec = publicKeyCodec;
-        this.keyPairGenerator = keyPairGenerator;
-        this.keyAgreementSupplier = keyAgreementSupplier;
+    DefaultKeyExchange(KeyPairCodec keyPairCodec) {
+        this.keyPairCodec = keyPairCodec;
     }
 
     @Override
     public KeyPair newExchangeKey() {
-        return keyPairGenerator.generateKeyPair();
+        return keyPairCodec.generateKeyPair();
     }
 
     @Override
-    public byte[] calculateSharedSecret(PrivateKey us, PublicKey them) {
-        KeyAgreement agreement = keyAgreementSupplier.get();
+    public SecretKey calculateSharedSecret(PrivateKey us, PublicKey them) {
         try {
+            KeyAgreement agreement = createKeyAgreement();
             agreement.init(us);
             agreement.doPhase(them, true);
-        } catch (InvalidKeyException e) {
+            return agreement.generateSecret("ChaCha20");
+        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
             throw new IllegalArgumentException(e);
         }
-        return agreement.generateSecret();
     }
 
     @Override
     public byte[] calculateSharedSecret(byte[] ourPrivateKey, byte[] theirPublicKey) {
-        return calculateSharedSecret(privateKeyCodec.decode(ourPrivateKey), publicKeyCodec.decode(theirPublicKey));
+        try {
+            KeyAgreement agreement = createKeyAgreement();
+            agreement.init(keyPairCodec.decodePrivateKey(ourPrivateKey));
+            agreement.doPhase(keyPairCodec.decodePublicKey(theirPublicKey), true);
+            return agreement.generateSecret();
+        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private KeyAgreement createKeyAgreement() throws NoSuchAlgorithmException {
+        return KeyAgreement.getInstance(keyPairCodec.getAlgorithm().getAlgorithm(), keyPairCodec.getProvider());
     }
 }

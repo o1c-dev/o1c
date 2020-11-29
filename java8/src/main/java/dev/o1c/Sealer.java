@@ -16,7 +16,7 @@
 
 package dev.o1c;
 
-public interface Seal {
+public interface Sealer {
     byte[] seal(byte[] data, byte[] context);
 
     default byte[] seal(byte[] data) {
@@ -27,5 +27,17 @@ public interface Seal {
 
     default byte[] unseal(byte[] sealedData) {
         return unseal(sealedData, null);
+    }
+
+    SealedData tokenSeal(byte[] data, byte[] context);
+
+    default SealedData tokenSeal(byte[] data) {
+        return tokenSeal(data, null);
+    }
+
+    byte[] tokenUnseal(byte[] encryptedData, byte[] token, byte[] context);
+
+    default byte[] tokenUnseal(byte[] encryptedData, byte[] token) {
+        return tokenUnseal(encryptedData, token, null);
     }
 }

@@ -14,5 +14,5 @@
 # limitations under the License.
 #
 
-dev.o1c.jep324.XDHKeyExchangeFactory$X25519
-dev.o1c.jep324.XDHKeyExchangeFactory$X448
+dev.o1c.jep324.Provider$X25519
+dev.o1c.jep324.Provider$X448

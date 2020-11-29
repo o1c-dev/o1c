@@ -16,20 +16,28 @@
 
 package dev.o1c.spi;
 
-import javax.crypto.SecretKey;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-public interface KeyExchange {
-    KeyPair newExchangeKey();
+public interface KeyPairCodec extends SecurityFactory<KeyPair> {
+    @Override
+    default KeyPair create() {
+        return generateKeyPair();
+    }
 
-    SecretKey calculateSharedSecret(PrivateKey us, PublicKey them);
+    KeyPair generateKeyPair();
 
-    byte[] calculateSharedSecret(byte[] ourPrivateKey, byte[] theirPublicKey);
+    byte[] encodeKey(PublicKey key);
 
-    static KeyExchange getInstance(Algorithm algorithm) {
-        return SecurityFactory.getInstance(KeyExchangeFactory.class, factory -> algorithm == factory.getAlgorithm(),
-                () -> "No KeyExchangeFactory providers found for " + algorithm).create();
+    byte[] encodeKey(PrivateKey key);
+
+    PublicKey decodePublicKey(byte[] keyData);
+
+    PrivateKey decodePrivateKey(byte[] keyData);
+
+    static KeyPairCodec getInstance(Algorithm algorithm) {
+        return SecurityFactory.getInstance(KeyPairCodec.class, codec -> algorithm == codec.getAlgorithm(),
+                () -> "No KeyPairCodec providers found for " + algorithm);
     }
 }

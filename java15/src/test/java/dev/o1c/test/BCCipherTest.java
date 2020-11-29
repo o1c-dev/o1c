@@ -16,27 +16,20 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.CipherFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 
-import java.security.Security;
+import javax.crypto.Cipher;
+import java.security.Provider;
+
+import static dev.o1c.spi.Algorithm.ChaCha20Poly1305;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class BCCipherTest extends CipherTest {
-    @BeforeAll
-    static void beforeAll() {
-        Security.addProvider(new BouncyCastleProvider());
-    }
-
-    @AfterAll
-    static void afterAll() {
-        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
-    }
+    // no need to install in this test since we aren't using string provider names here
+    private final Provider provider = new BouncyCastleProvider();
 
     @Override
-    CipherFactory getCipherFactory() {
-        return Algorithm.ChaCha20Poly1305.getFactory(CipherFactory.class, BouncyCastleProvider.PROVIDER_NAME);
+    Cipher getCipher() {
+        return assertDoesNotThrow(() -> Cipher.getInstance(ChaCha20Poly1305.getAlgorithm(), provider));
     }
 }

@@ -32,6 +32,12 @@
             <binaries>
                 <unpack>true</unpack>
                 <includeDependencies>false</includeDependencies>
+                <unpackOptions>
+                    <excludes>
+                        <exclude>/META-INF/*.MF</exclude>
+                        <exclude>/META-INF/maven/**</exclude>
+                    </excludes>
+                </unpackOptions>
             </binaries>
         </moduleSet>
         <moduleSet>
@@ -45,7 +51,8 @@
                 <includeDependencies>false</includeDependencies>
                 <unpackOptions>
                     <excludes>
-                        <exclude>/META-INF/**</exclude>
+                        <exclude>/META-INF/*.MF</exclude>
+                        <exclude>/META-INF/maven/**</exclude>
                     </excludes>
                 </unpackOptions>
             </binaries>
@@ -61,7 +68,8 @@
                 <includeDependencies>false</includeDependencies>
                 <unpackOptions>
                     <excludes>
-                        <exclude>/META-INF/**</exclude>
+                        <exclude>/META-INF/*.MF</exclude>
+                        <exclude>/META-INF/maven/**</exclude>
                     </excludes>
                 </unpackOptions>
             </binaries>

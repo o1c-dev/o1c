@@ -29,18 +29,26 @@
   <name>O(1) Cryptography Extensions for Java 8+</name>
   <properties>
     <maven.install.skip>true</maven.install.skip>
+    <maven.deploy.skip>true</maven.deploy.skip>
     <maven.compiler.release>8</maven.compiler.release>
   </properties>
+  <!-- note that required dependencies must be copied to the o1crypto (all) module -->
   <dependencies>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>net.i2p.crypto</groupId>
       <artifactId>eddsa</artifactId>
-      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>de.mkammerer</groupId>
+      <artifactId>argon2-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.kosprov.jargon2</groupId>
+      <artifactId>jargon2-api</artifactId>
     </dependency>
   </dependencies>
 </project>

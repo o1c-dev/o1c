@@ -14,4 +14,8 @@
 # limitations under the License.
 #
 
-dev.o1c.jep329.ChaChaCipherFactory
+dev.o1c.bc.Provider$Ed25519Codec
+dev.o1c.bc.Provider$Ed448Codec
+dev.o1c.bc.Provider$X25519Codec
+dev.o1c.bc.Provider$X448Codec
+dev.o1c.i2p.Ed25519KeyPairCodec

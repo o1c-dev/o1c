@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package dev.o1c.bc;
+package dev.o1c.jep324;
 
 import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.KeyExchangeFactory;
-import dev.o1c.spi.SignatureFactory;
 
 public class Provider {
-    public static class X25519Codec extends BouncyCastleKeyPairCodec {
+    public static class X25519Codec extends XDHKeyPairCodec {
         public X25519Codec() {
             super(Algorithm.X25519);
         }
@@ -33,7 +32,7 @@ public class Provider {
         }
     }
 
-    public static class X448Codec extends BouncyCastleKeyPairCodec {
+    public static class X448Codec extends XDHKeyPairCodec {
         public X448Codec() {
             super(Algorithm.X448);
         }
@@ -45,27 +44,7 @@ public class Provider {
         }
     }
 
-    public static class Ed25519Codec extends BouncyCastleKeyPairCodec {
-        public Ed25519Codec() {
-            super(Algorithm.Ed25519);
-        }
-    }
-
-    public static class Ed25519 extends SignatureFactory {
-        public Ed25519() {
-            super(new Ed25519Codec());
-        }
-    }
-
-    public static class Ed448Codec extends BouncyCastleKeyPairCodec {
-        public Ed448Codec() {
-            super(Algorithm.Ed448);
-        }
-    }
-
-    public static class Ed448 extends SignatureFactory {
-        public Ed448() {
-            super(new Ed448Codec());
-        }
+    private Provider() {
+        throw new UnsupportedOperationException();
     }
 }

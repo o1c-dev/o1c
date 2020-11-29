@@ -16,33 +16,25 @@
 
 package dev.o1c.i2p;
 
-import dev.o1c.spi.KeyCodec;
+import dev.o1c.spi.KeyPairCodec;
 import dev.o1c.spi.Signature;
 import net.i2p.crypto.eddsa.EdDSAEngine;
 
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
 
 class Ed25519Signature implements Signature {
-    private final KeyCodec<PrivateKey> privateKeyCodec;
-    private final KeyCodec<PublicKey> publicKeyCodec;
-    private final KeyPairGenerator keyPairGenerator;
+    private final KeyPairCodec keyPairCodec;
 
-    Ed25519Signature(
-            KeyCodec<PrivateKey> privateKeyCodec, KeyCodec<PublicKey> publicKeyCodec,
-            KeyPairGenerator keyPairGenerator) {
-        this.privateKeyCodec = privateKeyCodec;
-        this.publicKeyCodec = publicKeyCodec;
-        this.keyPairGenerator = keyPairGenerator;
+    Ed25519Signature(KeyPairCodec keyPairCodec) {
+        this.keyPairCodec = keyPairCodec;
     }
 
     @Override
-    public KeyPair newSigningKey() {
-        return keyPairGenerator.generateKeyPair();
+    public KeyPairCodec getKeyPairCodec() {
+        return keyPairCodec;
     }
 
     @Override
@@ -73,15 +65,5 @@ class Ed25519Signature implements Signature {
         } catch (SignatureException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    @Override
-    public byte[] calculateSignature(byte[] privateKey, byte[] data) {
-        return calculateSignature(privateKeyCodec.decode(privateKey), data);
-    }
-
-    @Override
-    public boolean verifySignature(byte[] publicKey, byte[] data, byte[] signature) {
-        return verifySignature(publicKeyCodec.decode(publicKey), data, signature);
     }
 }

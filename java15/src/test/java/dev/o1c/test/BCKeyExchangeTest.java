@@ -16,7 +16,7 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.Algorithm;
+import dev.o1c.bc.Provider;
 import dev.o1c.spi.KeyExchangeFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterAll;
@@ -37,11 +37,11 @@ public class BCKeyExchangeTest extends KeyExchangeTest {
 
     @Override
     KeyExchangeFactory getX25519() {
-        return Algorithm.X25519.getFactory(KeyExchangeFactory.class, BouncyCastleProvider.PROVIDER_NAME);
+        return new Provider.X25519();
     }
 
     @Override
     KeyExchangeFactory getX448() {
-        return Algorithm.X448.getFactory(KeyExchangeFactory.class, BouncyCastleProvider.PROVIDER_NAME);
+        return new Provider.X448();
     }
 }

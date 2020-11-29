@@ -16,10 +16,43 @@
 
 package dev.o1c.spi;
 
+import dev.o1c.O1CException;
+
+import java.security.Provider;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 public interface SecurityFactory<T> {
     T create();
 
-    String getAlgorithm();
+    Algorithm getAlgorithm();
 
-    String getProvider();
+    Provider getProvider();
+
+    static <T, S extends SecurityFactory<T>> S getInstance(
+            Class<S> factoryType, Predicate<? super S> predicate, Supplier<String> errorMessageSupplier) {
+        Iterator<S> iterator = ServiceLoader.load(factoryType).iterator();
+        List<Throwable> errors = null;
+        while (iterator.hasNext()) {
+            S service;
+            try {
+                service = iterator.next();
+            } catch (ServiceConfigurationError e) {
+                if (errors == null) {
+                    errors = new ArrayList<>();
+                }
+                errors.add(e.getCause() instanceof O1CException ? e.getCause() : e);
+                continue;
+            }
+            if (predicate.test(service)) {
+                return service;
+            }
+        }
+        throw new O1CException(errorMessageSupplier.get(), errors);
+    }
 }

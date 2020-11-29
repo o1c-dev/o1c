@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package dev.o1c.bc;
+package dev.o1c.spi;
 
-import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.KeyCodec;
+import dev.o1c.O1CException;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
+public class InvalidSealException extends O1CException {
+    public InvalidSealException(String message) {
+        super(message);
+    }
 
-interface Curve {
-    Algorithm getAlgorithm();
+    public InvalidSealException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    KeyCodec<PrivateKey> getPrivateKeyCodec();
-
-    KeyCodec<PublicKey> getPublicKeyCodec();
+    public InvalidSealException(Throwable cause) {
+        super(cause);
+    }
 }

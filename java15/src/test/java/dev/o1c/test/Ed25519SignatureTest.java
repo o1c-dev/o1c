@@ -16,7 +16,7 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.Algorithm;
+import dev.o1c.i2p.Ed25519SignatureFactory;
 import dev.o1c.spi.SignatureFactory;
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import org.junit.jupiter.api.AfterAll;
@@ -37,7 +37,7 @@ class Ed25519SignatureTest extends SignatureTest {
 
     @Override
     SignatureFactory getEd25519() {
-        return Algorithm.Ed25519.getFactory(SignatureFactory.class, EdDSASecurityProvider.PROVIDER_NAME);
+        return new Ed25519SignatureFactory();
     }
 
     @Override

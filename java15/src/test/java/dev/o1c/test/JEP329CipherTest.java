@@ -16,12 +16,14 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.CipherFactory;
+import javax.crypto.Cipher;
+
+import static dev.o1c.spi.Algorithm.ChaCha20Poly1305;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class JEP329CipherTest extends CipherTest {
     @Override
-    CipherFactory getCipherFactory() {
-        return Algorithm.ChaCha20Poly1305.getFactory(CipherFactory.class, "SunJCE");
+    Cipher getCipher() {
+        return assertDoesNotThrow(() -> Cipher.getInstance(ChaCha20Poly1305.getAlgorithm(), "SunJCE"));
     }
 }

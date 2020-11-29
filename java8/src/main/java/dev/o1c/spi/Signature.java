@@ -16,18 +16,26 @@
 
 package dev.o1c.spi;
 
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
 public interface Signature {
-    KeyPair newSigningKey();
+    KeyPairCodec getKeyPairCodec();
 
     byte[] calculateSignature(PrivateKey key, byte[] data);
 
     boolean verifySignature(PublicKey key, byte[] data, byte[] signature);
 
-    byte[] calculateSignature(byte[] privateKey, byte[] data);
+    default byte[] calculateSignature(byte[] privateKey, byte[] data) {
+        return calculateSignature(getKeyPairCodec().decodePrivateKey(privateKey), data);
+    }
 
-    boolean verifySignature(byte[] publicKey, byte[] data, byte[] signature);
+    default boolean verifySignature(byte[] publicKey, byte[] data, byte[] signature) {
+        return verifySignature(getKeyPairCodec().decodePublicKey(publicKey), data, signature);
+    }
+
+    static Signature getInstance(Algorithm algorithm) {
+        return SecurityFactory.getInstance(SignatureFactory.class, factory -> algorithm == factory.getAlgorithm(),
+                () -> "No SignatureFactory providers found for " + algorithm).create();
+    }
 }

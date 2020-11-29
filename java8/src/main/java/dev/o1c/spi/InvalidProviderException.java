@@ -19,6 +19,10 @@ package dev.o1c.spi;
 import dev.o1c.O1CException;
 
 public class InvalidProviderException extends O1CException {
+    public InvalidProviderException(String message) {
+        super(message);
+    }
+
     public InvalidProviderException(Throwable cause) {
         super(cause);
     }

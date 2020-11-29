@@ -16,16 +16,7 @@
 
 package dev.o1c.spi;
 
-import dev.o1c.O1CException;
-
 import java.security.CryptoPrimitive;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public enum Algorithm {
     ChaCha20Poly1305("ChaCha20-Poly1305", CryptoPrimitive.STREAM_CIPHER, 32, "1.2.840.113549.1.9.16.3.18"),
@@ -61,45 +52,5 @@ public enum Algorithm {
 
     public String getObjectIdentifier() {
         return objectIdentifier;
-    }
-
-    public <T, F extends SecurityFactory<T>> F getFactory(Class<F> factoryType) {
-        Predicate<F> p = factory -> algorithm.equals(factory.getAlgorithm());
-        Supplier<String> errorMessageSupplier = () -> "No service providers found for algorithm '" + algorithm + "'";
-        return getFactory(factoryType, p, errorMessageSupplier);
-    }
-
-    public <T, F extends SecurityFactory<T>> F getFactory(Class<F> factoryType, String provider) {
-        Predicate<F> p = factory -> algorithm.equals(factory.getAlgorithm()) && provider.equals(factory.getProvider());
-        Supplier<String> errorMessageSupplier =
-                () -> "No service providers found for algorithm '" + algorithm + "' and provider '" + provider + "'";
-        return getFactory(factoryType, p, errorMessageSupplier);
-    }
-
-    private <T, F extends SecurityFactory<T>> F getFactory(
-            Class<F> factoryType, Predicate<F> predicate, Supplier<String> errorMessageSupplier) {
-        Iterator<F> iterator = ServiceLoader.load(factoryType).iterator();
-        List<Throwable> errors = null;
-        while (iterator.hasNext()) {
-            F factory;
-            try {
-                factory = iterator.next();
-            } catch (ServiceConfigurationError error) {
-                if (errors == null) {
-                    errors = new ArrayList<>();
-                }
-                // unwrap our own exceptions
-                if (error.getCause() instanceof InvalidProviderException) {
-                    errors.add(error.getCause().getCause());
-                } else {
-                    errors.add(error);
-                }
-                continue;
-            }
-            if (predicate.test(factory)) {
-                return factory;
-            }
-        }
-        throw new O1CException(errorMessageSupplier.get(), errors);
     }
 }

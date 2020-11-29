@@ -16,8 +16,7 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.SecurityFactory;
+import dev.o1c.bc.Provider;
 import dev.o1c.spi.SignatureFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterAll;
@@ -38,11 +37,11 @@ public class BCSignatureTest extends SignatureTest {
 
     @Override
     SignatureFactory getEd25519() {
-        return Algorithm.Ed25519.getFactory(SignatureFactory.class, BouncyCastleProvider.PROVIDER_NAME);
+        return new Provider.Ed25519();
     }
 
     @Override
     SignatureFactory getEd448() {
-        return Algorithm.Ed448.getFactory(SignatureFactory.class, BouncyCastleProvider.PROVIDER_NAME);
+        return new Provider.Ed448();
     }
 }

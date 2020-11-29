@@ -23,7 +23,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Objects;
 
 public class DataSecurity {
-    public static TokenSeal sealWithKey(byte[] key) {
+    public static Sealer sealWithKey(byte[] key) {
         Algorithm algorithm = Algorithm.ChaCha20Poly1305;
         if (key.length != algorithm.getKeySize()) {
             throw new IllegalArgumentException(
@@ -32,7 +32,7 @@ public class DataSecurity {
         return sealWithKey(new SecretKeySpec(key, algorithm.getAlgorithm()));
     }
 
-    public static TokenSeal sealWithKey(SecretKey key) {
-        return new SecretKeySeal(Objects.requireNonNull(key));
+    public static Sealer sealWithKey(SecretKey key) {
+        return new SecretKeySealer(Objects.requireNonNull(key));
     }
 }

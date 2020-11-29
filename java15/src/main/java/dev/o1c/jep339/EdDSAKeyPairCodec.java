@@ -18,35 +18,58 @@ package dev.o1c.jep339;
 
 import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.ByteOps;
-import dev.o1c.spi.KeyCodec;
+import dev.o1c.spi.InvalidProviderException;
+import dev.o1c.spi.KeyPairCodec;
 
 import java.math.BigInteger;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
 import java.security.spec.EdECPoint;
+import java.security.spec.EdECPrivateKeySpec;
 import java.security.spec.EdECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 
-class EdDSAPublicKeyCodec implements KeyCodec<PublicKey> {
+class EdDSAKeyPairCodec implements KeyPairCodec {
     private final Algorithm algorithm;
     private final NamedParameterSpec curve;
     private final KeyFactory keyFactory;
+    private final KeyPairGenerator keyPairGenerator;
 
-    EdDSAPublicKeyCodec(Algorithm algorithm, KeyFactory keyFactory) {
+    EdDSAKeyPairCodec(Algorithm algorithm) {
         this.algorithm = algorithm;
-        this.curve = new NamedParameterSpec(algorithm.getAlgorithm());
-        this.keyFactory = keyFactory;
+        curve = new NamedParameterSpec(algorithm.getAlgorithm());
+        try {
+            keyFactory = KeyFactory.getInstance(algorithm.getAlgorithm());
+            keyPairGenerator = KeyPairGenerator.getInstance(algorithm.getAlgorithm(), keyFactory.getProvider());
+        } catch (NoSuchAlgorithmException e) {
+            throw new InvalidProviderException(e);
+        }
     }
 
     @Override
-    public int getKeySize() {
-        return algorithm.getKeySize();
+    public Algorithm getAlgorithm() {
+        return algorithm;
     }
 
     @Override
-    public byte[] encode(PublicKey key) {
+    public Provider getProvider() {
+        return keyFactory.getProvider();
+    }
+
+    @Override
+    public KeyPair generateKeyPair() {
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    @Override
+    public byte[] encodeKey(PublicKey key) {
         EdECPoint point;
         try {
             var keySpec = keyFactory.getKeySpec(key, EdECPublicKeySpec.class);
@@ -60,13 +83,23 @@ class EdDSAPublicKeyCodec implements KeyCodec<PublicKey> {
         var y = point.getY().toByteArray();
         ByteOps.reverse(y);
         // zero-extend or truncate key back to key size
-        var keyData = Arrays.copyOf(y, getKeySize());
+        var keyData = Arrays.copyOf(y, algorithm.getKeySize());
         keyData[keyData.length - 1] |= (byte) (point.isXOdd() ? 0x80 : 0);
         return keyData;
     }
 
     @Override
-    public PublicKey decode(byte[] keyData) {
+    public byte[] encodeKey(PrivateKey key) {
+        try {
+            var keySpec = keyFactory.getKeySpec(key, EdECPrivateKeySpec.class);
+            return keySpec.getBytes();
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @Override
+    public PublicKey decodePublicKey(byte[] keyData) {
         // little endian, high order bit specifies if x is odd or not
         // this bit of glue code inspired from:
         // https://bugs.openjdk.java.net/browse/JDK-8252595
@@ -77,6 +110,15 @@ class EdDSAPublicKeyCodec implements KeyCodec<PublicKey> {
         var point = new EdECPoint(xOdd, y);
         try {
             return keyFactory.generatePublic(new EdECPublicKeySpec(curve, point));
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @Override
+    public PrivateKey decodePrivateKey(byte[] keyData) {
+        try {
+            return keyFactory.generatePrivate(new EdECPrivateKeySpec(curve, keyData));
         } catch (InvalidKeySpecException e) {
             throw new IllegalArgumentException(e);
         }

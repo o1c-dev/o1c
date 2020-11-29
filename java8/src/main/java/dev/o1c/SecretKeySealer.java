@@ -19,8 +19,8 @@ package dev.o1c;
 import dev.o1c.spi.Algorithm;
 import dev.o1c.spi.ByteOps;
 import dev.o1c.spi.InvalidProviderException;
+import dev.o1c.spi.InvalidSealException;
 
-import javax.crypto.AEADBadTagException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -35,7 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Objects;
 
-class SecretKeySeal implements TokenSeal {
+class SecretKeySealer implements Sealer {
     private static final int TAG_SIZE = 16;
     private static final int NONCE_SIZE = 12;
     private static final int TOKEN_TYPE = 0x43433230; // CC20 in ASCII, big endian order
@@ -44,7 +44,7 @@ class SecretKeySeal implements TokenSeal {
 
     private final SecretKey key;
 
-    SecretKeySeal(SecretKey key) {
+    SecretKeySealer(SecretKey key) {
         this.key = key;
     }
 
@@ -64,23 +64,20 @@ class SecretKeySeal implements TokenSeal {
         return sealedData.array();
     }
 
-    // TODO: consider propagating checked AEADBadTagException
     @Override
     public byte[] unseal(byte[] sealedData, byte[] context) {
         Objects.requireNonNull(sealedData);
         int typeOffset = sealedData.length - Integer.BYTES;
         int tokenType = ByteOps.unpackInt(sealedData, typeOffset);
         if (tokenType != TOKEN_TYPE) {
-            throw new IllegalArgumentException("Unsupported seal type detected: " + Integer.toHexString(tokenType));
+            throw new InvalidSealException("Unsupported seal type detected: " + Integer.toHexString(tokenType));
         }
         int nonceOffset = typeOffset - NONCE_SIZE;
         IvParameterSpec nonce = new IvParameterSpec(sealedData, nonceOffset, NONCE_SIZE);
         try {
             return initDecrypt(nonce, context).doFinal(sealedData, 0, nonceOffset);
-        } catch (AEADBadTagException e) {
-            throw new O1CException(e);
         } catch (BadPaddingException | IllegalBlockSizeException e) {
-            throw new IllegalStateException(e);
+            throw new InvalidSealException(e);
         }
     }
 
@@ -110,11 +107,11 @@ class SecretKeySeal implements TokenSeal {
         Objects.requireNonNull(encryptedData);
         Objects.requireNonNull(token);
         if (token.length != TOKEN_SIZE) {
-            throw new IllegalArgumentException("Token size must be " + TOKEN_SIZE + " bytes");
+            throw new InvalidSealException("Token size must be " + TOKEN_SIZE + " bytes");
         }
         int tokenType = ByteOps.unpackInt(token, TAG_SIZE + NONCE_SIZE);
         if (tokenType != TOKEN_TYPE) {
-            throw new IllegalArgumentException("Unsupported seal token type detected: " + Integer.toHexString(tokenType));
+            throw new InvalidSealException("Unsupported seal token type detected: " + Integer.toHexString(tokenType));
         }
         IvParameterSpec nonce = new IvParameterSpec(token, TAG_SIZE, NONCE_SIZE);
         Cipher cipher = initDecrypt(nonce, context);
@@ -122,9 +119,9 @@ class SecretKeySeal implements TokenSeal {
         try {
             cipher.doFinal(token, 0, TAG_SIZE, plaintext,
                     cipher.update(encryptedData, 0, encryptedData.length, plaintext));
-        } catch (AEADBadTagException e) {
-            throw new O1CException(e);
-        } catch (BadPaddingException | IllegalBlockSizeException | ShortBufferException e) {
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            throw new InvalidSealException(e);
+        } catch (ShortBufferException e) {
             throw new IllegalStateException(e);
         }
         return plaintext;

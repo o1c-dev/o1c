@@ -16,37 +16,27 @@
 
 package dev.o1c.spi;
 
-import javax.crypto.KeyAgreement;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.Provider;
 
-public abstract class KeyExchangeFactory implements SecurityFactory<KeyExchange> {
+public class KeyExchangeFactory implements SecurityFactory<KeyExchange> {
+    protected final KeyPairCodec keyPairCodec;
+
+    protected KeyExchangeFactory(KeyPairCodec keyPairCodec) {
+        this.keyPairCodec = keyPairCodec;
+    }
+
+    @Override
+    public Algorithm getAlgorithm() {
+        return keyPairCodec.getAlgorithm();
+    }
+
+    @Override
+    public Provider getProvider() {
+        return keyPairCodec.getProvider();
+    }
+
     @Override
     public KeyExchange create() {
-        return new DefaultKeyExchange(getPrivateKeyCodec(), getPublicKeyCodec(), getKeyPairGenerator(),
-                this::createKeyAgreement);
-    }
-
-    protected abstract KeyCodec<PrivateKey> getPrivateKeyCodec();
-
-    protected abstract KeyCodec<PublicKey> getPublicKeyCodec();
-
-    protected KeyPairGenerator getKeyPairGenerator() {
-        try {
-            return KeyPairGenerator.getInstance(getAlgorithm(), getProvider());
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new InvalidProviderException(e);
-        }
-    }
-
-    protected KeyAgreement createKeyAgreement() {
-        try {
-            return KeyAgreement.getInstance(getAlgorithm(), getProvider());
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new InvalidProviderException(e);
-        }
+        return new DefaultKeyExchange(keyPairCodec);
     }
 }

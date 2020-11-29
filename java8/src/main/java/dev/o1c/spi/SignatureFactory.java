@@ -16,35 +16,35 @@
 
 package dev.o1c.spi;
 
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.Provider;
 
-public abstract class SignatureFactory implements SecurityFactory<Signature> {
+public class SignatureFactory implements SecurityFactory<Signature> {
+    protected final KeyPairCodec keyPairCodec;
+
+    protected SignatureFactory(KeyPairCodec keyPairCodec) {
+        this.keyPairCodec = keyPairCodec;
+    }
+
+    @Override
+    public Algorithm getAlgorithm() {
+        return keyPairCodec.getAlgorithm();
+    }
+
+    @Override
+    public Provider getProvider() {
+        return keyPairCodec.getProvider();
+    }
+
     @Override
     public Signature create() {
-        return new DefaultSignature(getPrivateKeyCodec(), getPublicKeyCodec(), getKeyPairGenerator(), this::createSignature);
-    }
-
-    protected abstract KeyCodec<PrivateKey> getPrivateKeyCodec();
-
-    protected abstract KeyCodec<PublicKey> getPublicKeyCodec();
-
-    protected KeyPairGenerator getKeyPairGenerator() {
-        try {
-            return KeyPairGenerator.getInstance(getAlgorithm(), getProvider());
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new InvalidProviderException(e);
-        }
-    }
-
-    protected java.security.Signature createSignature() {
-        try {
-            return java.security.Signature.getInstance(getAlgorithm(), getProvider());
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new InvalidProviderException(e);
-        }
+        return new DefaultSignature(keyPairCodec, () -> {
+            try {
+                return java.security.Signature.getInstance(keyPairCodec.getAlgorithm().getAlgorithm(),
+                        keyPairCodec.getProvider());
+            } catch (NoSuchAlgorithmException e) {
+                throw new InvalidProviderException(e);
+            }
+        });
     }
 }

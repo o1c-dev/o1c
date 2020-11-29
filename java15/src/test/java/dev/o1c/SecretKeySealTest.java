@@ -31,7 +31,7 @@ class SecretKeySealTest {
 
     private static Random random;
 
-    private TokenSeal seal;
+    private Sealer sealer;
 
     @BeforeAll
     static void beforeAll() throws NoSuchAlgorithmException {
@@ -42,14 +42,14 @@ class SecretKeySealTest {
     void setUp() {
         var key = new byte[ChaCha20Poly1305.getKeySize()];
         random.nextBytes(key);
-        seal = DataSecurity.sealWithKey(key);
+        sealer = DataSecurity.sealWithKey(key);
     }
 
     @Test
     void sealNoContext() {
         var plaintext = new byte[4096];
         random.nextBytes(plaintext);
-        assertArrayEquals(plaintext, seal.unseal(seal.seal(plaintext)));
+        assertArrayEquals(plaintext, sealer.unseal(sealer.seal(plaintext)));
     }
 
     @Test
@@ -58,15 +58,15 @@ class SecretKeySealTest {
         random.nextBytes(plaintext);
         var context = new byte[42];
         random.nextBytes(context);
-        assertArrayEquals(plaintext, seal.unseal(seal.seal(plaintext, context), context));
+        assertArrayEquals(plaintext, sealer.unseal(sealer.seal(plaintext, context), context));
     }
 
     @Test
     void tokenSealNoContext() {
         var plaintext = new byte[2043];
         random.nextBytes(plaintext);
-        var secureData = seal.tokenSeal(plaintext);
-        assertArrayEquals(plaintext, seal.tokenUnseal(secureData.getEncryptedData(), secureData.getToken()));
+        var secureData = sealer.tokenSeal(plaintext);
+        assertArrayEquals(plaintext, sealer.tokenUnseal(secureData.getEncryptedData(), secureData.getToken()));
     }
 
     @Test
@@ -75,7 +75,7 @@ class SecretKeySealTest {
         random.nextBytes(plaintext);
         var context = new byte[63];
         random.nextBytes(context);
-        var secureData = seal.tokenSeal(plaintext, context);
-        assertArrayEquals(plaintext, seal.tokenUnseal(secureData.getEncryptedData(), secureData.getToken(), context));
+        var secureData = sealer.tokenSeal(plaintext, context);
+        assertArrayEquals(plaintext, sealer.tokenUnseal(secureData.getEncryptedData(), secureData.getToken(), context));
     }
 }
