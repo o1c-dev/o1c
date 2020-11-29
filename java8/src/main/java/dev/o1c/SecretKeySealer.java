@@ -38,9 +38,9 @@ import java.util.Objects;
 class SecretKeySealer implements Sealer {
     private static final int TAG_SIZE = 16;
     private static final int NONCE_SIZE = 12;
-    private static final int TOKEN_TYPE = 0x43433230; // CC20 in ASCII, big endian order
+    private static final int SEAL_TYPE = 0x43433230; // CC20 in ASCII, big endian order
     private static final int TOKEN_SIZE = NONCE_SIZE + TAG_SIZE + Integer.BYTES;
-    // token = tag [0..15] + nonce [16..27] + token_type [28..31]
+    // token = tag [0..15] + nonce [16..27] + seal_type [28..31]
 
     private final SecretKey key;
 
@@ -53,29 +53,31 @@ class SecretKeySealer implements Sealer {
         Objects.requireNonNull(data);
         Cipher cipher = initEncrypt(context);
         byte[] nonce = cipher.getIV();
-        ByteBuffer sealedData = ByteBuffer.allocate(cipher.getOutputSize(data.length) + nonce.length + Integer.BYTES);
+        ByteBuffer sealedData = ByteBuffer.allocate(cipher.getOutputSize(data.length) + nonce.length + Integer.BYTES * 2);
+        sealedData.putInt(SEAL_TYPE);
+        sealedData.putInt(data.length);
+        sealedData.put(nonce);
         try {
             cipher.doFinal(ByteBuffer.wrap(data), sealedData);
         } catch (BadPaddingException | IllegalBlockSizeException | ShortBufferException e) {
             throw new IllegalStateException(e);
         }
-        sealedData.put(nonce);
-        sealedData.putInt(TOKEN_TYPE);
         return sealedData.array();
     }
 
     @Override
     public byte[] unseal(byte[] sealedData, byte[] context) {
         Objects.requireNonNull(sealedData);
-        int typeOffset = sealedData.length - Integer.BYTES;
-        int tokenType = ByteOps.unpackInt(sealedData, typeOffset);
-        if (tokenType != TOKEN_TYPE) {
-            throw new InvalidSealException("Unsupported seal type detected: " + Integer.toHexString(tokenType));
+        int sealType = ByteOps.unpackInt(sealedData, 0);
+        if (sealType != SEAL_TYPE) {
+            throw new InvalidSealException("Unsupported seal type detected: " + Integer.toHexString(sealType));
         }
-        int nonceOffset = typeOffset - NONCE_SIZE;
+        int dataLength = ByteOps.unpackInt(sealedData, Integer.BYTES) + TAG_SIZE;
+        int nonceOffset = Integer.BYTES * 2;
         IvParameterSpec nonce = new IvParameterSpec(sealedData, nonceOffset, NONCE_SIZE);
+        int dataOffset = nonceOffset + NONCE_SIZE;
         try {
-            return initDecrypt(nonce, context).doFinal(sealedData, 0, nonceOffset);
+            return initDecrypt(nonce, context).doFinal(sealedData, dataOffset, dataLength);
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             throw new InvalidSealException(e);
         }
@@ -98,7 +100,7 @@ class SecretKeySealer implements Sealer {
         ByteBuffer token = ByteBuffer.allocate(TOKEN_SIZE);
         token.put(ciphertext);
         token.put(nonce);
-        token.putInt(TOKEN_TYPE);
+        token.putInt(SEAL_TYPE);
         return new SealedData(encryptedData, token.array());
     }
 
@@ -110,7 +112,7 @@ class SecretKeySealer implements Sealer {
             throw new InvalidSealException("Token size must be " + TOKEN_SIZE + " bytes");
         }
         int tokenType = ByteOps.unpackInt(token, TAG_SIZE + NONCE_SIZE);
-        if (tokenType != TOKEN_TYPE) {
+        if (tokenType != SEAL_TYPE) {
             throw new InvalidSealException("Unsupported seal token type detected: " + Integer.toHexString(tokenType));
         }
         IvParameterSpec nonce = new IvParameterSpec(token, TAG_SIZE, NONCE_SIZE);
