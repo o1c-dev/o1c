@@ -16,6 +16,9 @@
 
 package dev.o1c;
 
+import dev.o1c.spi.KeyGenerator;
+
+import javax.crypto.SecretKey;
 import java.util.Objects;
 
 public final class SealedData {
@@ -33,5 +36,13 @@ public final class SealedData {
 
     public byte[] getToken() {
         return token;
+    }
+
+    public static SecretKey generateKey() {
+        return KeyGenerator.getInstance().generateKey();
+    }
+
+    public static Sealer usingKey(SecretKey key) {
+        return new SecretKeySealer(Objects.requireNonNull(key));
     }
 }

@@ -17,8 +17,10 @@
 package dev.o1c.bc;
 
 import dev.o1c.spi.Algorithm;
+import dev.o1c.spi.DefaultKeyGenerator;
 import dev.o1c.spi.KeyExchangeFactory;
 import dev.o1c.spi.SignatureFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class Provider {
     public static class X25519Codec extends BouncyCastleKeyPairCodec {
@@ -66,6 +68,12 @@ public class Provider {
     public static class Ed448 extends SignatureFactory {
         public Ed448() {
             super(new Ed448Codec());
+        }
+    }
+
+    public static class ChaCha20 extends DefaultKeyGenerator {
+        public ChaCha20() {
+            super(BouncyCastleProvider.PROVIDER_NAME);
         }
     }
 }

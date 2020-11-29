@@ -17,6 +17,7 @@
 package dev.o1c.jep324;
 
 import dev.o1c.spi.Algorithm;
+import dev.o1c.spi.DefaultKeyGenerator;
 import dev.o1c.spi.KeyExchangeFactory;
 
 public class Provider {
@@ -41,6 +42,12 @@ public class Provider {
     public static class X448 extends KeyExchangeFactory {
         public X448() {
             super(new X448Codec());
+        }
+    }
+
+    public static class ChaCha20 extends DefaultKeyGenerator {
+        public ChaCha20() {
+            super("SunJCE");
         }
     }
 

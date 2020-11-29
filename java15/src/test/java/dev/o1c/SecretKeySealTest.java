@@ -16,33 +16,24 @@
 
 package dev.o1c;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
-import static dev.o1c.spi.Algorithm.ChaCha20Poly1305;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class SecretKeySealTest {
 
-    private static Random random;
-
+    private Random random;
     private Sealer sealer;
-
-    @BeforeAll
-    static void beforeAll() throws NoSuchAlgorithmException {
-        random = SecureRandom.getInstanceStrong();
-    }
 
     @BeforeEach
     void setUp() {
-        var key = new byte[ChaCha20Poly1305.getKeySize()];
-        random.nextBytes(key);
-        sealer = DataSecurity.sealWithKey(key);
+        var key = SealedData.generateKey();
+        sealer = SealedData.usingKey(key);
+        random = new Random(ByteBuffer.wrap(key.getEncoded()).getLong());
     }
 
     @Test
