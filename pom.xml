@@ -97,6 +97,21 @@
         <version>0.3.0</version>
       </dependency>
       <dependency>
+        <groupId>de.mkammerer</groupId>
+        <artifactId>argon2-jvm</artifactId>
+        <version>2.7</version>
+      </dependency>
+      <dependency>
+        <groupId>com.kosprov.jargon2</groupId>
+        <artifactId>jargon2-api</artifactId>
+        <version>1.1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.kosprov.jargon2</groupId>
+        <artifactId>jargon2-native-ri-backend</artifactId>
+        <version>1.1.1</version>
+      </dependency>
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>5.7.0</version>

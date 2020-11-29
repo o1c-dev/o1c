@@ -23,7 +23,8 @@ public enum Algorithm {
     X25519("X25519", CryptoPrimitive.KEY_AGREEMENT, 32, "1.3.101.110"),
     X448("X448", CryptoPrimitive.KEY_AGREEMENT, 56, "1.3.101.111"),
     Ed25519("Ed25519", CryptoPrimitive.SIGNATURE, 32, "1.3.101.112"),
-    Ed448("Ed448", CryptoPrimitive.SIGNATURE, 57, "1.3.101.113");
+    Ed448("Ed448", CryptoPrimitive.SIGNATURE, 57, "1.3.101.113"),
+    Argon2i("Argon2i", CryptoPrimitive.KEY_ENCAPSULATION, 32, "TODO");
 
     private final String algorithm;
     private final CryptoPrimitive cryptoPrimitive;
