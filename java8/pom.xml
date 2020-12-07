@@ -39,6 +39,10 @@
       <artifactId>bcprov-jdk15on</artifactId>
     </dependency>
     <dependency>
+      <groupId>cafe.cryptography</groupId>
+      <artifactId>curve25519-elisabeth</artifactId>
+    </dependency>
+    <dependency>
       <groupId>net.i2p.crypto</groupId>
       <artifactId>eddsa</artifactId>
     </dependency>
