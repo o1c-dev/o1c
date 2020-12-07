@@ -21,11 +21,11 @@ import dev.o1c.spi.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.util.Objects;
 
-public final class SealedData {
+public final class SecureData {
     private final byte[] encryptedData;
     private final byte[] token;
 
-    public SealedData(byte[] encryptedData, byte[] token) {
+    public SecureData(byte[] encryptedData, byte[] token) {
         this.encryptedData = Objects.requireNonNull(encryptedData);
         this.token = Objects.requireNonNull(token);
     }
@@ -42,7 +42,33 @@ public final class SealedData {
         return KeyGenerator.getInstance().generateKey();
     }
 
-    public static Sealer usingKey(SecretKey key) {
-        return new SecretKeySealer(Objects.requireNonNull(key));
+    public static Seal usingKey(SecretKey key) {
+        return new SecretKeySeal(Objects.requireNonNull(key));
+    }
+
+    public interface Seal {
+        byte[] seal(byte[] data, byte[] context);
+
+        default byte[] seal(byte[] data) {
+            return seal(data, null);
+        }
+
+        byte[] unseal(byte[] sealedData, byte[] context);
+
+        default byte[] unseal(byte[] sealedData) {
+            return unseal(sealedData, null);
+        }
+
+        SecureData tokenSeal(byte[] data, byte[] context);
+
+        default SecureData tokenSeal(byte[] data) {
+            return tokenSeal(data, null);
+        }
+
+        byte[] tokenUnseal(byte[] encryptedData, byte[] token, byte[] context);
+
+        default byte[] tokenUnseal(byte[] encryptedData, byte[] token) {
+            return tokenUnseal(encryptedData, token, null);
+        }
     }
 }

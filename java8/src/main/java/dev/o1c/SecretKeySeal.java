@@ -35,7 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Objects;
 
-class SecretKeySealer implements Sealer {
+class SecretKeySeal implements SecureData.Seal {
     private static final int TAG_SIZE = 16;
     private static final int NONCE_SIZE = 12;
     private static final int SEAL_TYPE = 0x43433230; // CC20 in ASCII, big endian order
@@ -44,7 +44,7 @@ class SecretKeySealer implements Sealer {
 
     private final SecretKey key;
 
-    SecretKeySealer(SecretKey key) {
+    SecretKeySeal(SecretKey key) {
         this.key = key;
     }
 
@@ -68,11 +68,11 @@ class SecretKeySealer implements Sealer {
     @Override
     public byte[] unseal(byte[] sealedData, byte[] context) {
         Objects.requireNonNull(sealedData);
-        int sealType = ByteOps.unpackInt(sealedData, 0);
+        int sealType = ByteOps.unpackIntBE(sealedData, 0);
         if (sealType != SEAL_TYPE) {
             throw new InvalidSealException("Unsupported seal type detected: " + Integer.toHexString(sealType));
         }
-        int dataLength = ByteOps.unpackInt(sealedData, Integer.BYTES) + TAG_SIZE;
+        int dataLength = ByteOps.unpackIntBE(sealedData, Integer.BYTES) + TAG_SIZE;
         int nonceOffset = Integer.BYTES * 2;
         IvParameterSpec nonce = new IvParameterSpec(sealedData, nonceOffset, NONCE_SIZE);
         int dataOffset = nonceOffset + NONCE_SIZE;
@@ -84,7 +84,7 @@ class SecretKeySealer implements Sealer {
     }
 
     @Override
-    public SealedData tokenSeal(byte[] data, byte[] context) {
+    public SecureData tokenSeal(byte[] data, byte[] context) {
         Objects.requireNonNull(data);
         Cipher cipher = initEncrypt(context);
         byte[] nonce = cipher.getIV();
@@ -101,7 +101,7 @@ class SecretKeySealer implements Sealer {
         token.put(ciphertext);
         token.put(nonce);
         token.putInt(SEAL_TYPE);
-        return new SealedData(encryptedData, token.array());
+        return new SecureData(encryptedData, token.array());
     }
 
     @Override
@@ -111,7 +111,7 @@ class SecretKeySealer implements Sealer {
         if (token.length != TOKEN_SIZE) {
             throw new InvalidSealException("Token size must be " + TOKEN_SIZE + " bytes");
         }
-        int tokenType = ByteOps.unpackInt(token, TAG_SIZE + NONCE_SIZE);
+        int tokenType = ByteOps.unpackIntBE(token, TAG_SIZE + NONCE_SIZE);
         if (tokenType != SEAL_TYPE) {
             throw new InvalidSealException("Unsupported seal token type detected: " + Integer.toHexString(tokenType));
         }

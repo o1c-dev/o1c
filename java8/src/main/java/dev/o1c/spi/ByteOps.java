@@ -38,8 +38,37 @@ public final class ByteOps {
         return copy;
     }
 
-    public static int unpackInt(byte[] buf, int off) {
+    public static int unpackIntBE(byte[] buf, int off) {
         return (buf[off] & 0xff) << 24 | (buf[off + 1] & 0xff) << 16 | (buf[off + 2] & 0xff) << 8 | buf[off + 3] & 0xff;
+    }
+
+    public static int unpackIntLE(byte[] buf, int off) {
+        return buf[off] & 0xff | (buf[off + 1] & 0xff) << 8 | (buf[off + 2] & 0xff) << 16 | (buf[off + 3] & 0xff) << 24;
+    }
+
+    public static void unpackIntsLE(byte[] buf, int off, int nrInts, int[] dst, int dstOff) {
+        for (int i = 0; i < nrInts; i++) {
+            dst[dstOff + i] = unpackIntLE(buf, off + i * 4);
+        }
+    }
+
+    public static int[] unpackIntsLE(byte[] buf, int off, int nrInts) {
+        int[] values = new int[nrInts];
+        unpackIntsLE(buf, off, nrInts, values, 0);
+        return values;
+    }
+
+    public static void packIntLE(int value, byte[] dst, int off) {
+        dst[off] = (byte) value;
+        dst[off + 1] = (byte) (value >>> 8);
+        dst[off + 2] = (byte) (value >>> 16);
+        dst[off + 3] = (byte) (value >>> 24);
+    }
+
+    public static void packIntsLE(int[] values, int off, int nrInts, byte[] dst, int dstOff) {
+        for (int i = 0; i < nrInts; i++) {
+            packIntLE(values[off + i], dst, dstOff + i * 4);
+        }
     }
 
     public static byte[] fromHex(CharSequence data) {
