@@ -21,6 +21,7 @@ import java.io.CharConversionException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.BufferOverflowException;
 import java.util.Arrays;
 
 public final class ByteOps {
@@ -36,6 +37,23 @@ public final class ByteOps {
         byte[] copy = buf.clone();
         reverse(copy);
         return copy;
+    }
+
+    public static byte[] concat(byte[]... buffers) {
+        int size = 0;
+        for (byte[] buffer : buffers) {
+            size += buffer.length;
+            if (size < 0) {
+                throw new BufferOverflowException();
+            }
+        }
+        byte[] buf = new byte[size];
+        int off = 0;
+        for (byte[] buffer : buffers) {
+            System.arraycopy(buffer, 0, buf, off, buffer.length);
+            off += buffer.length;
+        }
+        return buf;
     }
 
     public static int unpackIntBE(byte[] buf, int off) {

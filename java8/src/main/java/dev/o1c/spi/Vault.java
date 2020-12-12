@@ -129,7 +129,7 @@ public class Vault {
         } catch (ShortBufferException | IllegalBlockSizeException | BadPaddingException e) {
             throw new IllegalStateException(e);
         }
-        digest.update(sealed, 0, ciphertextLength);
+        digest.update(sealed, IV_SIZE, data.length);
         Scalar challenge = Scalar.fromBytesModOrderWide(digest.digest());
         byte[] sBuf = challenge.multiply(sender.value).subtract(ephemeralPrivateKey).toByteArray();
         System.arraycopy(rBuf, 0, sealed, ciphertextLength, rBuf.length);
@@ -191,7 +191,8 @@ public class Vault {
         digestVariableLengthBuffer(digest, senderId);
         digestVariableLengthBuffer(digest, recipientId);
         digestVariableLengthBuffer(digest, context);
-        digest.update(sealed, 0, sealed.length - SIG_SIZE);
+        int msgLen = sealed.length - SIG_SIZE - IV_SIZE - TAG_SIZE;
+        digest.update(sealed, IV_SIZE, msgLen);
         Scalar s = Scalar.fromCanonicalBytes(sBuf);
         RistrettoElement expected = Constants.RISTRETTO_GENERATOR_TABLE.multiply(s).add(r);
         RistrettoElement actual = sender.table.multiply(Scalar.fromBytesModOrderWide(digest.digest()));
@@ -201,7 +202,7 @@ public class Vault {
         Cipher cipher = XChaCha20Poly1305.cryptWith(false, key, iv);
         cipher.updateAAD(context);
         try {
-            return cipher.doFinal(sealed, IV_SIZE, sealed.length - SIG_SIZE - IV_SIZE);
+            return cipher.doFinal(sealed, IV_SIZE, msgLen + TAG_SIZE);
         } catch (IllegalBlockSizeException e) {
             throw new IllegalStateException(e);
         } catch (BadPaddingException e) {
