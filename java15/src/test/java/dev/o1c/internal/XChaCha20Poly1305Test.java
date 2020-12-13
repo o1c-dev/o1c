@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package dev.o1c.spi;
+package dev.o1c.internal;
 
+import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class XChaCha20Poly1305Test {
     @Test

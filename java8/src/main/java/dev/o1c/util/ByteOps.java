@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.o1c.spi;
+package dev.o1c.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.CharConversionException;

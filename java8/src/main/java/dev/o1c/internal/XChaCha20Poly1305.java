@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package dev.o1c.spi;
+package dev.o1c.internal;
 
-import dev.o1c.spi.ByteOps;
 import dev.o1c.spi.InvalidProviderException;
+import dev.o1c.util.ByteOps;
 import org.bouncycastle.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -33,6 +33,7 @@ import java.security.NoSuchAlgorithmException;
 // https://tools.ietf.org/html/rfc8439
 // https://tools.ietf.org/html/draft-irtf-cfrg-xchacha-03
 class XChaCha20Poly1305 {
+    static final String ALGORITHM = "XChaCha20-Poly1305";
     private static final int KEY_SIZE = 32;
     private static final int[] ENGINE_STATE_HEADER =
             ByteOps.unpackIntsLE("expand 32-byte k".getBytes(StandardCharsets.US_ASCII), 0, 4);
@@ -42,7 +43,7 @@ class XChaCha20Poly1305 {
         byte[] hNonce = Arrays.copyOfRange(nonce, 0, 16);
         byte[] sNonce = Arrays.copyOfRange(nonce, 12, nonce.length);
         ByteOps.packIntLE(0, sNonce, 0);
-        SecretKey subkey = new SecretKeySpec(calculateSubKey(key, hNonce), "XChaCha20-Poly1305");
+        SecretKey subkey = new SecretKeySpec(calculateSubKey(key, hNonce), ALGORITHM);
         IvParameterSpec iv = new IvParameterSpec(sNonce);
         try {
             cipher.init(forEncryption ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, subkey, iv);

@@ -16,7 +16,7 @@
 
 package dev.o1c;
 
-import dev.o1c.spi.KeyGenerator;
+import dev.o1c.spi.Vault;
 
 import javax.crypto.SecretKey;
 import java.util.Objects;
@@ -39,7 +39,7 @@ public final class SecureData {
     }
 
     public static SecretKey generateKey() {
-        return KeyGenerator.getInstance().generateKey();
+        return Vault.getInstance().generateSecretKey();
     }
 
     public static Seal usingKey(SecretKey key) {

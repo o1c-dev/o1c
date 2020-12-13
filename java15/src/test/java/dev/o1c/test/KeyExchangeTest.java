@@ -16,7 +16,7 @@
 
 package dev.o1c.test;
 
-import dev.o1c.spi.ByteOps;
+import dev.o1c.util.ByteOps;
 import dev.o1c.spi.KeyExchange;
 import dev.o1c.spi.KeyExchangeFactory;
 import org.junit.jupiter.api.Test;

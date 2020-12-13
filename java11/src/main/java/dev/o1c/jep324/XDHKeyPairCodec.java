@@ -17,7 +17,7 @@
 package dev.o1c.jep324;
 
 import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.ByteOps;
+import dev.o1c.util.ByteOps;
 import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.KeyPairCodec;
 

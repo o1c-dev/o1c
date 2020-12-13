@@ -17,7 +17,7 @@
 package dev.o1c.test;
 
 import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.ByteOps;
+import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.Cipher;
