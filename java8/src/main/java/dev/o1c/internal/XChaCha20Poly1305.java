@@ -87,21 +87,16 @@ class XChaCha20Poly1305 {
 
     private static void quarterRound(int[] state, int a, int b, int c, int d) {
         state[a] += state[b];
-        state[d] = shiftLeftRotate(state[d] ^ state[a], 16);
+        state[d] = Integer.rotateLeft(state[d] ^ state[a], 16);
 
         state[c] += state[d];
-        state[b] = shiftLeftRotate(state[b] ^ state[c], 12);
+        state[b] = Integer.rotateLeft(state[b] ^ state[c], 12);
 
         state[a] += state[b];
-        state[d] = shiftLeftRotate(state[d] ^ state[a], 8);
+        state[d] = Integer.rotateLeft(state[d] ^ state[a], 8);
 
         state[c] += state[d];
-        state[b] = shiftLeftRotate(state[b] ^ state[c], 7);
-    }
-
-    // val <<< len
-    private static int shiftLeftRotate(int val, int len) {
-        return (val << len) | (val >>> -len);
+        state[b] = Integer.rotateLeft(state[b] ^ state[c], 7);
     }
 
     private static Cipher getChaCha20Poly1305() {
