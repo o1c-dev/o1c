@@ -1,20 +1,24 @@
 /*
- * Copyright 2020 Matt Sicker
+ * ISC License
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) 2020, Matt Sicker
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 package dev.o1c.util;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.CharConversionException;
@@ -24,8 +28,10 @@ import java.io.UncheckedIOException;
 import java.nio.BufferOverflowException;
 import java.util.Arrays;
 
+import static java.lang.Integer.toUnsignedLong;
+
 public final class ByteOps {
-    public static void reverse(byte[] buf) {
+    public static void reverse(byte @NotNull [] buf) {
         for (int i = 0, j = buf.length - 1; i < j; i++, j--) {
             byte tmp = buf[i];
             buf[i] = buf[j];
@@ -33,13 +39,13 @@ public final class ByteOps {
         }
     }
 
-    public static byte[] reverseCopyOf(byte[] buf) {
+    public static byte[] reverseCopyOf(byte @NotNull [] buf) {
         byte[] copy = buf.clone();
         reverse(copy);
         return copy;
     }
 
-    public static byte[] concat(byte[]... buffers) {
+    public static byte[] concat(byte @NotNull [] @NotNull ... buffers) {
         int size = 0;
         for (byte[] buffer : buffers) {
             size += buffer.length;
@@ -56,40 +62,58 @@ public final class ByteOps {
         return buf;
     }
 
-    public static int unpackIntBE(byte[] buf, int off) {
+    public static void overwriteWithZeroes(byte @NotNull [] buf) {
+        overwriteWithZeroes(buf, 0, buf.length);
+    }
+
+    public static void overwriteWithZeroes(byte @NotNull [] buf, int off, int len) {
+        Arrays.fill(buf, off, off + len, (byte) 0);
+    }
+
+    public static int unpackIntBE(byte @NotNull [] buf, int off) {
         return (buf[off] & 0xff) << 24 | (buf[off + 1] & 0xff) << 16 | (buf[off + 2] & 0xff) << 8 | buf[off + 3] & 0xff;
     }
 
-    public static int unpackIntLE(byte[] buf, int off) {
+    public static int unpackIntLE(byte @NotNull [] buf, int off) {
         return buf[off] & 0xff | (buf[off + 1] & 0xff) << 8 | (buf[off + 2] & 0xff) << 16 | (buf[off + 3] & 0xff) << 24;
     }
 
-    public static void unpackIntsLE(byte[] buf, int off, int nrInts, int[] dst, int dstOff) {
+    public static void unpackIntsLE(byte @NotNull [] buf, int off, int nrInts, int @NotNull [] dst, int dstOff) {
         for (int i = 0; i < nrInts; i++) {
-            dst[dstOff + i] = unpackIntLE(buf, off + i * 4);
+            dst[dstOff + i] = unpackIntLE(buf, off + i * Integer.BYTES);
         }
     }
 
-    public static int[] unpackIntsLE(byte[] buf, int off, int nrInts) {
+    public static int[] unpackIntsLE(byte @NotNull [] buf, int off, int nrInts) {
         int[] values = new int[nrInts];
         unpackIntsLE(buf, off, nrInts, values, 0);
         return values;
     }
 
-    public static void packIntLE(int value, byte[] dst, int off) {
+    public static long unpackLongLE(byte @NotNull [] buf, int off) {
+        return toUnsignedLong(unpackIntLE(buf, off)) |
+                toUnsignedLong(unpackIntLE(buf, off + Integer.BYTES)) << 32;
+    }
+
+    public static void packIntLE(int value, byte @NotNull [] dst, int off) {
         dst[off] = (byte) value;
         dst[off + 1] = (byte) (value >>> 8);
         dst[off + 2] = (byte) (value >>> 16);
         dst[off + 3] = (byte) (value >>> 24);
     }
 
-    public static void packIntsLE(int[] values, int off, int nrInts, byte[] dst, int dstOff) {
+    public static void packIntsLE(int @NotNull [] values, int off, int nrInts, byte @NotNull [] dst, int dstOff) {
         for (int i = 0; i < nrInts; i++) {
             packIntLE(values[off + i], dst, dstOff + i * 4);
         }
     }
 
-    public static byte[] fromHex(CharSequence data) {
+    public static void packLongLE(long value, byte @NotNull [] dst, int off) {
+        packIntLE((int) value, dst, off);
+        packIntLE((int) (value >>> 32), dst, off + Integer.BYTES);
+    }
+
+    public static byte[] fromHex(@NotNull CharSequence data) {
         return HEX_DECODER.decode(data);
     }
 
