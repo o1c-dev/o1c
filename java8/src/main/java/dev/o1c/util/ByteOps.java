@@ -14,6 +14,8 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
 package dev.o1c.util;
@@ -26,10 +28,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import static java.lang.Integer.toUnsignedLong;
-
+/**
+ * Provides various utilities for manipulating byte arrays.
+ */
 public final class ByteOps {
     public static void reverse(byte @NotNull [] buf) {
         for (int i = 0, j = buf.length - 1; i < j; i++, j--) {
@@ -39,13 +44,13 @@ public final class ByteOps {
         }
     }
 
-    public static byte[] reverseCopyOf(byte @NotNull [] buf) {
+    public static byte @NotNull [] reverseCopyOf(byte @NotNull [] buf) {
         byte[] copy = buf.clone();
         reverse(copy);
         return copy;
     }
 
-    public static byte[] concat(byte @NotNull [] @NotNull ... buffers) {
+    public static byte @NotNull [] concat(byte @NotNull [] @NotNull ... buffers) {
         int size = 0;
         for (byte[] buffer : buffers) {
             size += buffer.length;
@@ -70,17 +75,22 @@ public final class ByteOps {
         Arrays.fill(buf, off, off + len, (byte) 0);
     }
 
-    public static int unpackIntBE(byte @NotNull [] buf, int off) {
-        return (buf[off] & 0xff) << 24 | (buf[off + 1] & 0xff) << 16 | (buf[off + 2] & 0xff) << 8 | buf[off + 3] & 0xff;
+    public static int unpackIntLE(byte @NotNull [] buf, int off) {
+        return unpackIntLE(buf, off, Integer.BYTES);
     }
 
-    public static int unpackIntLE(byte @NotNull [] buf, int off) {
-        return buf[off] & 0xff | (buf[off + 1] & 0xff) << 8 | (buf[off + 2] & 0xff) << 16 | (buf[off + 3] & 0xff) << 24;
+    public static int unpackIntLE(byte @NotNull [] buf, int off, int len) {
+        int ret = 0;
+        for (int i = 0; i < len; i++) {
+            ret |= (buf[off + i] & 0xff) << i * Byte.SIZE;
+        }
+        return ret;
     }
 
     public static void unpackIntsLE(byte @NotNull [] buf, int off, int nrInts, int @NotNull [] dst, int dstOff) {
-        for (int i = 0; i < nrInts; i++) {
-            dst[dstOff + i] = unpackIntLE(buf, off + i * Integer.BYTES);
+        while (nrInts-- > 0) {
+            dst[dstOff++] = unpackIntLE(buf, off);
+            off += Integer.BYTES;
         }
     }
 
@@ -91,30 +101,97 @@ public final class ByteOps {
     }
 
     public static long unpackLongLE(byte @NotNull [] buf, int off) {
-        return toUnsignedLong(unpackIntLE(buf, off)) |
-                toUnsignedLong(unpackIntLE(buf, off + Integer.BYTES)) << 32;
+        return Integer.toUnsignedLong(unpackIntLE(buf, off)) |
+                Integer.toUnsignedLong(unpackIntLE(buf, off + Integer.BYTES)) << Integer.SIZE;
+    }
+
+    public static long unpackLongBE(byte @NotNull [] buf, int off) {
+        return unpackLongBE(buf, off, Long.BYTES);
+    }
+
+    public static long unpackLongBE(byte @NotNull [] buf, int off, int len) {
+        long ret = 0;
+        for (int i = 0; i < len; i++) {
+            ret |= Byte.toUnsignedLong(buf[off + i]) << 56 - i * Byte.SIZE;
+        }
+        return ret;
+    }
+
+    public static void unpackLongsBE(byte @NotNull [] buf, int off, int nrLongs, long @NotNull [] dst, int dstOff) {
+        while (nrLongs-- > 0) {
+            dst[dstOff++] = unpackLongBE(buf, off);
+            off += Long.BYTES;
+        }
     }
 
     public static void packIntLE(int value, byte @NotNull [] dst, int off) {
-        dst[off] = (byte) value;
-        dst[off + 1] = (byte) (value >>> 8);
-        dst[off + 2] = (byte) (value >>> 16);
-        dst[off + 3] = (byte) (value >>> 24);
+        packIntLE(value, dst, off, Integer.BYTES);
+    }
+
+    public static void packIntLE(int value, byte @NotNull [] dst, int off, int len) {
+        for (int i = 0; i < len; i++) {
+            dst[off + i] = (byte) (value >>> i * Byte.SIZE);
+        }
     }
 
     public static void packIntsLE(int @NotNull [] values, int off, int nrInts, byte @NotNull [] dst, int dstOff) {
-        for (int i = 0; i < nrInts; i++) {
-            packIntLE(values[off + i], dst, dstOff + i * 4);
+        while (nrInts-- > 0) {
+            packIntLE(values[off++], dst, dstOff);
+            dstOff += Integer.BYTES;
         }
+    }
+
+    public static void packIntBE(int value, byte @NotNull [] dst, int off) {
+        dst[off++] = (byte) (value >>> 24);
+        dst[off++] = (byte) (value >>> 16);
+        dst[off++] = (byte) (value >>> 8);
+        dst[off] = (byte) value;
     }
 
     public static void packLongLE(long value, byte @NotNull [] dst, int off) {
         packIntLE((int) value, dst, off);
-        packIntLE((int) (value >>> 32), dst, off + Integer.BYTES);
+        packIntLE((int) (value >>> Integer.SIZE), dst, off + Integer.BYTES);
     }
 
-    public static byte[] fromHex(@NotNull CharSequence data) {
+    public static void packLongBE(long value, byte @NotNull [] dst, int off) {
+        packLongBE(value, dst, off, Long.BYTES);
+    }
+
+    public static void packLongBE(long value, byte @NotNull [] dst, int off, int len) {
+        for (int i = 0; i < len; i++) {
+            dst[off + i] = (byte) (value >> 56 - i * Byte.SIZE);
+        }
+    }
+
+    public static void packLongsBE(long @NotNull [] values, int off, int nrLongs, byte @NotNull [] dst, int dstOff) {
+        while (nrLongs-- > 0) {
+            packLongBE(values[off++], dst, dstOff);
+            dstOff += Long.BYTES;
+        }
+    }
+
+    public static byte @NotNull [] fromHex(@NotNull CharSequence data) {
         return HEX_DECODER.decode(data);
+    }
+
+    public static @NotNull String toHex(byte @NotNull [] buf) {
+        return toHex(buf, 0, buf.length);
+    }
+
+    /**
+     * Converts a slice of bytes into lowercase hexadecimal ASCII characters.
+     */
+    public static @NotNull String toHex(byte @NotNull [] buf, int off, int len) {
+        byte[] hex = new byte[len * 2];
+        for (int i = 0; i < len; i++) {
+            int c = buf[off + i] & 0xf;
+            int b = (buf[off + i] & 0xf0) >> 4;
+            int x = 87 + c + (c - 10 >> 8 & -39) << 8 |
+                    87 + b + (b - 10 >> 8 & -39);
+            hex[i * 2] = (byte) x;
+            hex[i * 2 + 1] = (byte) (x >> 8);
+        }
+        return new String(hex, StandardCharsets.US_ASCII);
     }
 
     private static final HexDecoder HEX_DECODER = new HexDecoder();
