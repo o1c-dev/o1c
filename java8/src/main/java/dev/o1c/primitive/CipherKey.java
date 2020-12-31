@@ -14,12 +14,28 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
 package dev.o1c.primitive;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface RandomBytesGenerator {
-    byte @NotNull [] generateBytes(int nrBytes);
+public interface CipherKey {
+    int nonceSize();
+
+    default void checkNonceSize(int nonceSize) {
+        if (nonceSize != nonceSize()) {
+            throw new IllegalArgumentException("Nonce must be " + nonceSize() + " bytes but got " + nonceSize);
+        }
+    }
+
+    int tagSize();
+
+    void encrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
+            int length, byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset);
+
+    void decrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
+            int length, byte @NotNull [] tag, int tagOffset, byte @NotNull [] out, int outOffset);
 }

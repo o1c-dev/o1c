@@ -20,12 +20,11 @@
 
 package dev.o1c.lwc;
 
-import dev.o1c.primitive.AeadCipher;
+import dev.o1c.primitive.CipherKeyFactory;
 import dev.o1c.primitive.CryptoHash;
 import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.DynamicNode;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -68,12 +67,11 @@ public class NistLwcTestVectors {
         return vectors;
     }
 
-    public static List<DynamicNode> loadAEADTestVectors(AeadCipher cipher) throws IOException {
+    public static List<DynamicNode> loadAEADTestVectors(CipherKeyFactory factory) throws IOException {
         var testVectors = 1088;
         var vectors = new ArrayList<DynamicNode>(testVectors);
-        var filename =
-                String.format("LWC_AEAD_KAT_%d_%d.txt.gz", cipher.keySize() * Byte.SIZE, cipher.tagSize() * Byte.SIZE);
-        try (var reader = loadResource(cipher.getClass(), filename)) {
+        var filename = String.format("LWC_AEAD_KAT_%d_128.txt.gz", factory.keySize() * Byte.SIZE);
+        try (var reader = loadResource(factory.getClass(), filename)) {
             var countLine = Pattern.compile("Count = (\\d+)");
             var keyLine = Pattern.compile("Key = ([0-9A-F]+)");
             var nonceLine = Pattern.compile("Nonce = ([0-9A-F]+)");
@@ -100,7 +98,7 @@ public class NistLwcTestVectors {
                 assertTrue(ctMatcher.matches());
                 var ct = ctMatcher.group(1);
                 reader.readLine(); // empty line
-                vectors.add(generateAEADTests(cipher, count, key, nonce, pt, ad, ct));
+                vectors.add(generateAEADTests(factory, count, key, nonce, pt, ad, ct));
             }
         }
         return vectors;
@@ -129,22 +127,22 @@ public class NistLwcTestVectors {
     }
 
     private static DynamicNode generateAEADTests(
-            AeadCipher cipher, String count, String keyInput, String nonceInput, String plaintextInput, String contextInput,
+            CipherKeyFactory factory, String count, String keyInput, String nonceInput, String plaintextInput, String contextInput,
             String ciphertextInput) {
-        var key = new SecretKeySpec(ByteOps.fromHex(keyInput), cipher.algorithm());
+        var key = factory.parseKey(ByteOps.fromHex(keyInput));
         var nonce = ByteOps.fromHex(nonceInput);
         var plaintext = ByteOps.fromHex(plaintextInput);
         var context = ByteOps.fromHex(contextInput);
         var ciphertext = ByteOps.fromHex(ciphertextInput);
         return dynamicContainer("aead#" + count + "<" + plaintextInput + "," + contextInput + ">", List.of(
-                dynamicTest("encrypt byte[]", () -> {
+                dynamicTest("encrypt", () -> {
                     var actual = new byte[ciphertext.length];
-                    cipher.encrypt(key, nonce, context, plaintext, 0, plaintext.length, actual, 0, actual, plaintext.length);
+                    key.encrypt(nonce, context, plaintext, 0, plaintext.length, actual, 0, actual, plaintext.length);
                     assertArrayEquals(ciphertext, actual);
                 }),
                 dynamicTest("decrypt byte[]", () -> {
                     var actual = new byte[plaintext.length];
-                    assertDoesNotThrow(() -> cipher.decrypt(key, nonce, context, ciphertext, 0, plaintext.length, ciphertext, plaintext.length, actual, 0));
+                    assertDoesNotThrow(() -> key.decrypt(nonce, context, ciphertext, 0, plaintext.length, ciphertext, plaintext.length, actual, 0));
                     assertArrayEquals(plaintext, actual);
                 })
         ));

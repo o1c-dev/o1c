@@ -23,7 +23,6 @@ package dev.o1c.internal;
 import dev.o1c.primitive.EntropyChannel;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -50,7 +49,7 @@ public class SystemEntropyChannel implements EntropyChannel {
     }
 
     @Override
-    public void read(@NotNull ByteBuffer dst) {
-        dst.put(secureRandom.generateSeed(dst.remaining()));
+    public void read(byte @NotNull [] dst, int off, int len) {
+        System.arraycopy(secureRandom.generateSeed(len), 0, dst, off, len);
     }
 }

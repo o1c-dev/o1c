@@ -25,8 +25,6 @@ import dev.o1c.primitive.RandomBytesGenerator;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
-
 // https://doi.org/10.6028/NIST.SP.800-90Ar1
 // implementation comparable to CTR_DRBG, but also similar to HMAC_DRBG since Gimli is versatile
 // https://csrc.nist.gov/Projects/Random-Bit-Generation
@@ -44,10 +42,12 @@ public final class GimliRandomBytesGenerator implements RandomBytesGenerator {
     }
 
     @Override
-    public void fill(@NotNull ByteBuffer dst) {
+    public byte @NotNull [] generateBytes(int nrBytes) {
+        byte[] bytes = new byte[nrBytes];
         state.permute();
-        state.squeeze(dst);
+        state.squeeze(bytes);
         ratchet();
+        return bytes;
     }
 
     private void ratchet() {

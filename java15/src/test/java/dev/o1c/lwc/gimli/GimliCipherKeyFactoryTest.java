@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.lwc.ascon;
+package dev.o1c.lwc.gimli;
 
 import dev.o1c.lwc.NistLwcTestVectors;
 import org.junit.jupiter.api.DynamicNode;
@@ -27,9 +27,9 @@ import org.junit.jupiter.api.TestFactory;
 import java.io.IOException;
 import java.util.List;
 
-class AsconAeadCipherTest {
+class GimliCipherKeyFactoryTest {
     @TestFactory
     List<DynamicNode> testVectors() throws IOException {
-        return NistLwcTestVectors.loadAEADTestVectors(new AsconAeadCipher());
+        return NistLwcTestVectors.loadAEADTestVectors(new GimliCipherKeyFactory(GimliRandomBytesGenerator.getInstance()));
     }
 }

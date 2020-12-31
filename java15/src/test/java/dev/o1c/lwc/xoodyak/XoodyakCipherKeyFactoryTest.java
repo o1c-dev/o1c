@@ -18,18 +18,19 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.lwc.gimli;
+package dev.o1c.lwc.xoodyak;
 
 import dev.o1c.lwc.NistLwcTestVectors;
+import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
 import java.io.IOException;
 import java.util.List;
 
-class GimliAeadCipherTest {
+class XoodyakCipherKeyFactoryTest {
     @TestFactory
     List<DynamicNode> testVectors() throws IOException {
-        return NistLwcTestVectors.loadAEADTestVectors(new GimliAeadCipher());
+        return NistLwcTestVectors.loadAEADTestVectors(new XoodyakCipherKeyFactory(GimliRandomBytesGenerator.getInstance()));
     }
 }

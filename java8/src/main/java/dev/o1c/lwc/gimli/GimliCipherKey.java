@@ -20,11 +20,10 @@
 
 package dev.o1c.lwc.gimli;
 
-import dev.o1c.primitive.AeadCipher;
+import dev.o1c.primitive.CipherKey;
 import dev.o1c.spi.InvalidAuthenticationTagException;
 import org.jetbrains.annotations.NotNull;
 
-import javax.crypto.SecretKey;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
@@ -32,61 +31,48 @@ import java.util.Arrays;
 // https://keccak.team/sponge_duplex.html
 // https://github.com/ziglang/zig/blob/master/lib/std/crypto/gimli.zig
 // primitive = aead/gimli24v1 with hash/gimli24v1
-public final class GimliAeadCipher implements AeadCipher {
-    private static final int KEY_SIZE = 32;
-    private static final int NONCE_SIZE = 16;
-    private static final int TAG_SIZE = 16;
-    private static final String ALGORITHM = "Gimli24v1";
-
+class GimliCipherKey implements CipherKey {
     private final Gimli gimli = new Gimli();
+    private final byte[] key;
 
-    @Override
-    public int keySize() {
-        return KEY_SIZE;
+    GimliCipherKey(byte @NotNull [] key) {
+        this.key = key;
     }
 
     @Override
     public int nonceSize() {
-        return NONCE_SIZE;
+        return 16;
     }
 
     @Override
     public int tagSize() {
-        return TAG_SIZE;
-    }
-
-    @Override
-    public @NotNull String algorithm() {
-        return ALGORITHM;
-    }
-
-    private void init(SecretKey key, byte[] nonce, byte[] context) {
-        byte[] keyData = key.getEncoded();
-        checkKeySize(keyData.length);
-        checkNonceSize(nonce.length);
-        gimli.init(keyData, nonce);
-        gimli.absorb(context);
+        return 16;
     }
 
     @Override
     public void encrypt(
-            @NotNull SecretKey key, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
-            int length, byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset) {
-        init(key, nonce, context);
+            byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] out,
+            int outOffset, byte @NotNull [] tag, int tagOffset) {
+        checkNonceSize(nonce.length);
+        gimli.init(key, nonce);
+        gimli.absorb(context);
         gimli.encrypt(in, offset, length, out, outOffset);
-        gimli.squeeze(tag, tagOffset, TAG_SIZE);
-        gimli.reset();
+        gimli.squeeze(tag, tagOffset, tagSize());
+        gimli.reset(); // or ratchet
     }
 
     @Override
     public void decrypt(
-            @NotNull SecretKey key, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
-            int length, byte @NotNull [] tag, int tagOffset, byte @NotNull [] out, int outOffset) {
-        init(key, nonce, context);
+            byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] tag,
+            int tagOffset, byte @NotNull [] out, int outOffset) {
+        checkNonceSize(nonce.length);
+        gimli.init(key, nonce);
+        gimli.absorb(context);
         gimli.decrypt(in, offset, length, out, outOffset);
-        byte[] expected = Arrays.copyOfRange(tag, tagOffset, tagOffset + TAG_SIZE);
-        byte[] actual = new byte[TAG_SIZE];
+        byte[] expected = Arrays.copyOfRange(tag, tagOffset, tagOffset + tagSize());
+        byte[] actual = new byte[tagSize()];
         gimli.squeeze(actual);
+        gimli.reset(); // or ratchet
         if (!MessageDigest.isEqual(expected, actual)) {
             throw new InvalidAuthenticationTagException("Tag mismatch");
         }

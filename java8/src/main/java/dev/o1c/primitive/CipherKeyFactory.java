@@ -20,13 +20,9 @@
 
 package dev.o1c.primitive;
 
-import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
-public interface AeadCipher {
+public interface CipherKeyFactory {
     int keySize();
 
     default void checkKeySize(int keySize) {
@@ -35,28 +31,7 @@ public interface AeadCipher {
         }
     }
 
-    int nonceSize();
+    CipherKey generateKey();
 
-    default void checkNonceSize(int nonceSize) {
-        if (nonceSize != nonceSize()) {
-            throw new IllegalArgumentException("Nonce must be " + nonceSize() + " bytes but got " + nonceSize);
-        }
-    }
-
-    int tagSize();
-
-    @NotNull String algorithm();
-
-    default @NotNull SecretKey generateKey() {
-        // TODO: RNG default based on algorithm
-        return new SecretKeySpec(GimliRandomBytesGenerator.getInstance().generateBytes(keySize()), algorithm());
-    }
-
-    void encrypt(@NotNull SecretKey key, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
-            int length, byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset);
-
-    void decrypt(
-            @NotNull SecretKey key, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
-            int length, byte @NotNull [] tag, int tagOffset, byte @NotNull [] out, int outOffset);
-
+    CipherKey parseKey(byte @NotNull [] key);
 }

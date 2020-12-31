@@ -18,24 +18,36 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.primitive;
+package dev.o1c.lwc.ascon;
 
-import dev.o1c.spi.InvalidProviderException;
+import dev.o1c.primitive.CipherKey;
+import dev.o1c.primitive.CipherKeyFactory;
+import dev.o1c.primitive.RandomBytesGenerator;
+import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ServiceLoader;
+public class AsconCipherKeyFactory implements CipherKeyFactory {
+    private final RandomBytesGenerator randomBytesGenerator;
 
-public interface EntropyChannel {
-    default void read(byte @NotNull [] dst) {
-        read(dst, 0, dst.length);
+    public AsconCipherKeyFactory(RandomBytesGenerator randomBytesGenerator) {
+        this.randomBytesGenerator = randomBytesGenerator;
     }
 
-    void read(byte @NotNull [] dst, int off, int len);
+    @Override
+    public int keySize() {
+        return 16;
+    }
 
-    static @NotNull EntropyChannel getInstance() {
-        for (EntropyChannel entropyChannel : ServiceLoader.load(EntropyChannel.class)) {
-            return entropyChannel;
-        }
-        throw new InvalidProviderException("No EntropyDaemon service providers found");
+    @Override
+    public CipherKey generateKey() {
+        return parseKey(randomBytesGenerator.generateBytes(keySize()));
+    }
+
+    @Override
+    public CipherKey parseKey(byte @NotNull [] key) {
+        checkKeySize(key.length);
+        long[] k = new long[2];
+        ByteOps.unpackLongsBE(key, 0, 2, k, 0);
+        return new AsconCipherKey(k[0], k[1]);
     }
 }

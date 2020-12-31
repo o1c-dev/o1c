@@ -14,12 +14,37 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.primitive;
+package dev.o1c.lwc.gimli;
 
+import dev.o1c.primitive.CipherKey;
+import dev.o1c.primitive.CipherKeyFactory;
+import dev.o1c.primitive.RandomBytesGenerator;
 import org.jetbrains.annotations.NotNull;
 
-public interface RandomBytesGenerator {
-    byte @NotNull [] generateBytes(int nrBytes);
+public class GimliCipherKeyFactory implements CipherKeyFactory {
+    private final RandomBytesGenerator randomBytesGenerator;
+
+    public GimliCipherKeyFactory(RandomBytesGenerator randomBytesGenerator) {
+        this.randomBytesGenerator = randomBytesGenerator;
+    }
+
+    @Override
+    public int keySize() {
+        return 32;
+    }
+
+    @Override
+    public CipherKey generateKey() {
+        return parseKey(randomBytesGenerator.generateBytes(keySize()));
+    }
+
+    @Override
+    public CipherKey parseKey(byte @NotNull [] key) {
+        checkKeySize(key.length);
+        return new GimliCipherKey(key);
+    }
 }

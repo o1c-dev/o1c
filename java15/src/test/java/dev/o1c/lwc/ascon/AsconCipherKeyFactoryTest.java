@@ -18,36 +18,19 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.lwc.xoodyak;
+package dev.o1c.lwc.ascon;
 
-import dev.o1c.primitive.AeadCipher;
 import dev.o1c.lwc.NistLwcTestVectors;
+import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
 import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-
-class XoodyakAeadCipherTest {
-    @Test
-    void smokeTest() {
-        byte[] pt = new byte[16];
-        byte[] ct = new byte[32];
-        byte[] key = new byte[16];
-        byte[] nonce = new byte[16];
-        AeadCipher cipher = new XoodyakAeadCipher();
-        cipher.encrypt(new SecretKeySpec(key, cipher.algorithm()), nonce, new byte[0], pt, 0, pt.length, ct, 0, ct, pt.length);
-        byte[] decrypted = new byte[16];
-        cipher.decrypt(new SecretKeySpec(key, cipher.algorithm()), nonce, new byte[0], ct, 0, pt.length, ct, pt.length, decrypted, 0);
-        assertArrayEquals(pt, decrypted);
-    }
-
+class AsconCipherKeyFactoryTest {
     @TestFactory
     List<DynamicNode> testVectors() throws IOException {
-        return NistLwcTestVectors.loadAEADTestVectors(new XoodyakAeadCipher());
+        return NistLwcTestVectors.loadAEADTestVectors(new AsconCipherKeyFactory(GimliRandomBytesGenerator.getInstance()));
     }
 }
