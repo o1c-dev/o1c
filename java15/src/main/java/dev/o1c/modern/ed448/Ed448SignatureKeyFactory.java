@@ -14,39 +14,34 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.jep339;
+package dev.o1c.modern.ed448;
 
-import dev.o1c.spi.Algorithm;
-import dev.o1c.spi.SignatureFactory;
+import dev.o1c.primitive.SignatureKey;
+import dev.o1c.primitive.SignatureKeyFactory;
+import org.jetbrains.annotations.NotNull;
 
-public class Provider {
-    public static class Ed25519Codec extends EdDSAKeyPairCodec {
-        public Ed25519Codec() {
-            super(Algorithm.Ed25519);
-        }
+import java.security.KeyPairGenerator;
+
+public class Ed448SignatureKeyFactory implements SignatureKeyFactory {
+    private final KeyPairGenerator keyPairGenerator = Ed448.getKeyPairGenerator();
+
+    @Override
+    public int keySize() {
+        return 57;
     }
 
-    public static class Ed25519 extends SignatureFactory {
-        public Ed25519() {
-            super(new Ed25519Codec());
-        }
+    @Override
+    public SignatureKey generateKey() {
+        return new Ed448SignatureKey(keyPairGenerator.generateKeyPair());
     }
 
-    public static class Ed448Codec extends EdDSAKeyPairCodec {
-        public Ed448Codec() {
-            super(Algorithm.Ed448);
-        }
-    }
-
-    public static class Ed448 extends SignatureFactory {
-        public Ed448() {
-            super(new Ed448Codec());
-        }
-    }
-
-    private Provider() {
-        throw new UnsupportedOperationException();
+    @Override
+    public SignatureKey parseKey(byte @NotNull [] key) {
+        // TODO: generate public key from private key
+        throw new UnsupportedOperationException("No public key");
     }
 }

@@ -14,41 +14,28 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.test;
+package dev.o1c.primitive;
 
-import dev.o1c.i2p.Ed25519SignatureFactory;
-import dev.o1c.spi.SignatureFactory;
-import net.i2p.crypto.eddsa.EdDSASecurityProvider;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.jetbrains.annotations.NotNull;
 
-import java.security.Security;
+public interface SignatureKey {
+    int signatureSize();
 
-class Ed25519SignatureTest extends SignatureTest {
-    @BeforeAll
-    static void beforeAll() {
-        Security.addProvider(new EdDSASecurityProvider());
+    VerificationKey verificationKey();
+
+    void sign(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
+
+    default byte @NotNull [] sign(byte @NotNull [] message, int offset, int length) {
+        byte[] sig = new byte[signatureSize()];
+        sign(message, offset, length, sig, 0);
+        return sig;
     }
 
-    @AfterAll
-    static void afterAll() {
-        Security.removeProvider(EdDSASecurityProvider.PROVIDER_NAME);
-    }
-
-    @Override
-    SignatureFactory getEd25519() {
-        return new Ed25519SignatureFactory();
-    }
-
-    @Override
-    SignatureFactory getEd448() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    boolean isEd448Disabled() {
-        return true;
+    default byte @NotNull [] sign(byte @NotNull [] message) {
+        return sign(message, 0, message.length);
     }
 }

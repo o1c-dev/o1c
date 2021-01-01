@@ -14,36 +14,28 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.test;
+package dev.o1c.primitive;
 
-import dev.o1c.bc.Provider;
-import dev.o1c.spi.SignatureFactory;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.jetbrains.annotations.NotNull;
 
-import java.security.Security;
+import javax.crypto.SecretKey;
 
-public class BCSignatureTest extends SignatureTest {
-    @BeforeAll
-    static void beforeAll() {
-        Security.addProvider(new BouncyCastleProvider());
-    }
+public interface Authenticator {
+    int keySize();
 
-    @AfterAll
-    static void afterAll() {
-        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
-    }
+    int tagSize();
 
-    @Override
-    SignatureFactory getEd25519() {
-        return new Provider.Ed25519();
-    }
+    @NotNull SecretKey generateKey();
 
-    @Override
-    SignatureFactory getEd448() {
-        return new Provider.Ed448();
-    }
+    byte @NotNull [] authenticate(
+            @NotNull SecretKey key, byte @NotNull [] context,
+            byte @NotNull [] data, int offset, int length);
+
+    void verifyAuthenticity(
+            @NotNull SecretKey key, byte @NotNull [] context,
+            byte @NotNull [] data, int offset, int length, byte @NotNull [] authenticationTag);
 }

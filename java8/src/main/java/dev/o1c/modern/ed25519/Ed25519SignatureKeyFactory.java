@@ -14,20 +14,33 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.i2p;
+package dev.o1c.modern.ed25519;
 
-import dev.o1c.spi.Signature;
-import dev.o1c.spi.SignatureFactory;
+import cafe.cryptography.ed25519.Ed25519PrivateKey;
+import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
+import dev.o1c.primitive.SignatureKey;
+import dev.o1c.primitive.SignatureKeyFactory;
+import org.jetbrains.annotations.NotNull;
 
-public class Ed25519SignatureFactory extends SignatureFactory {
-    public Ed25519SignatureFactory() {
-        super(new Ed25519KeyPairCodec());
+public class Ed25519SignatureKeyFactory implements SignatureKeyFactory {
+    @Override
+    public int keySize() {
+        return 32;
     }
 
     @Override
-    public Signature create() {
-        return new Ed25519Signature(keyPairCodec);
+    public SignatureKey generateKey() {
+        return parseKey(GimliRandomBytesGenerator.getInstance().generateBytes(keySize()));
+    }
+
+    @Override
+    public SignatureKey parseKey(byte @NotNull [] key) {
+        checkKeySize(key.length);
+        Ed25519PrivateKey privateKey = Ed25519PrivateKey.fromByteArray(key);
+        return new Ed25519SignatureKey(privateKey.expand());
     }
 }

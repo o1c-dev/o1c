@@ -14,21 +14,24 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.test;
+package dev.o1c.primitive;
 
-import dev.o1c.jep339.Provider;
-import dev.o1c.spi.SignatureFactory;
+import org.jetbrains.annotations.NotNull;
 
-class JEP339SignatureTest extends SignatureTest {
-    @Override
-    SignatureFactory getEd25519() {
-        return new Provider.Ed25519();
+public interface VerificationKey {
+    int signatureSize();
+
+    void verify(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
+
+    default void verify(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature) {
+        verify(message, offset, length, signature, 0);
     }
 
-    @Override
-    SignatureFactory getEd448() {
-        return new Provider.Ed448();
+    default void verify(byte @NotNull [] message, byte @NotNull [] signature) {
+        verify(message, 0, message.length, signature, 0);
     }
 }

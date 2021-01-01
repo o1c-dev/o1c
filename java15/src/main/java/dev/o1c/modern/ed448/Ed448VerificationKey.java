@@ -14,56 +14,45 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.i2p;
+package dev.o1c.modern.ed448;
 
-import dev.o1c.spi.KeyPairCodec;
-import dev.o1c.spi.Signature;
-import net.i2p.crypto.eddsa.EdDSAEngine;
+import dev.o1c.primitive.VerificationKey;
+import dev.o1c.spi.InvalidSignatureException;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.InvalidKeyException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.SignatureException;
 
-class Ed25519Signature implements Signature {
-    private final KeyPairCodec keyPairCodec;
+class Ed448VerificationKey implements VerificationKey {
+    private final Signature signature = Ed448.getSignature();
 
-    Ed25519Signature(KeyPairCodec keyPairCodec) {
-        this.keyPairCodec = keyPairCodec;
-    }
-
-    @Override
-    public KeyPairCodec getKeyPairCodec() {
-        return keyPairCodec;
-    }
-
-    @Override
-    public byte[] calculateSignature(PrivateKey key, byte[] data) {
-        EdDSAEngine engine = new EdDSAEngine();
+    Ed448VerificationKey(@NotNull PublicKey publicKey) {
         try {
-            engine.initSign(key);
+            signature.initVerify(publicKey);
         } catch (InvalidKeyException e) {
             throw new IllegalArgumentException(e);
         }
-        try {
-            return engine.signOneShot(data);
-        } catch (SignatureException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     @Override
-    public boolean verifySignature(PublicKey key, byte[] data, byte[] signature) {
-        EdDSAEngine engine = new EdDSAEngine();
+    public int signatureSize() {
+        return 114;
+    }
+
+    @Override
+    public void verify(
+            byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset) {
         try {
-            engine.initVerify(key);
-        } catch (InvalidKeyException e) {
-            throw new IllegalArgumentException(e);
-        }
-        try {
-            return engine.verifyOneShot(data, signature);
+            this.signature.update(message, offset, length);
+            if (!this.signature.verify(signature, sigOffset, signatureSize())) {
+                throw new InvalidSignatureException("Signature mismatch");
+            }
         } catch (SignatureException e) {
             throw new IllegalStateException(e);
         }

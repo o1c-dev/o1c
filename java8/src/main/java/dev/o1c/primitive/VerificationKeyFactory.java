@@ -14,9 +14,22 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-/**
- * Signature service providers based on <a href="https://openjdk.java.net/jeps/339">JEP 339</a> added in Java 15.
- */
-package dev.o1c.jep339;
+package dev.o1c.primitive;
+
+import org.jetbrains.annotations.NotNull;
+
+public interface VerificationKeyFactory {
+    int keySize();
+
+    default void checkKeySize(int keySize) {
+        if (keySize != keySize()) {
+            throw new IllegalArgumentException("Key must be " + keySize() + " bytes but got " + keySize);
+        }
+    }
+
+    VerificationKey parseKey(byte @NotNull [] key);
+}
