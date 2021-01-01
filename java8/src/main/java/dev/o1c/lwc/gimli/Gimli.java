@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 class Gimli {
@@ -207,17 +205,6 @@ class Gimli {
             ByteOps.packIntsLE(state, 0, fullInts, out, offset);
             int partialBytes = length % Integer.BYTES;
             ByteOps.packIntLE(state[fullInts], out, offset + fullInts * Integer.BYTES, partialBytes);
-        }
-    }
-
-    void squeeze(ByteBuffer out) {
-        if (out.remaining() % RATE != 0) {
-            throw new UnsupportedOperationException("TODO");
-        }
-        out.order(ByteOrder.LITTLE_ENDIAN);
-        while (out.remaining() >= RATE) {
-            permute();
-            out.putInt(state[0]).putInt(state[1]).putInt(state[2]).putInt(state[3]);
         }
     }
 
