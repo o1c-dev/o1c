@@ -67,8 +67,24 @@ public abstract class Cyclist {
 
     /**
      * Initializes this instance with an optional key, key id, and counter. If a non-empty key is provided, then this instance
-     * is set to {@linkplain Mode#Keyed keyed mode}. If a non-empty id is provided, this is combined with the key during
-     * initialization. If a non-empty counter is provided, the bytes are absorbed one at a time (i.e., a trickled way).
+     * is set to keyed mode.
+     * <p>
+     * In scenarios where an attacker wants to break <i>any</i> device or key from a (possibly large) set of <i>u</i> keys
+     * rather than a <i>specific</i> device or key, the security of this system can degrade by up to log<sub>2</sub>(<i>u</i>).
+     * To fix this, two options are available: the key size <i>&kappa;</i> can be extended by log<sub>2</sub>(<i>u</i>) bits,
+     * or an identifier string that is globally unique within the set of <i>u</i> keys can be provided while maintaining the
+     * original key length <i>&kappa;.</i>
+     * </p>
+     * <p>
+     * In scenarios where protection against power analysis attacks or variants is required, the counter buffer can be encoded
+     * using a fixed base <i>2 &le; b &le; 256</i> using big endian ordering of the digits. This buffer is absorbed one digit
+     * at a time which allows for incremental caching of permutation states.
+     * </p>
+     * <p>
+     * In scenarios where protection against power analysis attacks is <i>not</i> required, if the id value is a globally unique
+     * nonce, then it can be specified here during initialization. Otherwise, a nonce should be specified in a subsequent
+     * call to {@link #absorb(byte[], int, int)}.
+     * </p>
      *
      * @param key     secret key to use when using keyed mode or an empty array for hashed mode
      * @param id      key id to include in initialization for keyed mode; can be empty
