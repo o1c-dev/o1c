@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,12 +14,23 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.primitive;
+package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface RandomBytesGenerator {
-    byte @NotNull [] generateBytes(int nrBytes);
+import java.util.ServiceLoader;
+
+public interface SeedGenerator {
+    byte @NotNull [] generateSeed(int nrBytes);
+
+    static @NotNull SeedGenerator getInstance() {
+        for (SeedGenerator generator : ServiceLoader.load(SeedGenerator.class)) {
+            return generator;
+        }
+        throw new InvalidProviderException("No SeedGenerator providers found");
+    }
 }

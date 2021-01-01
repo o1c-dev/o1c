@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,24 +18,10 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.primitive;
+package dev.o1c.spi;
 
-import dev.o1c.spi.InvalidProviderException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ServiceLoader;
-
-public interface EntropyChannel {
-    default void read(byte @NotNull [] dst) {
-        read(dst, 0, dst.length);
-    }
-
-    void read(byte @NotNull [] dst, int off, int len);
-
-    static @NotNull EntropyChannel getInstance() {
-        for (EntropyChannel entropyChannel : ServiceLoader.load(EntropyChannel.class)) {
-            return entropyChannel;
-        }
-        throw new InvalidProviderException("No EntropyDaemon service providers found");
-    }
+public interface RandomBytesGenerator {
+    byte @NotNull [] generateBytes(int nrBytes);
 }

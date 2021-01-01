@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,6 @@
 package dev.o1c.lwc.xoodyak;
 
 import dev.o1c.lwc.NistLwcTestVectors;
-import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
@@ -31,6 +30,6 @@ import java.util.List;
 class XoodyakCipherKeyFactoryTest {
     @TestFactory
     List<DynamicNode> testVectors() throws IOException {
-        return NistLwcTestVectors.loadAEADTestVectors(new XoodyakCipherKeyFactory(GimliRandomBytesGenerator.getInstance()));
+        return NistLwcTestVectors.loadAEADTestVectors(new XoodyakCipherKeyFactory());
     }
 }

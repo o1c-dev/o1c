@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,13 +20,13 @@
 
 package dev.o1c.lwc.gimli;
 
-import dev.o1c.primitive.EntropyChannel;
-import dev.o1c.primitive.RandomBytesGenerator;
+import dev.o1c.spi.RandomBytesGenerator;
+import dev.o1c.spi.SeedGenerator;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
 // https://doi.org/10.6028/NIST.SP.800-90Ar1
-// implementation comparable to CTR_DRBG, but also similar to HMAC_DRBG since Gimli is versatile
+// implements an HMAC_DRBG using Gimli
 // https://csrc.nist.gov/Projects/Random-Bit-Generation
 // provides a 128-bit security level DRBG
 public final class GimliRandomBytesGenerator implements RandomBytesGenerator {
@@ -59,8 +59,7 @@ public final class GimliRandomBytesGenerator implements RandomBytesGenerator {
     }
 
     private void reseed() {
-        byte[] seed = new byte[SEED_SIZE];
-        EntropyChannel.getInstance().read(seed);
+        byte[] seed = SeedGenerator.getInstance().generateSeed(SEED_SIZE);
         for (int i = 0; i < 12; i++) {
             state.absorb(i, ByteOps.unpackIntLE(seed, i * Integer.BYTES));
         }

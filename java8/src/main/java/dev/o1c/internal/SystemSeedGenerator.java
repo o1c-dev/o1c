@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,16 +20,16 @@
 
 package dev.o1c.internal;
 
-import dev.o1c.primitive.EntropyChannel;
+import dev.o1c.spi.SeedGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-public class SystemEntropyChannel implements EntropyChannel {
+public class SystemSeedGenerator implements SeedGenerator {
     private final SecureRandom secureRandom;
 
-    public SystemEntropyChannel() {
+    public SystemSeedGenerator() {
         SecureRandom random;
         try {
             random = SecureRandom.getInstance("NativePRNG");
@@ -49,7 +49,7 @@ public class SystemEntropyChannel implements EntropyChannel {
     }
 
     @Override
-    public void read(byte @NotNull [] dst, int off, int len) {
-        System.arraycopy(secureRandom.generateSeed(len), 0, dst, off, len);
+    public byte @NotNull [] generateSeed(int nrBytes) {
+        return secureRandom.generateSeed(nrBytes);
     }
 }

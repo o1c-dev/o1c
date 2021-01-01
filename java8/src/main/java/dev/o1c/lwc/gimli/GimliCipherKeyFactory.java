@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,15 +22,9 @@ package dev.o1c.lwc.gimli;
 
 import dev.o1c.primitive.CipherKey;
 import dev.o1c.primitive.CipherKeyFactory;
-import dev.o1c.primitive.RandomBytesGenerator;
 import org.jetbrains.annotations.NotNull;
 
 public class GimliCipherKeyFactory implements CipherKeyFactory {
-    private final RandomBytesGenerator randomBytesGenerator;
-
-    public GimliCipherKeyFactory(RandomBytesGenerator randomBytesGenerator) {
-        this.randomBytesGenerator = randomBytesGenerator;
-    }
 
     @Override
     public int keySize() {
@@ -39,7 +33,7 @@ public class GimliCipherKeyFactory implements CipherKeyFactory {
 
     @Override
     public CipherKey generateKey() {
-        return parseKey(randomBytesGenerator.generateBytes(keySize()));
+        return parseKey(GimliRandomBytesGenerator.getInstance().generateBytes(keySize()));
     }
 
     @Override
