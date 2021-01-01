@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,8 +24,22 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Implements the <a href="https://keccak.team/files/Xoodyak-doc1.1.pdf">cyclist mode of operation</a> for implementing
- * cryptographic primitives based on permutations such as Xoodooo. Ported from the
+ * cryptographic primitives based on permutations such as Xoodoo. Ported from the
  * <a href="https://github.com/XKCP/XKCP/blob/master/lib/high/Xoodyak/Cyclist.inc">reference C implementation</a>.
+ * <p>
+ * A Cyclist instance is first {@linkplain #initialize(byte[], byte[], byte[]) initialized} which determines whether it
+ * operates in hashed mode or keyed mode. If an optional key id is specified, it is combined with the key. If a counter is
+ * specified, it is absorbed in a trickled way. If none of the parameters are provided, then the instance is in hashed mode.
+ * In either mode, {@link #squeeze(byte[], int, int)} and {@link #absorb(byte[], int, int)} may be called, while the remaining
+ * methods {@link #encrypt(byte[], int, int, byte[], int)}, {@link #decrypt(byte[], int, int, byte[], int)},
+ * {@link #squeezeKey(byte[], int, int)}, and {@link #ratchet()} are only available in keyed mode.
+ * </p>
+ * <p>
+ * As explained in the linked PDF: <q>The state of a Cyclist object will depend on the sequence of calls to it and on its
+ * inputs. More precisely, the intention is that any output depends on the sequence of all input strings and of all input
+ * calls so far, and that any two subsequent output strings are in different domains. It does not only depend on the
+ * concatenation of input strings, but also on their boundaries without ambiguity</q>.
+ * </p>
  *
  * @see <a href="https://github.com/XKCP/XKCP">Xoodoo and Keccak Code Package reference implementations</a>
  * @see <a href="https://github.com/KeccakTeam/Xoodoo/">Xoodoo C++ and Python reference implementations</a>
@@ -35,20 +49,64 @@ public abstract class Cyclist {
     protected static final byte[] EMPTY = new byte[0];
     protected Mode mode;
 
+    /**
+     * Initializes this to hashed mode.
+     */
     public void initialize() {
         initialize(EMPTY);
     }
 
+    /**
+     * Initializes this using the provided key in keyed mode if non-empty or hashed mode otherwise.
+     *
+     * @param key secret key to use for subsequent operations
+     */
     public void initialize(byte @NotNull [] key) {
         initialize(key, EMPTY, EMPTY);
     }
 
+    /**
+     * Initializes this instance with an optional key, key id, and counter. If a non-empty key is provided, then this instance
+     * is set to {@linkplain Mode#Keyed keyed mode}. If a non-empty id is provided, this is combined with the key during
+     * initialization. If a non-empty counter is provided, the bytes are absorbed one at a time (i.e., a trickled way).
+     *
+     * @param key     secret key to use when using keyed mode or an empty array for hashed mode
+     * @param id      key id to include in initialization for keyed mode; can be empty
+     * @param counter counter string
+     */
     public abstract void initialize(byte @NotNull [] key, byte @NotNull [] id, byte @NotNull [] counter);
 
+    /**
+     * Absorbs the provided buffer at the {@linkplain #absorbRate() absorb rate}.
+     *
+     * @param X      input buffer to absorb from
+     * @param offset where in the buffer to start absorbing from
+     * @param length how many bytes to absorb
+     */
     public void absorb(byte @NotNull [] X, int offset, int length) {
         absorbAny(DomainConstant.Absorb, absorbRate(), X, offset, length);
     }
 
+    /**
+     * Produces a arbitrary number of output bytes which depend on the bytes absorbed so far.
+     *
+     * @param Y      output buffer to squeeze to
+     * @param offset where in the buffer to squeeze to
+     * @param length how many bytes to squeeze
+     */
+    public void squeeze(byte @NotNull [] Y, int offset, int length) {
+        squeezeAny(DomainConstant.Squeeze, Y, offset, length);
+    }
+
+    /**
+     * Enciphers and absorbs the provided plaintext buffer into the provided ciphertext output buffer.
+     *
+     * @param pt       input plaintext buffer
+     * @param offset   where in the plaintext buffer to encipher from
+     * @param length   how many bytes to encipher
+     * @param ct       output ciphertext buffer
+     * @param ctOffset where in the ciphertext buffer to encipher to
+     */
     public void encrypt(byte @NotNull [] pt, int offset, int length, byte @NotNull [] ct, int ctOffset) {
         if (mode != Mode.Keyed) {
             throw new IllegalStateException("No key initialized");
@@ -56,6 +114,15 @@ public abstract class Cyclist {
         crypt(false, pt, offset, length, ct, ctOffset);
     }
 
+    /**
+     * Deciphers the provided ciphertext buffer into the provided plaintext output buffer and absorbs the plaintext.
+     *
+     * @param ct       input ciphertext buffer
+     * @param offset   where in the ciphertext buffer to decipher from
+     * @param length   how many bytes to decipher
+     * @param pt       output plaintext buffer
+     * @param ptOffset where in the plaintext buffer to decipher to
+     */
     public void decrypt(byte @NotNull [] ct, int offset, int length, byte @NotNull [] pt, int ptOffset) {
         if (mode != Mode.Keyed) {
             throw new IllegalStateException("No key initialized");
@@ -63,10 +130,14 @@ public abstract class Cyclist {
         crypt(true, ct, offset, length, pt, ptOffset);
     }
 
-    public void squeeze(byte @NotNull [] Y, int offset, int length) {
-        squeezeAny(DomainConstant.Squeeze, Y, offset, length);
-    }
-
+    /**
+     * Produces an arbitrary length key similarly to {@link #squeeze(byte[], int, int)} but in a separate domain for performing
+     * key derivation.
+     *
+     * @param key    output key buffer
+     * @param offset where to write key bytes
+     * @param length how many bytes to write
+     */
     public void squeezeKey(byte @NotNull [] key, int offset, int length) {
         if (mode != Mode.Keyed) {
             throw new IllegalStateException("No key initialized");
@@ -74,6 +145,9 @@ public abstract class Cyclist {
         squeezeAny(DomainConstant.SqueezeKey, key, offset, length);
     }
 
+    /**
+     * Transforms internal state in an irreversible way to ensure forward secrecy.
+     */
     public void ratchet() {
         if (mode != Mode.Keyed) {
             throw new IllegalStateException("No key initialized");
@@ -84,6 +158,9 @@ public abstract class Cyclist {
         absorbAny(DomainConstant.Zero, absorbRate(), buffer, 0, buffer.length);
     }
 
+    /**
+     * @return the number of bytes that can be absorbed between permutations
+     */
     protected abstract int absorbRate();
 
     protected abstract void absorbAny(@NotNull DomainConstant d, int r, byte @NotNull [] Xi, int offset, int length);
@@ -99,6 +176,10 @@ public abstract class Cyclist {
 
     protected abstract void up(@NotNull DomainConstant u, byte @NotNull [] Yi, int offset, int length);
 
+    /**
+     * Frame bytes used during squeezing and absorbing to mark what domain the operation is being used in so that a
+     * process history is properly maintained.
+     */
     protected enum DomainConstant {
         Zero(0x00),
         AbsorbKey(0x02),
