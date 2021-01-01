@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,8 +20,8 @@
 
 package dev.o1c.lwc;
 
-import dev.o1c.primitive.CipherKeyFactory;
-import dev.o1c.primitive.CryptoHash;
+import dev.o1c.spi.CipherKeyFactory;
+import dev.o1c.spi.CryptoHash;
 import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.DynamicNode;
 

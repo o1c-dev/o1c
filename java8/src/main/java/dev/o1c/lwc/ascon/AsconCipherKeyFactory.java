@@ -20,8 +20,8 @@
 
 package dev.o1c.lwc.ascon;
 
-import dev.o1c.primitive.CipherKey;
-import dev.o1c.primitive.CipherKeyFactory;
+import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.RandomBytesGenerator;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;

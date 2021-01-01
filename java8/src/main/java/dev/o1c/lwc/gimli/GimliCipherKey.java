@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +20,7 @@
 
 package dev.o1c.lwc.gimli;
 
-import dev.o1c.primitive.CipherKey;
+import dev.o1c.spi.CipherKey;
 import dev.o1c.spi.InvalidAuthenticationTagException;
 import org.jetbrains.annotations.NotNull;
 

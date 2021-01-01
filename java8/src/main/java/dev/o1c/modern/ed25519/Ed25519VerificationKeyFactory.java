@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,8 +22,8 @@ package dev.o1c.modern.ed25519;
 
 import cafe.cryptography.curve25519.InvalidEncodingException;
 import cafe.cryptography.ed25519.Ed25519PublicKey;
-import dev.o1c.primitive.VerificationKey;
-import dev.o1c.primitive.VerificationKeyFactory;
+import dev.o1c.spi.VerificationKey;
+import dev.o1c.spi.VerificationKeyFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class Ed25519VerificationKeyFactory implements VerificationKeyFactory {

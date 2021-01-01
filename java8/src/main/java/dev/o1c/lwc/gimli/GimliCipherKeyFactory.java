@@ -20,8 +20,8 @@
 
 package dev.o1c.lwc.gimli;
 
-import dev.o1c.primitive.CipherKey;
-import dev.o1c.primitive.CipherKeyFactory;
+import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.CipherKeyFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class GimliCipherKeyFactory implements CipherKeyFactory {

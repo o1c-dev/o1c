@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,24 +18,20 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.primitive;
+package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface CipherKey {
-    int nonceSize();
+public interface SignatureKeyFactory {
+    int keySize();
 
-    default void checkNonceSize(int nonceSize) {
-        if (nonceSize != nonceSize()) {
-            throw new IllegalArgumentException("Nonce must be " + nonceSize() + " bytes but got " + nonceSize);
+    default void checkKeySize(int keySize) {
+        if (keySize != keySize()) {
+            throw new IllegalArgumentException("Key must be " + keySize() + " bytes but got " + keySize);
         }
     }
 
-    int tagSize();
+    SignatureKey generateKey();
 
-    void encrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
-            int length, byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset);
-
-    void decrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
-            int length, byte @NotNull [] tag, int tagOffset, byte @NotNull [] out, int outOffset);
+    SignatureKey parseKey(byte @NotNull [] key);
 }
