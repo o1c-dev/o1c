@@ -171,7 +171,7 @@ public abstract class Cyclist {
         byte[] buffer = new byte[RATCHET_SIZE];
         // Squeeze then absorb is the same as overwriting with zeros
         squeezeAny(DomainConstant.Ratchet, buffer, 0, buffer.length);
-        absorbAny(DomainConstant.Zero, absorbRate(), buffer, 0, buffer.length);
+        absorbAny(DomainConstant.Block, absorbRate(), buffer, 0, buffer.length);
     }
 
     /**
@@ -197,7 +197,7 @@ public abstract class Cyclist {
      * process history is properly maintained.
      */
     protected enum DomainConstant {
-        Zero(0x00),
+        Block(0x00),
         AbsorbKey(0x02),
         Absorb(0x03),
         Ratchet(0x10),

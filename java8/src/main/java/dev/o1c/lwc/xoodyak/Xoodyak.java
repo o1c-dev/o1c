@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -64,11 +64,11 @@ class Xoodyak extends Cyclist {
     protected void absorbAny(@NotNull DomainConstant d, int r, byte @NotNull [] Xi, int offset, int length) {
         do {
             if (phase != Phase.Up) {
-                up(DomainConstant.Zero, EMPTY, 0, 0);
+                up(DomainConstant.Block, EMPTY, 0, 0);
             }
             int splitLen = Math.min(r, length);
             down(d, Xi, offset, splitLen);
-            d = DomainConstant.Zero;
+            d = DomainConstant.Block;
             length -= splitLen;
             offset += splitLen;
         } while (length > 0);
@@ -90,7 +90,7 @@ class Xoodyak extends Cyclist {
             bb.put(key).put(id).put((byte) id.length).flip();
             absorbAny(DomainConstant.AbsorbKey, absorbRate, bb.array(), bb.arrayOffset(), bb.remaining());
             if (counter.length != 0) {
-                absorbAny(DomainConstant.Zero, 1, counter, 0, counter.length);
+                absorbAny(DomainConstant.Block, 1, counter, 0, counter.length);
             }
         }
     }
@@ -110,11 +110,11 @@ class Xoodyak extends Cyclist {
             up(constant, EMPTY, 0, 0);
             xoodoo.extractAndAddBytes(in, offset, splitLen, out, outOffset);
             if (decrypt) {
-                down(DomainConstant.Zero, out, outOffset, splitLen);
+                down(DomainConstant.Block, out, outOffset, splitLen);
             } else {
-                down(DomainConstant.Zero, p, 0, splitLen);
+                down(DomainConstant.Block, p, 0, splitLen);
             }
-            constant = DomainConstant.Zero;
+            constant = DomainConstant.Block;
             offset += splitLen;
             outOffset += splitLen;
             length -= splitLen;
@@ -128,9 +128,9 @@ class Xoodyak extends Cyclist {
         offset += splitLen;
         length -= splitLen;
         while (length > 0) {
-            down(DomainConstant.Zero, EMPTY, 0, 0);
+            down(DomainConstant.Block, EMPTY, 0, 0);
             splitLen = Math.min(squeezeRate, length);
-            up(DomainConstant.Zero, Y, offset, splitLen);
+            up(DomainConstant.Block, Y, offset, splitLen);
             offset += splitLen;
             length -= splitLen;
         }
