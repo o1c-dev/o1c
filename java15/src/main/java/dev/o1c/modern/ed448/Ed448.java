@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,6 +21,7 @@
 package dev.o1c.modern.ed448;
 
 import dev.o1c.spi.InvalidProviderException;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
@@ -28,7 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 
 class Ed448 {
-    static KeyFactory getKeyFactory() {
+    static @NotNull KeyFactory getKeyFactory() {
         try {
             return KeyFactory.getInstance("Ed448");
         } catch (NoSuchAlgorithmException e) {
@@ -36,7 +37,7 @@ class Ed448 {
         }
     }
 
-    static KeyPairGenerator getKeyPairGenerator() {
+    static @NotNull KeyPairGenerator getKeyPairGenerator() {
         try {
             return KeyPairGenerator.getInstance("Ed448");
         } catch (NoSuchAlgorithmException e) {
@@ -44,7 +45,7 @@ class Ed448 {
         }
     }
 
-    static Signature getSignature() {
+    static @NotNull Signature getSignature() {
         try {
             return Signature.getInstance("Ed448");
         } catch (NoSuchAlgorithmException e) {
