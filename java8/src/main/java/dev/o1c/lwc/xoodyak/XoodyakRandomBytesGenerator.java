@@ -22,22 +22,26 @@ package dev.o1c.lwc.xoodyak;
 
 import dev.o1c.spi.RandomBytesGenerator;
 import dev.o1c.spi.SeedGenerator;
+import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
 // https://doi.org/10.6028/NIST.SP.800-90Ar1
 // implements an HMAC_DRBG using Xoodyak
 public class XoodyakRandomBytesGenerator implements RandomBytesGenerator {
     private static final ThreadLocal<XoodyakRandomBytesGenerator> CURRENT = new ThreadLocal<>();
+    private static final int SEED_LENGTH = 42;
     private final Xoodyak xoodyak = new Xoodyak();
     private long counter;
+    private final byte[] counterBuf = new byte[Long.BYTES];
 
     public XoodyakRandomBytesGenerator() {
         reseed();
     }
 
     private void reseed() {
-        byte[] seed = SeedGenerator.getInstance().generateSeed(42);
+        byte[] seed = SeedGenerator.getInstance().generateSeed(SEED_LENGTH);
         xoodyak.initialize(seed);
+        xoodyak.ratchet();
         counter = 0;
     }
 
@@ -45,9 +49,19 @@ public class XoodyakRandomBytesGenerator implements RandomBytesGenerator {
     public byte @NotNull [] generateBytes(int nrBytes) {
         byte[] bytes = new byte[nrBytes];
         xoodyak.squeeze(bytes, 0, bytes.length);
-        xoodyak.ratchet();
-        if (++counter < 0) {
+        if (++counter == 0) {
             reseed();
+        } else {
+            // trickle in the counter similar to initialize()
+            ByteOps.packLongBE(counter, counterBuf, 0);
+            int offset = 0;
+            for (int i = 0; i < Long.BYTES; i++) {
+                if (counterBuf[i] == 0) {
+                    offset++;
+                }
+            }
+            xoodyak.absorbAny(Cyclist.DomainConstant.Block, 1, counterBuf, offset, Long.BYTES - offset);
+            xoodyak.ratchet();
         }
         return bytes;
     }
