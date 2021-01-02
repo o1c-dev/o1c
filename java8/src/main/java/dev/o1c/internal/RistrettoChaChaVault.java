@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,6 +14,8 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
 package dev.o1c.internal;
@@ -24,20 +26,18 @@ import cafe.cryptography.curve25519.InvalidEncodingException;
 import cafe.cryptography.curve25519.RistrettoElement;
 import cafe.cryptography.curve25519.RistrettoGeneratorTable;
 import cafe.cryptography.curve25519.Scalar;
-import dev.o1c.spi.InvalidAuthenticationTagException;
+import dev.o1c.modern.blake2.Blake2bCryptoHash;
+import dev.o1c.modern.chacha20.XChaCha20Poly1305CipherKeyFactory;
+import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.CipherKeyFactory;
+import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.InvalidSealException;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.Vault;
 import dev.o1c.util.ByteOps;
-import org.bouncycastle.crypto.digests.Blake2bDigest;
 
-import javax.crypto.AEADBadTagException;
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
-import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -61,17 +61,15 @@ public class RistrettoChaChaVault implements Vault {
     private static final RistrettoGeneratorTable BASE_GENERATOR = Constants.RISTRETTO_GENERATOR_TABLE;
 
     private final SecureRandom secureRandom;
+    private final CipherKeyFactory cipherKeyFactory;
 
     public RistrettoChaChaVault() {
         try {
             secureRandom = SecureRandom.getInstanceStrong();
+            cipherKeyFactory = new XChaCha20Poly1305CipherKeyFactory(secureRandom);
         } catch (NoSuchAlgorithmException e) {
             throw new InvalidProviderException(e);
         }
-    }
-
-    public RistrettoChaChaVault(SecureRandom secureRandom) {
-        this.secureRandom = secureRandom;
     }
 
     @Override
@@ -103,18 +101,11 @@ public class RistrettoChaChaVault implements Vault {
         Objects.requireNonNull(secretKey);
         Objects.requireNonNull(context);
         Objects.requireNonNull(data);
-        byte[] nonce = new byte[NONCE_SIZE];
-        Cipher cipher = XChaCha20Poly1305.cryptWith(true, secretKey.getEncoded(), nonce);
-        cipher.updateAAD(context);
-        byte[] sealed = Arrays.copyOf(nonce, NONCE_SIZE + cipher.getOutputSize(data.length));
-        ByteOps.overwriteWithZeroes(nonce);
-        try {
-            cipher.doFinal(data, 0, data.length, sealed, NONCE_SIZE);
-        } catch (IllegalBlockSizeException | ShortBufferException e) {
-            throw new IllegalStateException(e);
-        } catch (BadPaddingException e) {
-            throw new InvalidSealException(e);
-        }
+        CipherKey key = cipherKeyFactory.parseKey(secretKey.getEncoded());
+        byte[] nonce = new byte[key.nonceLength()];
+        secureRandom.nextBytes(nonce);
+        byte[] sealed = Arrays.copyOf(nonce, nonceLength() + data.length + tagLength());
+        key.encrypt(nonce, context, data, 0, data.length, sealed, nonceLength(), sealed, sealed.length - tagLength());
         return sealed;
     }
 
@@ -123,19 +114,15 @@ public class RistrettoChaChaVault implements Vault {
         Objects.requireNonNull(secretKey);
         Objects.requireNonNull(context);
         Objects.requireNonNull(sealedData);
-        int msgLen = sealedData.length - NONCE_SIZE - AUTHENTICATION_TAG_SIZE;
+        int msgLen = sealedData.length - nonceLength() - tagLength();
         if (msgLen < 0) {
             throw new InvalidSealException("Missing metadata");
         }
-        Cipher cipher = XChaCha20Poly1305.cryptWith(false, secretKey.getEncoded(), Arrays.copyOf(sealedData, NONCE_SIZE));
-        cipher.updateAAD(context);
-        try {
-            return cipher.doFinal(sealedData, NONCE_SIZE, msgLen + AUTHENTICATION_TAG_SIZE);
-        } catch (BadPaddingException e) {
-            throw new InvalidSealException(e);
-        } catch (IllegalBlockSizeException e) {
-            throw new IllegalStateException(e);
-        }
+        CipherKey key = cipherKeyFactory.parseKey(secretKey.getEncoded());
+        byte[] nonce = Arrays.copyOf(sealedData, nonceLength());
+        byte[] data = new byte[msgLen];
+        key.decrypt(nonce, context, sealedData, nonceLength(), data.length, sealedData, sealedData.length - key.tagLength(), data, 0);
+        return data;
     }
 
     @Override
@@ -152,43 +139,52 @@ public class RistrettoChaChaVault implements Vault {
         }
         Scalar sender = ((PrivateKey) senderKey).key;
         RistrettoElement recipient = ((PublicKey) recipientKey).key;
-        Digest digest = new Digest(512);
-        digest.update(NONCE);
-        digest.update(senderKey.getEncoded());
-        digest.update(recipientKey.getEncoded());
+
+        CryptoHash hash = new Blake2bCryptoHash(ASYMMETRIC_KEY_SIZE * 2);
+        hash.update(NONCE);
+        hash.update(senderKey.getEncoded());
+        hash.update(recipientKey.getEncoded());
         byte[] noise = new byte[32];
         secureRandom.nextBytes(noise);
-        digest.update(noise);
-        digest.update(data);
-        Scalar ephemeralPrivateKey = Scalar.fromBytesModOrderWide(digest.digest());
+        hash.update(noise);
+        hash.update(data);
+        Scalar ephemeralPrivateKey = Scalar.fromBytesModOrderWide(hash.finish());
         RistrettoElement ephemeralPublicKey = BASE_GENERATOR.multiply(ephemeralPrivateKey);
         byte[] r = ephemeralPublicKey.compress().toByteArray(); // first half of signature
+
         // TODO: it seems odd that we have to flip types twice
         RistrettoElement kp = recipient.multiply(Scalar.fromBits(r).multiplyAndAdd(sender, ephemeralPrivateKey));
         byte[] k = kp.compress().toByteArray();
-        digest = new Digest(256);
-        digest.update(SHARED_KEY);
-        digest.update(k);
-        digest.updateVariableLengthBuffers(senderId, recipientId, context);
-        byte[] sharedKey = digest.digest();
-        digest = new Digest(512);
-        digest.update(SIGN_KEY);
-        digest.update(r);
-        digest.updateVariableLengthBuffers(senderId, recipientId, context);
-        byte[] nonce = new byte[NONCE_SIZE];
+        hash = new Blake2bCryptoHash(SYMMETRIC_KEY_SIZE);
+        hash.update(SHARED_KEY);
+        hash.update(k);
+        hash.update((byte) senderId.length);
+        hash.update(senderId);
+        hash.update((byte) recipientId.length);
+        hash.update(recipientId);
+        hash.update((byte) context.length);
+        hash.update(context);
+        byte[] sharedKey = hash.finish();
+        CipherKey key = cipherKeyFactory.parseKey(sharedKey);
+
+        hash = new Blake2bCryptoHash(signatureLength());
+        hash.update(SIGN_KEY);
+        hash.update(r);
+        hash.update((byte) senderId.length);
+        hash.update(senderId);
+        hash.update((byte) recipientId.length);
+        hash.update(recipientId);
+        hash.update((byte) context.length);
+        hash.update(context);
+        // TODO: synthetic nonce Hk(random ‖ m)
+        byte[] nonce = new byte[nonceLength()];
         secureRandom.nextBytes(nonce);
-        Cipher cipher = XChaCha20Poly1305.cryptWith(true, sharedKey, nonce);
-        cipher.updateAAD(context);
-        int ctLen = NONCE_SIZE + cipher.getOutputSize(data.length);
-        byte[] wrapped = Arrays.copyOf(nonce, ctLen + SIGNATURE_SIZE);
-        try {
-            cipher.doFinal(data, 0, data.length, wrapped, NONCE_SIZE);
-        } catch (BadPaddingException | IllegalBlockSizeException | ShortBufferException e) {
-            throw new IllegalStateException(e);
-        }
-        digest.update(wrapped, NONCE_SIZE, data.length);
+        int ctLen = nonceLength() + data.length + tagLength();
+        byte[] wrapped = Arrays.copyOf(nonce, ctLen + signatureLength());
+        key.encrypt(nonce, context, data, 0, data.length, wrapped, nonceLength(), wrapped, nonceLength() + data.length);
+        hash.update(wrapped, nonceLength(), data.length);
         byte[] s =
-                Scalar.fromBytesModOrderWide(digest.digest()).multiply(sender).subtract(ephemeralPrivateKey).toByteArray();
+                Scalar.fromBytesModOrderWide(hash.finish()).multiply(sender).subtract(ephemeralPrivateKey).toByteArray();
         System.arraycopy(r, 0, wrapped, ctLen, r.length);
         System.arraycopy(s, 0, wrapped, ctLen + r.length, s.length);
         return wrapped;
@@ -203,14 +199,14 @@ public class RistrettoChaChaVault implements Vault {
         if (!(senderKey instanceof PublicKey && recipientKey instanceof PrivateKey)) {
             throw new IllegalArgumentException("Unsupported key types");
         }
-        int msgLen = wrappedData.length - NONCE_SIZE - AUTHENTICATION_TAG_SIZE - SIGNATURE_SIZE;
+        int msgLen = wrappedData.length - nonceLength() - tagLength() - signatureLength();
         if (msgLen < 0) {
             throw new InvalidSealException("Sealed data is missing metadata");
         }
         RistrettoElement sender = ((PublicKey) senderKey).key;
         Scalar recipient = ((PrivateKey) recipientKey).key;
         byte[] r =
-                Arrays.copyOfRange(wrappedData, wrappedData.length - SIGNATURE_SIZE, wrappedData.length - 32);
+                Arrays.copyOfRange(wrappedData, wrappedData.length - signatureLength(), wrappedData.length - 32);
         byte[] s = Arrays.copyOfRange(wrappedData, wrappedData.length - 32, wrappedData.length);
         Scalar reduced = Scalar.fromBits(r);
         RistrettoElement publicSigningKey;
@@ -219,47 +215,52 @@ public class RistrettoChaChaVault implements Vault {
         } catch (InvalidEncodingException e) {
             throw new InvalidSealException(e);
         }
+
         byte[] k = sender.multiply(reduced).add(publicSigningKey).multiply(recipient).compress().toByteArray();
-        Digest digest = new Digest(256);
-        digest.update(SHARED_KEY);
-        digest.update(k);
-        digest.updateVariableLengthBuffers(senderId, recipientId, context);
-        byte[] sharedKey = digest.digest();
-        byte[] nonce = Arrays.copyOf(wrappedData, NONCE_SIZE);
-        digest = new Digest(512);
-        digest.update(SIGN_KEY);
-        digest.update(r);
-        digest.updateVariableLengthBuffers(senderId, recipientId, context);
-        digest.update(wrappedData, NONCE_SIZE, msgLen);
-        if (sender.multiply(Scalar.fromBytesModOrderWide(digest.digest()))
+        CryptoHash hash = new Blake2bCryptoHash(cipherKeyFactory.keyLength());
+        hash.update(SHARED_KEY);
+        hash.update(k);
+        hash.update((byte) senderId.length);
+        hash.update(senderId);
+        hash.update((byte) recipientId.length);
+        hash.update(recipientId);
+        hash.update((byte) context.length);
+        hash.update(context);
+        byte[] sharedKey = hash.finish();
+        CipherKey key = cipherKeyFactory.parseKey(sharedKey);
+
+        byte[] nonce = Arrays.copyOf(wrappedData, nonceLength());
+        hash = new Blake2bCryptoHash(signatureLength());
+        hash.update(SIGN_KEY);
+        hash.update(r);
+        hash.update((byte) senderId.length);
+        hash.update(senderId);
+        hash.update((byte) recipientId.length);
+        hash.update(recipientId);
+        hash.update((byte) context.length);
+        hash.update(context);
+        hash.update(wrappedData, nonceLength(), msgLen);
+        if (sender.multiply(Scalar.fromBytesModOrderWide(hash.finish()))
                 .ctEquals(BASE_GENERATOR.multiply(Scalar.fromCanonicalBytes(s)).add(publicSigningKey)) != 1) {
             throw new InvalidSignatureException("Bad signature");
         }
-        Cipher cipher = XChaCha20Poly1305.cryptWith(false, sharedKey, nonce);
-        cipher.updateAAD(context);
-        try {
-            return cipher.doFinal(wrappedData, NONCE_SIZE, msgLen + AUTHENTICATION_TAG_SIZE);
-        } catch (IllegalBlockSizeException e) {
-            throw new IllegalStateException(e);
-        } catch (AEADBadTagException e) {
-            throw new InvalidAuthenticationTagException(e.getMessage());
-        } catch (BadPaddingException e) {
-            throw new InvalidSealException(e);
-        }
+        byte[] data = new byte[msgLen];
+        key.decrypt(nonce, context, wrappedData, nonce.length, msgLen, wrappedData, nonce.length + msgLen, data, 0);
+        return data;
     }
 
     @Override
-    public int getTagSize() {
+    public int tagLength() {
         return AUTHENTICATION_TAG_SIZE;
     }
 
     @Override
-    public int getNonceSize() {
+    public int nonceLength() {
         return NONCE_SIZE;
     }
 
     @Override
-    public int getSigSize() {
+    public int signatureLength() {
         return SIGNATURE_SIZE;
     }
 
@@ -275,35 +276,6 @@ public class RistrettoChaChaVault implements Vault {
         }
         if (context.length > 255) {
             throw new IllegalArgumentException("Context data can only be up to 255 bytes");
-        }
-    }
-
-    private static class Digest {
-        private final Blake2bDigest delegate;
-
-        Digest(int hashSize) {
-            delegate = new Blake2bDigest(hashSize);
-        }
-
-        public void update(byte[] message) {
-            delegate.update(message, 0, message.length);
-        }
-
-        public void update(byte[] message, int offset, int len) {
-            delegate.update(message, offset, len);
-        }
-
-        public void updateVariableLengthBuffers(byte[]... buffers) {
-            for (byte[] buffer : buffers) {
-                delegate.update((byte) (buffer.length & 0xff));
-                delegate.update(buffer, 0, buffer.length);
-            }
-        }
-
-        public byte[] digest() {
-            byte[] digest = new byte[delegate.getDigestSize()];
-            delegate.doFinal(digest, 0);
-            return digest;
         }
     }
 

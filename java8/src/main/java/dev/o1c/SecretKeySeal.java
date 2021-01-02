@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,6 +14,8 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
 package dev.o1c;
@@ -58,9 +60,9 @@ class SecretKeySeal implements SecureData.Seal {
             context = new byte[0];
         }
         byte[] sealedData = vault.seal(key, context, data);
-        byte[] encryptedData = Arrays.copyOfRange(sealedData, vault.getNonceSize(), vault.getNonceSize() + data.length);
-        byte[] token = Arrays.copyOf(sealedData, vault.getNonceSize() + vault.getTagSize());
-        System.arraycopy(sealedData, sealedData.length - vault.getTagSize(), token, vault.getNonceSize(), vault.getTagSize());
+        byte[] encryptedData = Arrays.copyOfRange(sealedData, vault.nonceLength(), vault.nonceLength() + data.length);
+        byte[] token = Arrays.copyOf(sealedData, vault.nonceLength() + vault.tagLength());
+        System.arraycopy(sealedData, sealedData.length - vault.tagLength(), token, vault.nonceLength(), vault.tagLength());
         return new SecureData(encryptedData, token);
     }
 
@@ -71,15 +73,15 @@ class SecretKeySeal implements SecureData.Seal {
         if (context == null) {
             context = new byte[0];
         }
-        int tokenSize = vault.getNonceSize() + vault.getTagSize();
+        int tokenSize = vault.nonceLength() + vault.tagLength();
         if (token.length != tokenSize) {
             throw new InvalidSealException("Token size must be " + tokenSize + " bytes");
         }
         byte[] sealedData = new byte[encryptedData.length + token.length];
-        System.arraycopy(token, 0, sealedData, 0, vault.getNonceSize());
-        System.arraycopy(encryptedData, 0, sealedData, vault.getNonceSize(), encryptedData.length);
-        System.arraycopy(token, vault.getNonceSize(), sealedData, vault.getNonceSize() + encryptedData.length,
-                vault.getTagSize());
+        System.arraycopy(token, 0, sealedData, 0, vault.nonceLength());
+        System.arraycopy(encryptedData, 0, sealedData, vault.nonceLength(), encryptedData.length);
+        System.arraycopy(token, vault.nonceLength(), sealedData, vault.nonceLength() + encryptedData.length,
+                vault.tagLength());
         return vault.unseal(key, context, sealedData);
     }
 }

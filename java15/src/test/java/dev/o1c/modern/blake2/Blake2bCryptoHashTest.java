@@ -18,26 +18,17 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.lwc;
+package dev.o1c.modern.blake2;
 
-import dev.o1c.spi.CipherKeyFactory;
-import dev.o1c.spi.CipherKeyFactoryTest;
-import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.CryptoHashTest;
 import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
 
-// https://csrc.nist.gov/projects/lightweight-cryptography/round-2-candidates
-// test vectors can be regenerated from reference implementations
-public class NistLwcTestVectors {
-    public static List<DynamicNode> loadHashTestVectors(CryptoHash hash) {
-        var filename = String.format("LWC_HASH_KAT_%d.txt.gz", hash.hashLength() * Byte.SIZE);
-        return CryptoHashTest.loadHashTests(filename, hash);
-    }
-
-    public static List<DynamicNode> loadAEADTestVectors(CipherKeyFactory factory) {
-        var filename = String.format("LWC_AEAD_KAT_%d_128.txt.gz", factory.keyLength() * Byte.SIZE);
-        return CipherKeyFactoryTest.loadAEADTests(filename, factory);
+class Blake2bCryptoHashTest {
+    @TestFactory
+    List<DynamicNode> loadTestVectors() {
+        return CryptoHashTest.loadHashTests("blake2b256.txt.gz", new Blake2bCryptoHash(32));
     }
 }

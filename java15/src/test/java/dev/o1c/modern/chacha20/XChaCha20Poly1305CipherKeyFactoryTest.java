@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,22 +14,21 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.internal;
+package dev.o1c.modern.chacha20;
 
-import dev.o1c.util.ByteOps;
-import org.junit.jupiter.api.Test;
+import dev.o1c.spi.CipherKeyFactoryTest;
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.TestFactory;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import java.util.List;
 
-class XChaCha20Poly1305Test {
-    @Test
-    void subkeyDerivation() {
-        var key = ByteOps.fromHex("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f");
-        var nonce = ByteOps.fromHex("000000090000004a0000000031415927");
-        var expectedKey = ByteOps.fromHex("82413b4227b27bfed30e42508a877d73a0f9e4d58a74a853c12ec41326d3ecdc");
-        var actualKey = XChaCha20Poly1305.calculateSubKey(key, nonce);
-        assertArrayEquals(expectedKey, actualKey);
+class XChaCha20Poly1305CipherKeyFactoryTest {
+    @TestFactory
+    List<DynamicNode> loadTestVectors() {
+        return CipherKeyFactoryTest.loadAEADTests("xchacha20poly1305.txt.gz", new XChaCha20Poly1305CipherKeyFactory());
     }
 }
