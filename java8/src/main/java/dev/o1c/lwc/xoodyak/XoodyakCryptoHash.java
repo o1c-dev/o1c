@@ -27,7 +27,7 @@ public class XoodyakCryptoHash implements CryptoHash {
     private final Xoodyak xoodyak = new Xoodyak();
 
     @Override
-    public int getDefaultHashSize() {
+    public int hashLength() {
         return 32;
     }
 

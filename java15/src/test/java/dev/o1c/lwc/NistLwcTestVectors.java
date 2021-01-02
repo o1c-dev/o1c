@@ -46,7 +46,7 @@ public class NistLwcTestVectors {
         var testVectors = 1024;
         var vectors = new ArrayList<DynamicNode>(testVectors);
         try (var reader = loadResource(hash.getClass(),
-                String.format("LWC_HASH_KAT_%d.txt.gz", hash.getDefaultHashSize() * Byte.SIZE))) {
+                String.format("LWC_HASH_KAT_%d.txt.gz", hash.hashLength() * Byte.SIZE))) {
             var countLine = Pattern.compile("Count = (\\d+)");
             var msgLine = Pattern.compile("Msg = ([0-9A-F]*)");
             var hashLine = Pattern.compile("MD = ([0-9A-F]{64})");
@@ -70,7 +70,7 @@ public class NistLwcTestVectors {
     public static List<DynamicNode> loadAEADTestVectors(CipherKeyFactory factory) throws IOException {
         var testVectors = 1088;
         var vectors = new ArrayList<DynamicNode>(testVectors);
-        var filename = String.format("LWC_AEAD_KAT_%d_128.txt.gz", factory.keySize() * Byte.SIZE);
+        var filename = String.format("LWC_AEAD_KAT_%d_128.txt.gz", factory.keyLength() * Byte.SIZE);
         try (var reader = loadResource(factory.getClass(), filename)) {
             var countLine = Pattern.compile("Count = (\\d+)");
             var keyLine = Pattern.compile("Key = ([0-9A-F]+)");

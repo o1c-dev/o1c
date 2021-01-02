@@ -23,15 +23,15 @@ package dev.o1c.spi;
 import org.jetbrains.annotations.NotNull;
 
 public interface CipherKey {
-    int nonceSize();
+    int nonceLength();
 
-    default void checkNonceSize(int nonceSize) {
-        if (nonceSize != nonceSize()) {
-            throw new IllegalArgumentException("Nonce must be " + nonceSize() + " bytes but got " + nonceSize);
+    default void checkNonceLength(int nonceLength) {
+        if (nonceLength != nonceLength()) {
+            throw new IllegalArgumentException("Nonce must be " + nonceLength() + " bytes but got " + nonceLength);
         }
     }
 
-    int tagSize();
+    int tagLength();
 
     void encrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
             int length, byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset);

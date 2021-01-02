@@ -34,18 +34,18 @@ public class AsconCipherKeyFactory implements CipherKeyFactory {
     }
 
     @Override
-    public int keySize() {
+    public int keyLength() {
         return 16;
     }
 
     @Override
     public CipherKey generateKey() {
-        return parseKey(randomBytesGenerator.generateBytes(keySize()));
+        return parseKey(randomBytesGenerator.generateBytes(keyLength()));
     }
 
     @Override
     public CipherKey parseKey(byte @NotNull [] key) {
-        checkKeySize(key.length);
+        checkKeyLength(key.length);
         long[] k = new long[2];
         ByteOps.unpackLongsBE(key, 0, 2, k, 0);
         return new AsconCipherKey(k[0], k[1]);

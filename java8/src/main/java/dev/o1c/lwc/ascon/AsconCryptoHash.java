@@ -50,7 +50,7 @@ public class AsconCryptoHash implements CryptoHash {
     }
 
     @Override
-    public int getDefaultHashSize() {
+    public int hashLength() {
         return hashSize == 0 ? 32 : hashSize;
     }
 

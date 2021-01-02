@@ -40,12 +40,12 @@ class GimliCipherKey implements CipherKey {
     }
 
     @Override
-    public int nonceSize() {
+    public int nonceLength() {
         return 16;
     }
 
     @Override
-    public int tagSize() {
+    public int tagLength() {
         return 16;
     }
 
@@ -53,11 +53,11 @@ class GimliCipherKey implements CipherKey {
     public void encrypt(
             byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] out,
             int outOffset, byte @NotNull [] tag, int tagOffset) {
-        checkNonceSize(nonce.length);
+        checkNonceLength(nonce.length);
         gimli.init(key, nonce);
         gimli.absorb(context);
         gimli.encrypt(in, offset, length, out, outOffset);
-        gimli.squeeze(tag, tagOffset, tagSize());
+        gimli.squeeze(tag, tagOffset, tagLength());
         gimli.reset(); // or ratchet
     }
 
@@ -65,12 +65,12 @@ class GimliCipherKey implements CipherKey {
     public void decrypt(
             byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] tag,
             int tagOffset, byte @NotNull [] out, int outOffset) {
-        checkNonceSize(nonce.length);
+        checkNonceLength(nonce.length);
         gimli.init(key, nonce);
         gimli.absorb(context);
         gimli.decrypt(in, offset, length, out, outOffset);
-        byte[] expected = Arrays.copyOfRange(tag, tagOffset, tagOffset + tagSize());
-        byte[] actual = new byte[tagSize()];
+        byte[] expected = Arrays.copyOfRange(tag, tagOffset, tagOffset + tagLength());
+        byte[] actual = new byte[tagLength()];
         gimli.squeeze(actual);
         gimli.reset(); // or ratchet
         if (!MessageDigest.isEqual(expected, actual)) {

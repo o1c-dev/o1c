@@ -42,12 +42,12 @@ class AsconCipherKey implements CipherKey {
     }
 
     @Override
-    public int nonceSize() {
+    public int nonceLength() {
         return 16;
     }
 
     @Override
-    public int tagSize() {
+    public int tagLength() {
         return 16;
     }
 
@@ -58,7 +58,7 @@ class AsconCipherKey implements CipherKey {
         if (outOffset + length > out.length) {
             throw new BufferOverflowException();
         }
-        if (tagOffset + tagSize() > tag.length) {
+        if (tagOffset + tagLength() > tag.length) {
             throw new BufferOverflowException();
         }
         init(nonce, context);
@@ -90,7 +90,7 @@ class AsconCipherKey implements CipherKey {
         if (outOffset + length > out.length) {
             throw new BufferOverflowException();
         }
-        if (tagOffset + tagSize() > tag.length) {
+        if (tagOffset + tagLength() > tag.length) {
             throw new BufferUnderflowException();
         }
         init(nonce, context);
@@ -122,7 +122,7 @@ class AsconCipherKey implements CipherKey {
     }
 
     private void init(byte[] nonce, byte[] context) {
-        checkNonceSize(nonce.length);
+        checkNonceLength(nonce.length);
         state[0] = IV;
         state[1] = keyHigh;
         state[2] = keyLow;

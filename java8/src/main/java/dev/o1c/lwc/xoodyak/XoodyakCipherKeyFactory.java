@@ -27,18 +27,18 @@ import org.jetbrains.annotations.NotNull;
 public class XoodyakCipherKeyFactory implements CipherKeyFactory {
 
     @Override
-    public int keySize() {
+    public int keyLength() {
         return 16;
     }
 
     @Override
     public CipherKey generateKey() {
-        return parseKey(XoodyakRandomBytesGenerator.getInstance().generateBytes(keySize()));
+        return parseKey(XoodyakRandomBytesGenerator.getInstance().generateBytes(keyLength()));
     }
 
     @Override
     public CipherKey parseKey(byte @NotNull [] key) {
-        checkKeySize(key.length);
+        checkKeyLength(key.length);
         return new XoodyakCipherKey(key);
     }
 }

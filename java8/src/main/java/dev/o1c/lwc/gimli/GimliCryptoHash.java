@@ -29,7 +29,7 @@ public class GimliCryptoHash implements CryptoHash {
     private int stateOffset;
 
     @Override
-    public int getDefaultHashSize() {
+    public int hashLength() {
         return 32;
     }
 

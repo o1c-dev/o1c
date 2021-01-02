@@ -23,7 +23,7 @@ package dev.o1c.spi;
 import org.jetbrains.annotations.NotNull;
 
 public interface CryptoHash {
-    int getDefaultHashSize();
+    int hashLength();
 
     void reset();
 
@@ -38,7 +38,7 @@ public interface CryptoHash {
     void finish(byte @NotNull [] out, int offset, int length);
 
     default void finish(byte @NotNull [] out, int offset) {
-        finish(out, offset, getDefaultHashSize());
+        finish(out, offset, hashLength());
     }
 
     default void finish(byte @NotNull [] out) {
@@ -46,7 +46,7 @@ public interface CryptoHash {
     }
 
     default byte @NotNull [] finish() {
-        byte[] hash = new byte[getDefaultHashSize()];
+        byte[] hash = new byte[hashLength()];
         finish(hash);
         return hash;
     }
@@ -54,7 +54,7 @@ public interface CryptoHash {
     default byte @NotNull [] hash(byte @NotNull [] data, int offset, int length) {
         reset();
         update(data, offset, length);
-        byte[] hash = new byte[getDefaultHashSize()];
+        byte[] hash = new byte[hashLength()];
         finish(hash);
         return hash;
     }

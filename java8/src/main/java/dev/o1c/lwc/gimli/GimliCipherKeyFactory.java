@@ -27,18 +27,18 @@ import org.jetbrains.annotations.NotNull;
 public class GimliCipherKeyFactory implements CipherKeyFactory {
 
     @Override
-    public int keySize() {
+    public int keyLength() {
         return 32;
     }
 
     @Override
     public CipherKey generateKey() {
-        return parseKey(GimliRandomBytesGenerator.getInstance().generateBytes(keySize()));
+        return parseKey(GimliRandomBytesGenerator.getInstance().generateBytes(keyLength()));
     }
 
     @Override
     public CipherKey parseKey(byte @NotNull [] key) {
-        checkKeySize(key.length);
+        checkKeyLength(key.length);
         return new GimliCipherKey(key);
     }
 }

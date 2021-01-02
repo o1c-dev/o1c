@@ -23,11 +23,11 @@ package dev.o1c.spi;
 import org.jetbrains.annotations.NotNull;
 
 public interface CipherKeyFactory {
-    int keySize();
+    int keyLength();
 
-    default void checkKeySize(int keySize) {
-        if (keySize != keySize()) {
-            throw new IllegalArgumentException("Key must be " + keySize() + " bytes but got " + keySize);
+    default void checkKeyLength(int keyLength) {
+        if (keyLength != keyLength()) {
+            throw new IllegalArgumentException("Key must be " + keyLength() + " bytes but got " + keyLength);
         }
     }
 
