@@ -41,25 +41,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Arrays;
 
 // https://tools.ietf.org/html/rfc8439
 // https://tools.ietf.org/html/draft-irtf-cfrg-xchacha-03
 public class XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
-    private final SecureRandom secureRandom;
-
-    public XChaCha20Poly1305CipherKeyFactory() {
-        try {
-            secureRandom = SecureRandom.getInstanceStrong();
-        } catch (NoSuchAlgorithmException e) {
-            throw new InvalidProviderException(e);
-        }
-    }
-
-    public XChaCha20Poly1305CipherKeyFactory(SecureRandom secureRandom) {
-        this.secureRandom = secureRandom;
-    }
 
     @Override
     public int keyLength() {
@@ -68,9 +54,7 @@ public class XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
 
     @Override
     public CipherKey generateKey() {
-        byte[] key = new byte[keyLength()];
-        secureRandom.nextBytes(key);
-        return new CipherKeyImpl(key);
+        return new CipherKeyImpl(ChaCha20RandomBytesGenerator.getInstance().generateBytes(keyLength()));
     }
 
     @Override
@@ -140,7 +124,7 @@ public class XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
             Cipher cipher = getChaCha20Poly1305();
             int[] state = initialState.clone();
             ByteOps.unpackIntsLE(nonce, 0, 4, state, 12);
-            chaChaBlock(state);
+            ChaCha20.permute(state);
             byte[] subkey = new byte[32];
             ByteOps.packIntsLE(state, 0, 4, subkey, 0);
             ByteOps.packIntsLE(state, 12, 4, subkey, 16);
@@ -154,41 +138,6 @@ public class XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
                 throw new IllegalStateException(e);
             }
             return cipher;
-        }
-
-        private static void chaChaBlock(int[] state) {
-            for (int i = 0; i < 10; i++) {
-                columnRound(state);
-                diagonalRound(state);
-            }
-        }
-
-        private static void columnRound(int[] state) {
-            quarterRound(state, 0, 4, 8, 12);
-            quarterRound(state, 1, 5, 9, 13);
-            quarterRound(state, 2, 6, 10, 14);
-            quarterRound(state, 3, 7, 11, 15);
-        }
-
-        private static void diagonalRound(int[] state) {
-            quarterRound(state, 0, 5, 10, 15);
-            quarterRound(state, 1, 6, 11, 12);
-            quarterRound(state, 2, 7, 8, 13);
-            quarterRound(state, 3, 4, 9, 14);
-        }
-
-        private static void quarterRound(int[] state, int a, int b, int c, int d) {
-            state[a] += state[b];
-            state[d] = Integer.rotateLeft(state[d] ^ state[a], 16);
-
-            state[c] += state[d];
-            state[b] = Integer.rotateLeft(state[b] ^ state[c], 12);
-
-            state[a] += state[b];
-            state[d] = Integer.rotateLeft(state[d] ^ state[a], 8);
-
-            state[c] += state[d];
-            state[b] = Integer.rotateLeft(state[b] ^ state[c], 7);
         }
 
         private static Cipher getChaCha20Poly1305() {

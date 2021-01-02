@@ -27,11 +27,11 @@ import cafe.cryptography.curve25519.RistrettoElement;
 import cafe.cryptography.curve25519.RistrettoGeneratorTable;
 import cafe.cryptography.curve25519.Scalar;
 import dev.o1c.modern.blake2.Blake2bCryptoHash;
+import dev.o1c.modern.chacha20.ChaCha20RandomBytesGenerator;
 import dev.o1c.modern.chacha20.XChaCha20Poly1305CipherKeyFactory;
 import dev.o1c.spi.CipherKey;
 import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.CryptoHash;
-import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.InvalidSealException;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.Vault;
@@ -41,11 +41,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.spec.EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class RistrettoChaChaVault implements Vault {
     private static final int ASYMMETRIC_KEY_SIZE = 32;
@@ -60,22 +59,11 @@ public class RistrettoChaChaVault implements Vault {
     private static final String ALGORITHM = "Ristretto255";
     private static final RistrettoGeneratorTable BASE_GENERATOR = Constants.RISTRETTO_GENERATOR_TABLE;
 
-    private final SecureRandom secureRandom;
-    private final CipherKeyFactory cipherKeyFactory;
-
-    public RistrettoChaChaVault() {
-        try {
-            secureRandom = SecureRandom.getInstanceStrong();
-            cipherKeyFactory = new XChaCha20Poly1305CipherKeyFactory(secureRandom);
-        } catch (NoSuchAlgorithmException e) {
-            throw new InvalidProviderException(e);
-        }
-    }
+    private final CipherKeyFactory cipherKeyFactory = new XChaCha20Poly1305CipherKeyFactory();
 
     @Override
     public KeyPair generateKeyPair() {
-        byte[] key = new byte[ASYMMETRIC_KEY_SIZE];
-        secureRandom.nextBytes(key);
+        byte[] key = ChaCha20RandomBytesGenerator.getInstance().generateBytes(ASYMMETRIC_KEY_SIZE);
         KeyPair keyPair = parsePrivateKey(key);
         ByteOps.overwriteWithZeroes(key);
         return keyPair;
@@ -89,8 +77,7 @@ public class RistrettoChaChaVault implements Vault {
 
     @Override
     public SecretKey generateSecretKey() {
-        byte[] key = new byte[SYMMETRIC_KEY_SIZE];
-        secureRandom.nextBytes(key);
+        byte[] key = ChaCha20RandomBytesGenerator.getInstance().generateBytes(SYMMETRIC_KEY_SIZE);
         SecretKey secretKey = new SecretKeySpec(key, ALGORITHM);
         ByteOps.overwriteWithZeroes(key);
         return secretKey;
@@ -102,8 +89,7 @@ public class RistrettoChaChaVault implements Vault {
         Objects.requireNonNull(context);
         Objects.requireNonNull(data);
         CipherKey key = cipherKeyFactory.parseKey(secretKey.getEncoded());
-        byte[] nonce = new byte[key.nonceLength()];
-        secureRandom.nextBytes(nonce);
+        byte[] nonce = ChaCha20RandomBytesGenerator.getInstance().generateBytes(nonceLength());
         byte[] sealed = Arrays.copyOf(nonce, nonceLength() + data.length + tagLength());
         key.encrypt(nonce, context, data, 0, data.length, sealed, nonceLength(), sealed, sealed.length - tagLength());
         return sealed;
@@ -140,45 +126,39 @@ public class RistrettoChaChaVault implements Vault {
         Scalar sender = ((PrivateKey) senderKey).key;
         RistrettoElement recipient = ((PublicKey) recipientKey).key;
 
+        Consumer<CryptoHash> absorbContextInfo = hash -> {
+            hash.update((byte) senderId.length);
+            hash.update(senderId);
+            hash.update((byte) recipientId.length);
+            hash.update(recipientId);
+            hash.update((byte) context.length);
+            hash.update(context);
+        };
         CryptoHash hash = new Blake2bCryptoHash(ASYMMETRIC_KEY_SIZE * 2);
         hash.update(NONCE);
         hash.update(senderKey.getEncoded());
         hash.update(recipientKey.getEncoded());
-        byte[] noise = new byte[32];
-        secureRandom.nextBytes(noise);
+        byte[] noise = ChaCha20RandomBytesGenerator.getInstance().generateBytes(32);
         hash.update(noise);
         hash.update(data);
         Scalar ephemeralPrivateKey = Scalar.fromBytesModOrderWide(hash.finish());
         RistrettoElement ephemeralPublicKey = BASE_GENERATOR.multiply(ephemeralPrivateKey);
         byte[] r = ephemeralPublicKey.compress().toByteArray(); // first half of signature
 
-        // TODO: it seems odd that we have to flip types twice
         RistrettoElement kp = recipient.multiply(Scalar.fromBits(r).multiplyAndAdd(sender, ephemeralPrivateKey));
         byte[] k = kp.compress().toByteArray();
         hash = new Blake2bCryptoHash(SYMMETRIC_KEY_SIZE);
         hash.update(SHARED_KEY);
         hash.update(k);
-        hash.update((byte) senderId.length);
-        hash.update(senderId);
-        hash.update((byte) recipientId.length);
-        hash.update(recipientId);
-        hash.update((byte) context.length);
-        hash.update(context);
+        absorbContextInfo.accept(hash);
         byte[] sharedKey = hash.finish();
         CipherKey key = cipherKeyFactory.parseKey(sharedKey);
 
         hash = new Blake2bCryptoHash(signatureLength());
         hash.update(SIGN_KEY);
         hash.update(r);
-        hash.update((byte) senderId.length);
-        hash.update(senderId);
-        hash.update((byte) recipientId.length);
-        hash.update(recipientId);
-        hash.update((byte) context.length);
-        hash.update(context);
-        // TODO: synthetic nonce Hk(random ‖ m)
-        byte[] nonce = new byte[nonceLength()];
-        secureRandom.nextBytes(nonce);
+        absorbContextInfo.accept(hash);
+        byte[] nonce = ChaCha20RandomBytesGenerator.getInstance().generateBytes(nonceLength());
         int ctLen = nonceLength() + data.length + tagLength();
         byte[] wrapped = Arrays.copyOf(nonce, ctLen + signatureLength());
         key.encrypt(nonce, context, data, 0, data.length, wrapped, nonceLength(), wrapped, nonceLength() + data.length);
