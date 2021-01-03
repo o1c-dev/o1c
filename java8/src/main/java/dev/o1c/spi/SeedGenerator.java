@@ -20,13 +20,30 @@
 
 package dev.o1c.spi;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ServiceLoader;
 
+/**
+ * Generates seed data for {@link RandomBytesGenerator} implementations using system entropy sources.
+ */
+@ApiStatus.Internal
 public interface SeedGenerator {
+
+    /**
+     * Generates the requested number of bytes of entropy.
+     *
+     * @param nrBytes how many bytes of entropy to gather
+     * @return a new cryptographic seed
+     */
     byte @NotNull [] generateSeed(int nrBytes);
 
+    /**
+     * Gets the default SeedGenerator.
+     *
+     * @return the default SeedGenerator
+     */
     static @NotNull SeedGenerator getInstance() {
         for (SeedGenerator generator : ServiceLoader.load(SeedGenerator.class)) {
             return generator;
