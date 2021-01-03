@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class Ed448Test {
-    private final Ed448VerificationKeyFactory factory = new Ed448VerificationKeyFactory();
+    private final Ed448SignatureFactory factory = new Ed448SignatureFactory();
 
     private static KeyPair parseKeyPair(byte[] privateKey, byte[] publicKey) {
         var keyFactory = Ed448.getKeyFactory();
@@ -62,10 +62,9 @@ class Ed448Test {
                 "b61149f05a7363268c71d95808ff2e652600");
         var message = new byte[0];
 
-        var signingKey = new Ed448SignatureKey(parseKeyPair(privateKey, publicKey));
+        var signingKey = new Ed448SigningKey(parseKeyPair(privateKey, publicKey));
         assertArrayEquals(expectedSignature, signingKey.sign(message));
-        assertDoesNotThrow(() -> signingKey.verificationKey().verify(message, expectedSignature));
-        assertDoesNotThrow(() -> factory.parseKey(publicKey).verify(message, expectedSignature));
+        assertDoesNotThrow(() -> factory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -80,10 +79,9 @@ class Ed448Test {
                 "f3348ab21aa4adafd1d234441cf807c03a00");
         var message = new byte[] { 0x03 };
 
-        var signingKey = new Ed448SignatureKey(parseKeyPair(privateKey, publicKey));
+        var signingKey = new Ed448SigningKey(parseKeyPair(privateKey, publicKey));
         assertArrayEquals(expectedSignature, signingKey.sign(message));
-        assertDoesNotThrow(() -> signingKey.verificationKey().verify(message, expectedSignature));
-        assertDoesNotThrow(() -> factory.parseKey(publicKey).verify(message, expectedSignature));
+        assertDoesNotThrow(() -> factory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -173,9 +171,8 @@ class Ed448Test {
                 568186f7e569d2ff0f9e745d0487dd2e
                 b997cafc5abf9dd102e62ff66cba87""");
 
-        var signingKey = new Ed448SignatureKey(parseKeyPair(privateKey, publicKey));
+        var signingKey = new Ed448SigningKey(parseKeyPair(privateKey, publicKey));
         assertArrayEquals(expectedSignature, signingKey.sign(message));
-        assertDoesNotThrow(() -> signingKey.verificationKey().verify(message, expectedSignature));
-        assertDoesNotThrow(() -> factory.parseKey(publicKey).verify(message, expectedSignature));
+        assertDoesNotThrow(() -> factory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 }

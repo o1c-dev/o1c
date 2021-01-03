@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class Ed25519Test {
-    private final Ed25519SignatureKeyFactory sigFactory = new Ed25519SignatureKeyFactory();
-    private final Ed25519VerificationKeyFactory verFactory = new Ed25519VerificationKeyFactory();
+    private final Ed25519SignatureFactory sigFactory = new Ed25519SignatureFactory();
+    private final Ed25519SignatureFactory verFactory = new Ed25519SignatureFactory();
 
     // https://tools.ietf.org/html/rfc8032#section-7.1
 
@@ -39,8 +39,8 @@ class Ed25519Test {
         var expectedSignature = ByteOps.fromHex("e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e06522490155" +
                 "5fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b");
 
-        assertArrayEquals(expectedSignature, sigFactory.parseKey(privateKey).sign(new byte[0]));
-        assertDoesNotThrow(() -> verFactory.parseKey(publicKey).verify(new byte[0], expectedSignature));
+        assertArrayEquals(expectedSignature, sigFactory.parsePrivateKey(privateKey).sign(new byte[0]));
+        assertDoesNotThrow(() -> verFactory.parsePublicKey(publicKey).verify(new byte[0], expectedSignature));
     }
 
     @Test
@@ -51,8 +51,8 @@ class Ed25519Test {
                 "085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00");
         var message = new byte[] { 0x72 };
 
-        assertArrayEquals(expectedSignature, sigFactory.parseKey(privateKey).sign(message));
-        assertDoesNotThrow(() -> verFactory.parseKey(publicKey).verify(message, expectedSignature));
+        assertArrayEquals(expectedSignature, sigFactory.parsePrivateKey(privateKey).sign(message));
+        assertDoesNotThrow(() -> verFactory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -63,8 +63,8 @@ class Ed25519Test {
                 "18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a");
         var message = ByteOps.fromHex("af82");
 
-        assertArrayEquals(expectedSignature, sigFactory.parseKey(privateKey).sign(message));
-        assertDoesNotThrow(() -> verFactory.parseKey(publicKey).verify(message, expectedSignature));
+        assertArrayEquals(expectedSignature, sigFactory.parsePrivateKey(privateKey).sign(message));
+        assertDoesNotThrow(() -> verFactory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -106,8 +106,8 @@ class Ed25519Test {
                 "b2eaaa707b4c4185c32eddcdd306705e4dc1ffc872eeee475a64dfac86aba41c" +
                 "0618983f8741c5ef68d3a101e8a3b8cac60c905c15fc910840b94c00a0b9d0");
 
-        assertArrayEquals(expectedSignature, sigFactory.parseKey(privateKey).sign(message));
-        assertDoesNotThrow(() -> verFactory.parseKey(publicKey).verify(message, expectedSignature));
+        assertArrayEquals(expectedSignature, sigFactory.parsePrivateKey(privateKey).sign(message));
+        assertDoesNotThrow(() -> verFactory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -119,7 +119,7 @@ class Ed25519Test {
         var message = ByteOps.fromHex("ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a" +
                 "2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f");
 
-        assertArrayEquals(expectedSignature, sigFactory.parseKey(privateKey).sign(message));
-        assertDoesNotThrow(() -> verFactory.parseKey(publicKey).verify(message, expectedSignature));
+        assertArrayEquals(expectedSignature, sigFactory.parsePrivateKey(privateKey).sign(message));
+        assertDoesNotThrow(() -> verFactory.parsePublicKey(publicKey).verify(message, expectedSignature));
     }
 }

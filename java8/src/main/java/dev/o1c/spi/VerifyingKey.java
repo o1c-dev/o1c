@@ -22,14 +22,16 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface VerificationKeyFactory {
-    int keySize();
+public interface VerifyingKey {
+    int signatureLength();
 
-    default void checkKeySize(int keySize) {
-        if (keySize != keySize()) {
-            throw new IllegalArgumentException("Key must be " + keySize() + " bytes but got " + keySize);
-        }
+    void verify(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
+
+    default void verify(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature) {
+        verify(message, offset, length, signature, 0);
     }
 
-    VerificationKey parseKey(byte @NotNull [] key);
+    default void verify(byte @NotNull [] message, byte @NotNull [] signature) {
+        verify(message, 0, message.length, signature, 0);
+    }
 }

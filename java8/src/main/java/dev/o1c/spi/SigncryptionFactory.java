@@ -18,30 +18,16 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.ed448;
+package dev.o1c.spi;
 
-import dev.o1c.spi.SignatureKey;
-import dev.o1c.spi.SignatureKeyFactory;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.KeyPairGenerator;
+public interface SigncryptionFactory {
+    int keyLength();
 
-public class Ed448SignatureKeyFactory implements SignatureKeyFactory {
-    private final KeyPairGenerator keyPairGenerator = Ed448.getKeyPairGenerator();
+    @NotNull SigncryptionKey generateKey();
 
-    @Override
-    public int keySize() {
-        return 57;
-    }
+    @NotNull SigncryptionKey generateKeyWithId(byte @NotNull [] id);
 
-    @Override
-    public SignatureKey generateKey() {
-        return new Ed448SignatureKey(keyPairGenerator.generateKeyPair());
-    }
-
-    @Override
-    public SignatureKey parseKey(byte @NotNull [] key) {
-        // TODO: generate public key from private key
-        throw new UnsupportedOperationException("No public key");
-    }
+    @NotNull SigncryptionKey parseKey(@NotNull PrivateKey privateKey);
 }

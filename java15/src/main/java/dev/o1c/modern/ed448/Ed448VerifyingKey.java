@@ -20,45 +20,39 @@
 
 package dev.o1c.modern.ed448;
 
-import dev.o1c.spi.SignatureKey;
-import dev.o1c.spi.VerificationKey;
+import dev.o1c.spi.InvalidSignatureException;
+import dev.o1c.spi.VerifyingKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
-class Ed448SignatureKey implements SignatureKey {
+class Ed448VerifyingKey implements VerifyingKey {
     private final Signature signature = Ed448.getSignature();
-    private final PublicKey publicKey;
 
-    Ed448SignatureKey(@NotNull KeyPair keyPair) {
-        publicKey = keyPair.getPublic();
+    Ed448VerifyingKey(@NotNull PublicKey publicKey) {
         try {
-            signature.initSign(keyPair.getPrivate());
+            signature.initVerify(publicKey);
         } catch (InvalidKeyException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
     @Override
-    public int signatureSize() {
+    public int signatureLength() {
         return 114;
     }
 
     @Override
-    public VerificationKey verificationKey() {
-        return new Ed448VerificationKey(publicKey);
-    }
-
-    @Override
-    public void sign(
+    public void verify(
             byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset) {
         try {
             this.signature.update(message, offset, length);
-            this.signature.sign(signature, sigOffset, signatureSize());
+            if (!this.signature.verify(signature, sigOffset, signatureLength())) {
+                throw new InvalidSignatureException("Signature mismatch");
+            }
         } catch (SignatureException e) {
             throw new IllegalStateException(e);
         }

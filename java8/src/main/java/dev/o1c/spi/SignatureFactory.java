@@ -18,29 +18,20 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.ed25519;
+package dev.o1c.spi;
 
-import cafe.cryptography.curve25519.InvalidEncodingException;
-import cafe.cryptography.ed25519.Ed25519PublicKey;
-import dev.o1c.spi.VerificationKey;
-import dev.o1c.spi.VerificationKeyFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class Ed25519VerificationKeyFactory implements VerificationKeyFactory {
-    @Override
-    public int keySize() {
-        return 32;
-    }
+public interface SignatureFactory {
+    int keyLength();
 
-    @Override
-    public VerificationKey parseKey(byte @NotNull [] key) {
-        checkKeySize(key.length);
-        Ed25519PublicKey publicKey = null;
-        try {
-            publicKey = Ed25519PublicKey.fromByteArray(key);
-        } catch (InvalidEncodingException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return new Ed25519VerificationKey(publicKey);
-    }
+    @NotNull SigningKey generateKey();
+
+    @NotNull SigningKey parseKey(@NotNull PrivateKey privateKey);
+
+    @NotNull VerifyingKey parseKey(@NotNull PublicKey publicKey);
+
+    @NotNull SigningKey parsePrivateKey(byte @NotNull [] key);
+
+    @NotNull VerifyingKey parsePublicKey(byte @NotNull [] key);
 }

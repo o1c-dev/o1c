@@ -18,29 +18,20 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.ed25519;
+package dev.o1c.spi;
 
-import cafe.cryptography.ed25519.Ed25519PrivateKey;
-import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
-import dev.o1c.spi.SignatureKey;
-import dev.o1c.spi.SignatureKeyFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class Ed25519SignatureKeyFactory implements SignatureKeyFactory {
-    @Override
-    public int keySize() {
-        return 32;
+public interface SigningKey extends VerifyingKey {
+    void sign(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
+
+    default byte @NotNull [] sign(byte @NotNull [] message, int offset, int length) {
+        byte[] sig = new byte[signatureLength()];
+        sign(message, offset, length, sig, 0);
+        return sig;
     }
 
-    @Override
-    public SignatureKey generateKey() {
-        return parseKey(GimliRandomBytesGenerator.getInstance().generateBytes(keySize()));
-    }
-
-    @Override
-    public SignatureKey parseKey(byte @NotNull [] key) {
-        checkKeySize(key.length);
-        Ed25519PrivateKey privateKey = Ed25519PrivateKey.fromByteArray(key);
-        return new Ed25519SignatureKey(privateKey.expand());
+    default byte @NotNull [] sign(byte @NotNull [] message) {
+        return sign(message, 0, message.length);
     }
 }

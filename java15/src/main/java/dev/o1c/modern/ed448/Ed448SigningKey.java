@@ -18,36 +18,36 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.ed25519;
+package dev.o1c.modern.ed448;
 
-import cafe.cryptography.ed25519.Ed25519ExpandedPrivateKey;
-import cafe.cryptography.ed25519.Ed25519PublicKey;
-import dev.o1c.spi.SignatureKey;
-import dev.o1c.spi.VerificationKey;
+import dev.o1c.spi.SigningKey;
 import org.jetbrains.annotations.NotNull;
 
-class Ed25519SignatureKey implements SignatureKey {
-    private final Ed25519ExpandedPrivateKey key;
-    private final Ed25519PublicKey publicKey;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.Signature;
+import java.security.SignatureException;
 
-    Ed25519SignatureKey(@NotNull Ed25519ExpandedPrivateKey key) {
-        this.key = key;
-        publicKey = key.derivePublic();
-    }
+class Ed448SigningKey extends Ed448VerifyingKey implements SigningKey {
+    private final Signature signature = Ed448.getSignature();
 
-    @Override
-    public int signatureSize() {
-        return 64;
-    }
-
-    @Override
-    public VerificationKey verificationKey() {
-        return new Ed25519VerificationKey(publicKey);
+    Ed448SigningKey(@NotNull KeyPair keyPair) {
+        super(keyPair.getPublic());
+        try {
+            signature.initSign(keyPair.getPrivate());
+        } catch (InvalidKeyException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Override
     public void sign(
             byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset) {
-        System.arraycopy(key.sign(message, offset, length, publicKey).toByteArray(), 0, signature, sigOffset, signatureSize());
+        try {
+            this.signature.update(message, offset, length);
+            this.signature.sign(signature, sigOffset, signatureLength());
+        } catch (SignatureException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
