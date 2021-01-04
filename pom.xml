@@ -111,11 +111,6 @@
         <version>0.1.0</version>
       </dependency>
       <dependency>
-        <groupId>net.i2p.crypto</groupId>
-        <artifactId>eddsa</artifactId>
-        <version>0.3.0</version>
-      </dependency>
-      <dependency>
         <groupId>de.mkammerer</groupId>
         <artifactId>argon2-jvm</artifactId>
         <version>2.7</version>

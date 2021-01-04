@@ -2,7 +2,7 @@
 <!--
   ~ ISC License
   ~
-  ~ Copyright (c) 2020, Matt Sicker
+  ~ Copyright (c) 2021, Matt Sicker
   ~
   ~ Permission to use, copy, modify, and/or distribute this software for any
   ~ purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +15,8 @@
   ~ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
   ~ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
   ~ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  ~
+  ~ SPDX-License-Identifier: ISC
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -68,23 +70,12 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>cafe.cryptography</groupId>
+            <artifactId>ed25519-elisabeth</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>net.i2p.crypto</groupId>
-            <artifactId>eddsa</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>de.mkammerer</groupId>
-            <artifactId>argon2-jvm</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.kosprov.jargon2</groupId>
-            <artifactId>jargon2-api</artifactId>
             <optional>true</optional>
         </dependency>
     </dependencies>
