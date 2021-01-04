@@ -36,6 +36,18 @@ public interface CipherKey {
     void encrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
             int length, byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset);
 
+    default byte @NotNull [] encrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] plaintext) {
+        byte[] ciphertext = new byte[plaintext.length + tagLength()];
+        encrypt(nonce, context, plaintext, 0, plaintext.length, ciphertext, 0, ciphertext, plaintext.length);
+        return ciphertext;
+    }
+
     void decrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset,
             int length, byte @NotNull [] tag, int tagOffset, byte @NotNull [] out, int outOffset);
+
+    default byte @NotNull [] decrypt(byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] ciphertext) {
+        byte[] plaintext = new byte[ciphertext.length - tagLength()];
+        decrypt(nonce, context, ciphertext, 0, plaintext.length, ciphertext, plaintext.length, plaintext, 0);
+        return plaintext;
+    }
 }

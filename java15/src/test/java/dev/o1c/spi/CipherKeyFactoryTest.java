@@ -73,18 +73,10 @@ public class CipherKeyFactoryTest {
                 var ciphertext = ByteOps.fromHex(ct);
                 reader.readLine(); // empty line
                 vectors.add(dynamicContainer("P[" + pt + "]A[" + ad + "]", List.of(
-                        dynamicTest("encrypt", () -> {
-                            var encrypted = new byte[ciphertext.length];
-                            key.encrypt(nonce, context, plaintext, 0, plaintext.length, encrypted, 0, encrypted,
-                                    plaintext.length);
-                            assertArrayEquals(ciphertext, encrypted);
-                        }),
-                        dynamicTest("decrypt", () -> {
-                            var decrypted = new byte[plaintext.length];
-                            key.decrypt(nonce, context, ciphertext, 0, plaintext.length, ciphertext, plaintext.length,
-                                    decrypted, 0);
-                            assertArrayEquals(plaintext, decrypted);
-                        })
+                        dynamicTest("encrypt",
+                                () -> assertArrayEquals(ciphertext, key.encrypt(nonce, context, plaintext))),
+                        dynamicTest("decrypt",
+                                () -> assertArrayEquals(plaintext, key.decrypt(nonce, context, ciphertext)))
                 )));
             }
         } catch (IOException e) {
