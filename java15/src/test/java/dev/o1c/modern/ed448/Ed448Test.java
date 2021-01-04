@@ -64,7 +64,7 @@ class Ed448Test {
 
         var signingKey = new Ed448SigningKey(parseKeyPair(privateKey, publicKey));
         assertArrayEquals(expectedSignature, signingKey.sign(message));
-        assertDoesNotThrow(() -> factory.parsePublicKey(publicKey).verify(message, expectedSignature));
+        assertDoesNotThrow(() -> factory.parseVerifyingKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -81,7 +81,7 @@ class Ed448Test {
 
         var signingKey = new Ed448SigningKey(parseKeyPair(privateKey, publicKey));
         assertArrayEquals(expectedSignature, signingKey.sign(message));
-        assertDoesNotThrow(() -> factory.parsePublicKey(publicKey).verify(message, expectedSignature));
+        assertDoesNotThrow(() -> factory.parseVerifyingKey(publicKey).verify(message, expectedSignature));
     }
 
     @Test
@@ -173,6 +173,6 @@ class Ed448Test {
 
         var signingKey = new Ed448SigningKey(parseKeyPair(privateKey, publicKey));
         assertArrayEquals(expectedSignature, signingKey.sign(message));
-        assertDoesNotThrow(() -> factory.parsePublicKey(publicKey).verify(message, expectedSignature));
+        assertDoesNotThrow(() -> factory.parseVerifyingKey(publicKey).verify(message, expectedSignature));
     }
 }

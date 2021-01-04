@@ -20,8 +20,6 @@
 
 package dev.o1c.modern.ed448;
 
-import dev.o1c.spi.PrivateKey;
-import dev.o1c.spi.PublicKey;
 import dev.o1c.spi.SignatureFactory;
 import dev.o1c.spi.SigningKey;
 import dev.o1c.spi.VerifyingKey;
@@ -46,28 +44,18 @@ public class Ed448SignatureFactory implements SignatureFactory {
     }
 
     @Override
-    public @NotNull SigningKey generateKey() {
+    public @NotNull SigningKey generateSigningKey() {
         return new Ed448SigningKey(keyPairGenerator.generateKeyPair());
     }
 
     @Override
-    public @NotNull SigningKey parseKey(@NotNull PrivateKey privateKey) {
-        return parsePrivateKey(privateKey.key());
-    }
-
-    @Override
-    public @NotNull VerifyingKey parseKey(@NotNull PublicKey publicKey) {
-        return parsePublicKey(publicKey.key());
-    }
-
-    @Override
-    public @NotNull SigningKey parsePrivateKey(byte @NotNull [] key) {
+    public @NotNull SigningKey parseSigningKey(byte @NotNull [] key) {
         // TODO: generate public key from private key
         throw new UnsupportedOperationException("No public key");
     }
 
     @Override
-    public @NotNull VerifyingKey parsePublicKey(byte @NotNull [] key) {
+    public @NotNull VerifyingKey parseVerifyingKey(byte @NotNull [] key) {
         // little endian, high order bit specifies if x is odd or not
         // this bit of glue code inspired from:
         // https://bugs.openjdk.java.net/browse/JDK-8252595

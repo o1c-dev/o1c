@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,31 +14,18 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
 package dev.o1c.spi;
 
-import java.security.Provider;
+import org.jetbrains.annotations.NotNull;
 
-public class KeyExchangeFactory implements SecurityFactory<KeyExchange> {
-    protected final KeyPairCodec keyPairCodec;
+public interface KeyExchangeFactory {
+    int keyLength();
 
-    protected KeyExchangeFactory(KeyPairCodec keyPairCodec) {
-        this.keyPairCodec = keyPairCodec;
-    }
+    @NotNull ExchangeKey generateExchangeKey();
 
-    @Override
-    public Algorithm getAlgorithm() {
-        return keyPairCodec.getAlgorithm();
-    }
-
-    @Override
-    public Provider getProvider() {
-        return keyPairCodec.getProvider();
-    }
-
-    @Override
-    public KeyExchange create() {
-        return new DefaultKeyExchange(keyPairCodec);
-    }
+    @NotNull ExchangeKey parseExchangeKey(byte @NotNull [] privateKey);
 }

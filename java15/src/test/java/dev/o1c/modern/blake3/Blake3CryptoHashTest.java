@@ -43,7 +43,8 @@ class Blake3CryptoHashTest {
         var key = testVector.key.getBytes(StandardCharsets.UTF_8);
         var context = testVector.context_string.getBytes(StandardCharsets.UTF_8);
         var tests = new ArrayList<DynamicNode>();
-        var hasher = Blake3CryptoHash.init();
+        var hashFactory = new Blake3HashFactory();
+        var hasher = hashFactory.init();
         for (Case testCase : testVector.cases) {
             var input = new byte[testCase.input_len];
             for (int i = 0; i < input.length; i++) {
@@ -66,23 +67,23 @@ class Blake3CryptoHashTest {
                     dynamicTest("hash 256",
                             () -> assertArrayEquals(truncatedHash, hasher.hash(input))),
                     dynamicTest("keyed hash xof", () -> {
-                        var blake3 = Blake3CryptoHash.init(key);
+                        var blake3 = hashFactory.init(key);
                         blake3.update(input);
                         var actual = new byte[keyedHash.length];
                         blake3.finish(actual);
                         assertArrayEquals(keyedHash, actual);
                     }),
                     dynamicTest("keyed hash 256",
-                            () -> assertArrayEquals(truncatedKeyedHash, Blake3CryptoHash.init(key).hash(input))),
+                            () -> assertArrayEquals(truncatedKeyedHash, hashFactory.init(key).hash(input))),
                     dynamicTest("derive key xof", () -> {
-                        var blake3 = Blake3CryptoHash.initKDF(context);
+                        var blake3 = hashFactory.initKDF(context);
                         blake3.update(input);
                         var actual = new byte[deriveKey.length];
                         blake3.finish(actual);
                         assertArrayEquals(deriveKey, actual);
                     }),
                     dynamicTest("derive key 256",
-                            () -> assertArrayEquals(truncatedDeriveKey, Blake3CryptoHash.initKDF(context).hash(input)))
+                            () -> assertArrayEquals(truncatedDeriveKey, hashFactory.initKDF(context).hash(input)))
             )));
         }
         return tests;

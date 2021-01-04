@@ -27,8 +27,6 @@ import cafe.cryptography.ed25519.Ed25519PublicKey;
 import cafe.cryptography.ed25519.Ed25519Signature;
 import dev.o1c.modern.chacha20.ChaCha20RandomBytesGenerator;
 import dev.o1c.spi.InvalidSignatureException;
-import dev.o1c.spi.PrivateKey;
-import dev.o1c.spi.PublicKey;
 import dev.o1c.spi.SignatureFactory;
 import dev.o1c.spi.SigningKey;
 import dev.o1c.spi.VerifyingKey;
@@ -43,31 +41,17 @@ public class Ed25519SignatureFactory implements SignatureFactory {
     }
 
     @Override
-    public @NotNull SigningKey generateKey() {
-        return parsePrivateKey(ChaCha20RandomBytesGenerator.getInstance().generateBytes(keyLength()));
+    public @NotNull SigningKey generateSigningKey() {
+        return parseSigningKey(ChaCha20RandomBytesGenerator.getInstance().generateBytes(keyLength()));
     }
 
     @Override
-    public @NotNull SigningKey parseKey(@NotNull PrivateKey privateKey) {
-        return new EdSigningKey(Ed25519PrivateKey.fromByteArray(privateKey.key()));
-    }
-
-    @Override
-    public @NotNull VerifyingKey parseKey(@NotNull PublicKey publicKey) {
-        try {
-            return new EdVerifyingKey(Ed25519PublicKey.fromByteArray(publicKey.key()));
-        } catch (InvalidEncodingException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
-
-    @Override
-    public @NotNull SigningKey parsePrivateKey(byte @NotNull [] key) {
+    public @NotNull SigningKey parseSigningKey(byte @NotNull [] key) {
         return new EdSigningKey(Ed25519PrivateKey.fromByteArray(key));
     }
 
     @Override
-    public @NotNull VerifyingKey parsePublicKey(byte @NotNull [] key) {
+    public @NotNull VerifyingKey parseVerifyingKey(byte @NotNull [] key) {
         try {
             return new EdVerifyingKey(Ed25519PublicKey.fromByteArray(key));
         } catch (InvalidEncodingException e) {

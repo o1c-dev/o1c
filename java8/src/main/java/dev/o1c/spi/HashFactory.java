@@ -1,7 +1,7 @@
 /*
  * ISC License
  *
- * Copyright (c) 2020, Matt Sicker
+ * Copyright (c) 2021, Matt Sicker
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,18 +14,20 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.test;
+package dev.o1c.spi;
 
-import javax.crypto.Cipher;
+import org.jetbrains.annotations.NotNull;
 
-import static dev.o1c.spi.Algorithm.ChaCha20Poly1305;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+public interface HashFactory {
+    @NotNull CryptoHash init();
 
-class JEP329CipherTest extends CipherTest {
-    @Override
-    Cipher getCipher() {
-        return assertDoesNotThrow(() -> Cipher.getInstance(ChaCha20Poly1305.getAlgorithm(), "SunJCE"));
-    }
+    @NotNull CryptoHash init(int hashLength);
+
+    @NotNull CryptoHash init(byte @NotNull [] key);
+
+    @NotNull CryptoHash initKDF(byte @NotNull [] context);
 }

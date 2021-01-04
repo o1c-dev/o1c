@@ -21,7 +21,6 @@
 package dev.o1c.modern.blake3;
 
 import dev.o1c.spi.CryptoHash;
-import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -35,49 +34,22 @@ import java.util.Arrays;
 // initially refined along this zig revision
 // https://github.com/ziglang/zig/blob/6c2e0c2046a4c1d01587cc15ea2f59af32743eb4/lib/std/crypto/blake3.zig
 public class Blake3CryptoHash implements CryptoHash {
-    /**
-     * Creates a fresh BLAKE3 hasher in hash mode.
-     *
-     * @return new hasher
-     */
-    public static @NotNull Blake3CryptoHash init() {
-        return new Blake3CryptoHash(Constants.IV, 0);
-    }
-
-    /**
-     * Creates a fresh BLAKE3 hasher in keyed mode using the provided secret key.
-     *
-     * @param key 32-byte secret key
-     * @return new hasher using the provided key
-     */
-    public static @NotNull Blake3CryptoHash init(byte @NotNull [] key) {
-        return new Blake3CryptoHash(ByteOps.unpackIntsLE(key, 0, 8), Constants.KEYED_HASH);
-    }
-
-    /**
-     * Creates a fresh BLAKE3 hasher in key derivation mode using the provided context data.
-     *
-     * @param context context or namespace where the derived keys will be generated for
-     * @return new hasher for performing key derivation
-     */
-    public static @NotNull Blake3CryptoHash initKDF(byte @NotNull [] context) {
-        Blake3CryptoHash ctxHasher = new Blake3CryptoHash(Constants.IV, Constants.DERIVE_KEY_CONTEXT);
-        ctxHasher.inputData(context, 0, context.length);
-        byte[] key = new byte[Constants.KEY_LEN];
-        ctxHasher.outputHash(key, 0, Constants.KEY_LEN);
-        return new Blake3CryptoHash(ByteOps.unpackIntsLE(key, 0, 8), Constants.DERIVE_KEY_MATERIAL);
-    }
-
     private final int[] key;
     private final @Flag int flags;
+    private final int defaultHashLength;
     // Space for 54 subtree chaining values: 2^54 * CHUNK_LEN = 2^64
     private final int[][] cvStack = new int[54][];
     private int stackLen;
     private ChunkState state;
 
-    private Blake3CryptoHash(int[] key, @Flag int flags) {
+    Blake3CryptoHash(int @NotNull [] key, @Flag int flags) {
+        this(key, flags, Constants.OUT_LEN);
+    }
+
+    Blake3CryptoHash(int @NotNull [] key, @Flag int flags, int defaultHashLength) {
         this.key = key;
         this.flags = flags;
+        this.defaultHashLength = defaultHashLength;
         this.state = new ChunkState(key, 0, flags);
     }
 
@@ -90,7 +62,7 @@ public class Blake3CryptoHash implements CryptoHash {
 
     @Override
     public int hashLength() {
-        return Constants.OUT_LEN;
+        return defaultHashLength;
     }
 
     @Override

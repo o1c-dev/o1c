@@ -22,12 +22,8 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface SigncryptionFactory {
-    int keyLength();
+public interface SigncryptionFactory extends SignatureFactory, KeyExchangeFactory {
+    @NotNull SigncryptionKey generateSigncryptionKey(byte @NotNull [] id);
 
-    @NotNull SigncryptionKey generateKey();
-
-    @NotNull SigncryptionKey generateKeyWithId(byte @NotNull [] id);
-
-    @NotNull SigncryptionKey parseKey(@NotNull PrivateKey privateKey);
+    @NotNull SigncryptionKey parseSigncryptionKey(byte @NotNull [] privateKey, byte @NotNull [] id);
 }

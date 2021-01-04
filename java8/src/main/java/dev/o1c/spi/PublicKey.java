@@ -21,19 +21,19 @@
 package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class PublicKey {
     private final byte @NotNull [] key;
-    private final byte @NotNull [] id;
+    private final byte @Nullable [] id;
 
     public PublicKey(byte @NotNull [] key) {
-        this.key = key.clone();
-        id = this.key;
+        this(key, null);
     }
 
-    public PublicKey(byte @NotNull [] key, byte @NotNull [] id) {
+    public PublicKey(byte @NotNull [] key, byte @Nullable [] id) {
         this.key = key.clone();
-        this.id = id.clone();
+        this.id = id == null ? null : id.clone();
     }
 
     public byte @NotNull [] key() {
@@ -41,6 +41,6 @@ public final class PublicKey {
     }
 
     public byte @NotNull [] id() {
-        return id.clone();
+        return id != null ? id.clone() : key.clone();
     }
 }

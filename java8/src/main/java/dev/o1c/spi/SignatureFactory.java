@@ -25,13 +25,9 @@ import org.jetbrains.annotations.NotNull;
 public interface SignatureFactory {
     int keyLength();
 
-    @NotNull SigningKey generateKey();
+    @NotNull SigningKey generateSigningKey();
 
-    @NotNull SigningKey parseKey(@NotNull PrivateKey privateKey);
+    @NotNull SigningKey parseSigningKey(byte @NotNull [] key);
 
-    @NotNull VerifyingKey parseKey(@NotNull PublicKey publicKey);
-
-    @NotNull SigningKey parsePrivateKey(byte @NotNull [] key);
-
-    @NotNull VerifyingKey parsePublicKey(byte @NotNull [] key);
+    @NotNull VerifyingKey parseVerifyingKey(byte @NotNull [] key);
 }
