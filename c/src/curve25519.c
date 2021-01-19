@@ -8,14 +8,15 @@
 #include "sha512.h"
 
 #if (ARCH_WORD_BITS == 64)
+#ifdef NATIVE_LITTLE_ENDIAN
 
-static inline uint64_t value_barrier_u64(uint64_t v) {
-    __asm__("" : "+r"(v) : /* no inputs */);
-    return v;
-}
+#include "curve25519/fiat/curve25519_64_le.h"
 
-// TODO: try out alternative fiat generation strategies
-#include "curve25519/fiat/curve25519_64.h"
+#else
+
+#include "curve25519/fiat/curve25519_64_p.h"
+
+#endif
 
 #define assert_fe(f)                                                    \
   do {                                                                  \
@@ -33,12 +34,15 @@ static inline uint64_t value_barrier_u64(uint64_t v) {
 
 #else
 
-static inline uint32_t value_barrier_u32(uint32_t v) {
-    __asm__("" : "+r"(v) : /* no inputs */);
-    return v;
-}
+#ifdef NATIVE_LITTLE_ENDIAN
 
-#include "fiat/curve25519_32.h"
+#include "curve25519/fiat/curve25519_32_le.h"
+
+#else
+
+#include "curve25519/fiat/curve25519_32_p.h"
+
+#endif
 
 #define assert_fe(f)                                                     \
   do {                                                                   \
