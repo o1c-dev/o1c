@@ -81,7 +81,7 @@ public final class ByteOps {
     public static int unpackIntLE(byte @NotNull [] buf, int off, int len) {
         int ret = 0;
         for (int i = 0; i < len; i++) {
-            ret |= (buf[off + i] & 0xff) << i * Byte.SIZE;
+            ret |= Byte.toUnsignedInt(buf[off + i]) << i * Byte.SIZE;
         }
         return ret;
     }
