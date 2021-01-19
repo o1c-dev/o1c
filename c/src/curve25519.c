@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "curve25519.h"
-#include "curve25519_tables.h"
+#include "curve25519/curve25519_tables.h"
 
 #include "o1c.h"
 #include "sha512.h"
@@ -15,7 +15,7 @@ static inline uint64_t value_barrier_u64(uint64_t v) {
 }
 
 // TODO: try out alternative fiat generation strategies
-#include "fiat/curve25519_64.h"
+#include "curve25519/fiat/curve25519_64.h"
 
 #define assert_fe(f)                                                    \
   do {                                                                  \

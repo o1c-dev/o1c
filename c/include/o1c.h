@@ -6,6 +6,7 @@
 #include <stdalign.h>
 
 #include "o1c_export.h"
+#include "blake3.h"
 
 #ifdef __clang__
 # if 100 * __clang_major__ + __clang_minor__ > 305
@@ -28,6 +29,10 @@
 
 #if !defined(__unix__) && (defined(__APPLE__) || defined(__linux__))
 #define __unix__ 1
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 // Fills the provided buffer with random bytes.
@@ -99,6 +104,22 @@ O1C_EXPORT void o1c_auth_update(o1c_auth_t ctx, const uint8_t *m, unsigned long 
 
 O1C_EXPORT void o1c_auth_final(o1c_auth_t ctx, uint8_t t[o1c_auth_TAG_BYTES]);
 
+#define o1c_hash_KEY_BYTES BLAKE3_KEY_LEN
+
+typedef blake3_hasher o1c_hash_t[1];
+
+O1C_EXPORT void o1c_hash_init(o1c_hash_t ctx);
+
+O1C_EXPORT void o1c_hash_key_setup(o1c_hash_t ctx, const uint8_t k[o1c_hash_KEY_BYTES]);
+
+O1C_EXPORT void o1c_hash_kdf_setup(o1c_hash_t ctx, const char *context);
+
+O1C_EXPORT void o1c_hash_update(o1c_hash_t ctx, const uint8_t *m, unsigned long bytes);
+
+O1C_EXPORT void o1c_hash_final(o1c_hash_t ctx, uint8_t *out, unsigned long out_bytes);
+
+O1C_EXPORT void o1c_hash(uint8_t *out, unsigned long out_bytes, const uint8_t *in, unsigned long in_bytes);
+
 #define o1c_aead_KEY_BYTES 32
 #define o1c_aead_NONCE_BYTES 24
 #define o1c_aead_TAG_BYTES 16
@@ -138,5 +159,9 @@ o1c_sign_detached(uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len
 O1C_EXPORT bool
 o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len,
                          const uint8_t pk[o1c_sign_KEY_BYTES]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //O1C_O1C_H
