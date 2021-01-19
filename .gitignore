@@ -2,3 +2,4 @@ target/
 *.iml
 .idea/
 *.pem
+cmake-build-debug

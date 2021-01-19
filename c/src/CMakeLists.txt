@@ -1,0 +1,43 @@
+include(TestBigEndian)
+include(CheckSymbolExists)
+include(GenerateExportHeader)
+
+set(O1C_SOURCE_FILES crypto.c auth.c aead.c sha512.c drbg.c util.c curve25519/curve25519.c)
+add_library(o1c SHARED ${O1C_SOURCE_FILES})
+target_include_directories(o1c PUBLIC ../include)
+target_include_directories(o1c PRIVATE include)
+generate_export_header(o1c)
+target_include_directories(o1c PUBLIC ${PROJECT_BINARY_DIR}/src)
+add_library(o1c_static STATIC ${O1C_SOURCE_FILES})
+target_include_directories(o1c_static PUBLIC ../include)
+target_include_directories(o1c_static PRIVATE include)
+target_include_directories(o1c_static PUBLIC ${PROJECT_BINARY_DIR}/src)
+
+#find_package(JNI REQUIRED)
+# TODO: https://cmake.org/cmake/help/latest/module/UseJava.html
+#find_package(Java 1.8 REQUIRED COMPONENTS Development)
+#target_include_directories(o1c PUBLIC ${JNI_INCLUDE_DIRS})
+
+# compiler definitions
+test_big_endian(NATIVE_BIG_ENDIAN)
+if (${NATIVE_BIG_ENDIAN})
+    add_compile_definitions(o1c PUBLIC NATIVE_BIG_ENDIAN)
+    add_compile_definitions(o1c_static PUBLIC NATIVE_BIG_ENDIAN)
+else ()
+    add_compile_definitions(o1c PUBLIC NATIVE_LITTLE_ENDIAN)
+    add_compile_definitions(o1c_static PUBLIC NATIVE_LITTLE_ENDIAN)
+endif ()
+
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "64")
+    add_compile_definitions(o1c PUBLIC ARCH_WORD_BITS=64)
+    add_compile_definitions(o1c_static PUBLIC ARCH_WORD_BITS=64)
+else ()
+    add_compile_definitions(o1c PUBLIC ARCH_WORD_BITS=32)
+    add_compile_definitions(o1c_static PUBLIC ARCH_WORD_BITS=32)
+endif ()
+
+check_symbol_exists(memset_s string.h HAVE_MEMSET_S)
+if (${HAVE_MEMSET_S})
+    add_compile_definitions(o1c PUBLIC HAVE_MEMSET_S)
+    add_compile_definitions(o1c_static PUBLIC HAVE_MEMSET_S)
+endif ()
