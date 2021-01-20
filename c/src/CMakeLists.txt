@@ -3,7 +3,7 @@ include(CheckSymbolExists)
 include(GenerateExportHeader)
 include(FetchContent)
 
-set(O1C_SOURCE_FILES crypto.c auth.c aead.c sha512.c drbg.c util.c curve25519.c hash.c)
+set(O1C_SOURCE_FILES crypto.c auth.c aead.c sha512.c drbg.c util.c curve25519.c hash.c jni.c)
 
 FetchContent_Declare(blake3
         GIT_REPOSITORY https://github.com/BLAKE3-team/BLAKE3.git
@@ -38,10 +38,11 @@ generate_export_header(o1c)
 target_include_directories(o1c PUBLIC ../include ${blake3_SOURCE_DIR}/c ${PROJECT_BINARY_DIR}/src)
 target_include_directories(o1c PRIVATE include)
 
-#find_package(JNI REQUIRED)
+find_package(JNI REQUIRED)
+target_include_directories(o1c PUBLIC ${JNI_INCLUDE_DIRS})
+#target_link_libraries(o1c PUBLIC ${JNI_LIBRARIES})
 # TODO: https://cmake.org/cmake/help/latest/module/UseJava.html
 #find_package(Java 1.8 REQUIRED COMPONENTS Development)
-#target_include_directories(o1c PUBLIC ${JNI_INCLUDE_DIRS})
 
 # compiler definitions
 test_big_endian(NATIVE_BIG_ENDIAN)

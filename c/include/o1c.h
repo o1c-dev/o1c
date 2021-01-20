@@ -42,7 +42,7 @@ O1C_EXPORT void drbg_randombytes(void *buf, unsigned long bytes);
 O1C_EXPORT void drbg_reseed(void);
 
 // Fills the provided buffer with system-provided external entropy.
-void drbg_entropy(void *buf, unsigned long bytes);
+O1C_EXPORT void drbg_entropy(void *buf, unsigned long bytes);
 
 O1C_EXPORT void o1c_bzero(void *buf, unsigned long bytes);
 
@@ -106,7 +106,7 @@ O1C_EXPORT void o1c_auth_final(o1c_auth_t ctx, uint8_t t[o1c_auth_TAG_BYTES]);
 
 #define o1c_hash_KEY_BYTES BLAKE3_KEY_LEN
 
-typedef blake3_hasher o1c_hash_t[1];
+typedef blake3_hasher o1c_hash_s, o1c_hash_t[1];
 
 O1C_EXPORT void o1c_hash_init(o1c_hash_t ctx);
 
