@@ -78,10 +78,10 @@ public class ChaCha20RandomBytesGenerator implements RandomBytesGenerator {
     }
 
     private void ratchet() {
-        state[0] = (int) counter;
-        state[1] = (int) (counter >> Integer.SIZE);
-        state[2] = 0;
-        state[3] = 0;
+        state[12] = (int) counter;
+        state[13] = (int) (counter >> Integer.SIZE);
+        state[14] = 0;
+        state[15] = 0;
         ChaCha20.permute(state);
         if (++counter == RESEED_INTERVAL) {
             reseed();
