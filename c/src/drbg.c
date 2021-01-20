@@ -43,6 +43,8 @@ static _Thread_local struct {
     bool initialized;
 } drbg_ctx;
 
+#define drbg_RESEED_INTERVAL (UINT64_C(1) << 48)
+
 static void drbg_ratchet() {
     uint8_t n[o1c_crypto_NONCE_BYTES] = {0};
     store64_le(n, drbg_ctx.counter++);
@@ -51,7 +53,8 @@ static void drbg_ratchet() {
 }
 
 static void drbg_init() {
-    drbg_entropy(&drbg_ctx.st, sizeof(struct o1c_crypto_s) + sizeof(uint64_t));
+    drbg_entropy(&drbg_ctx.st, sizeof(struct o1c_crypto_s));
+    drbg_ctx.counter = 0;
 }
 
 static void drbg_ensure_init() {
@@ -60,6 +63,8 @@ static void drbg_ensure_init() {
         o1c_crypto_keystream(&drbg_ctx.st, NULL, 0);
         drbg_ratchet();
         drbg_ctx.initialized = true;
+    } else if (drbg_ctx.counter > drbg_RESEED_INTERVAL) {
+        drbg_reseed();
     }
 }
 
