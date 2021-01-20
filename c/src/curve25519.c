@@ -1544,6 +1544,11 @@ void ge_scalar_reduce(uint8_t s[64]) {
     s[31] = s11 >> 17;
 }
 
+void o1c_field_scalar_keypair(uint8_t pk[o1c_field_BYTES], uint8_t sk[o1c_scalar_BYTES]) {
+    drbg_randombytes(sk, o1c_scalar_BYTES);
+    o1c_field_scalar_mul_base(pk, sk);
+}
+
 void o1c_field_scalar_mul_base(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES]) {
     uint8_t t[o1c_scalar_BYTES];
     memcpy(t, n, o1c_scalar_BYTES);
