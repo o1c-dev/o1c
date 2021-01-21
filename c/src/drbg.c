@@ -17,7 +17,7 @@ inline void drbg_entropy(void *buf, size_t bytes) {
 #include <sys/random.h>
 
 inline void drbg_entropy(void *buf, size_t bytes) {
-    getrandom(buf, bytes);
+    getrandom(buf, bytes, 0);
 }
 
 #elif defined(_WIN32)
