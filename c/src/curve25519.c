@@ -1868,6 +1868,55 @@ static void po_group_serialize(o1c_po_group_element_t f, const ge_p3 p) {
     fe_serialize(f->v, zmy);
 }
 
+// https://ristretto.group/formulas/elligator.html
+static void po_group_elligator(ge_p3 p, const fe t) {
+    fe r;
+    fe_sqr(r, t);
+    fe_mul(r, r, sqrtm1); // sqrt(-1)*t^2
+    fe u, one;
+    fe_1(one);
+    fe_add(u, r, one);
+    fe_mul(u, u, onemsqd); // (r+1)*(1-d^2)
+    fe c;
+    fe_neg(c, one); // -1
+    fe v, rd;
+    fe_mul(rd, r, d);
+    fe_sub(v, c, rd);
+    fe rpd;
+    fe_add(rpd, r, d);
+    fe_mul(v, v, rpd); // (c-r*d)*(r+d)
+    fe s;
+    bool wasnt_square = !sqrt_ratio_i(s, u, v);
+    fe s_prime;
+    fe_mul(s_prime, s, t);
+    fe_abs(s_prime, s_prime);
+    fe_neg(s_prime, s_prime); // -|s*t|
+    fe_cmov(s, s_prime, wasnt_square);
+    fe_cmov(c, r, wasnt_square);
+
+    fe n;
+    fe_sub(n, r, one);
+    fe_mul(n, n, c);
+    fe_mul(n, n, sqdmone);
+    fe_sub(n, n, v); // c*(r-1)*(d-1)^2-v
+    fe w0;
+    fe_add(w0, s, s);
+    fe_mul(w0, w0, v); // 2s*v
+    fe w1;
+    fe_mul(w1, n, sqrtadm1); // n*sqrt(ad-1)
+    fe ss;
+    fe_sqr(ss, s); // s^2
+    fe w2;
+    fe_sub(w2, one, ss); // 1-s^2
+    fe w3;
+    fe_add(w3, one, ss); // 1+s^2
+
+    fe_mul(p->X, w0, w3);
+    fe_mul(p->Y, w2, w1);
+    fe_mul(p->Z, w1, w3);
+    fe_mul(p->T, w0, w2);
+}
+
 void o1c_po_group_keypair(o1c_po_group_element_t pk, o1c_scalar_t sk) {
     o1c_scalar_random(sk);
     (void) o1c_po_group_scalar_mul_base(pk, sk);
@@ -1892,4 +1941,20 @@ bool o1c_po_group_scalar_mul_base(o1c_po_group_element_t q, const o1c_scalar_t n
     ge_scalar_mul_base(Q, t);
     po_group_serialize(q, Q);
     return !o1c_is_zero(q->v, sizeof(o1c_po_group_element_s));
+}
+
+void o1c_po_group_element_from_hash(o1c_po_group_element_t q, const uint8_t h[o1c_po_group_element_HASH_BYTES]) {
+    fe r0, r1;
+    fe_deserialize(r0, h);
+    fe_deserialize(r1, h + o1c_field_BYTES);
+    ge_p3 p0, p1;
+    po_group_elligator(p0, r0);
+    po_group_elligator(p1, r1);
+    ge_cached p1_cached;
+    ge_ext_to_proj_niels(p1_cached, p1);
+    ge_p1p1 p1_p1p1;
+    ge_ext_add(p1_p1p1, p0, p1_cached);
+    ge_p3 p;
+    ge_comp_to_ext(p, p1_p1p1);
+    po_group_serialize(q, p);
 }

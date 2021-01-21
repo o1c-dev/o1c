@@ -25,7 +25,18 @@ void test_scalar_mul(void) {
     assert_eq(ssAB->v, ssBA->v, o1c_po_group_element_BYTES);
 }
 
+void test_elligator_map(void) {
+    uint8_t h[o1c_po_group_element_HASH_BYTES];
+    drbg_randombytes(h, o1c_po_group_element_HASH_BYTES);
+    o1c_po_group_element_t actual;
+    o1c_po_group_element_from_hash(actual, h);
+    uint8_t expected[crypto_core_ristretto255_BYTES];
+    crypto_core_ristretto255_from_hash(expected, h);
+    assert_eq(expected, actual->v, crypto_core_ristretto255_BYTES);
+}
+
 int main() {
     for (int i = 0; i < 1024; ++i) test_base_mul();
     for (int i = 0; i < 1024; ++i) test_scalar_mul();
+    for (int i = 0; i < 1024; ++i) test_elligator_map();
 }

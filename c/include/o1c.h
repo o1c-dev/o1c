@@ -151,6 +151,7 @@ O1C_EXPORT bool
 o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES], const uint8_t p[o1c_field_BYTES]);
 
 #define o1c_po_group_element_BYTES 32
+#define o1c_po_group_element_HASH_BYTES 64
 typedef struct O1C_EXPORT o1c_po_group_element_s {
     uint8_t v[o1c_po_group_element_BYTES];
 } o1c_po_group_element_s, o1c_po_group_element_t[1];
@@ -160,6 +161,9 @@ O1C_EXPORT void o1c_po_group_keypair(o1c_po_group_element_t pk, o1c_scalar_t sk)
 O1C_EXPORT bool o1c_po_group_scalar_mul(o1c_po_group_element_t q, const o1c_scalar_t n, const o1c_po_group_element_t p);
 
 O1C_EXPORT bool o1c_po_group_scalar_mul_base(o1c_po_group_element_t q, const o1c_scalar_t n);
+
+O1C_EXPORT void
+o1c_po_group_element_from_hash(o1c_po_group_element_t q, const uint8_t h[o1c_po_group_element_HASH_BYTES]);
 
 #define o1c_sign_BYTES 64
 #define o1c_sign_KEY_BYTES 32
