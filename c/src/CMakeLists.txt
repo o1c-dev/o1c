@@ -9,7 +9,10 @@ FetchContent_Declare(blake3
         GIT_REPOSITORY https://github.com/BLAKE3-team/BLAKE3.git
         GIT_TAG 35aa4259bd37457f15d5070957da4825bf64c838 # tag 0.3.7
         )
-FetchContent_MakeAvailable(blake3)
+FetchContent_GetProperties(blake3)
+if (NOT blake3_POPULATED)
+    FetchContent_Populate(blake3)
+endif ()
 
 set(BLAKE3_SOURCE_FILES
         ${blake3_SOURCE_DIR}/c/blake3.c
