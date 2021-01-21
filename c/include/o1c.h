@@ -106,7 +106,9 @@ O1C_EXPORT void o1c_auth_final(o1c_auth_t ctx, uint8_t t[o1c_auth_TAG_BYTES]);
 
 #define o1c_hash_KEY_BYTES BLAKE3_KEY_LEN
 
-typedef blake3_hasher o1c_hash_s, o1c_hash_t[1];
+typedef struct O1C_EXPORT o1c_hash_s {
+    alignas(16) uint8_t state[sizeof(blake3_hasher)];
+} o1c_hash_s, o1c_hash_t[1];
 
 O1C_EXPORT void o1c_hash_init(o1c_hash_t ctx);
 
