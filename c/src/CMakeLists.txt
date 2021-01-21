@@ -40,6 +40,8 @@ add_library(o1c SHARED ${O1C_SOURCE_FILES}
 generate_export_header(o1c)
 target_include_directories(o1c PUBLIC ../include ${blake3_SOURCE_DIR}/c ${PROJECT_BINARY_DIR}/src)
 target_include_directories(o1c PRIVATE include)
+target_compile_options(o1c PRIVATE
+        -pedantic -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wstrict-prototypes -Wno-error=strict-prototypes -fvisibility=hidden)
 
 find_package(JNI REQUIRED)
 target_include_directories(o1c PUBLIC ${JNI_INCLUDE_DIRS})

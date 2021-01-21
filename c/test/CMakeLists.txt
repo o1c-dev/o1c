@@ -7,7 +7,7 @@ if (SODIUM_FOUND)
     target_link_libraries(gen PkgConfig::SODIUM)
 endif ()
 
-link_libraries(o1c)
+link_libraries(o1c m)
 include_directories(../src/include)
 include_directories(../include)
 
