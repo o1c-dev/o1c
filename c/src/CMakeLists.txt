@@ -25,13 +25,13 @@ set(BLAKE3_ASM_UNIX_FILES
         ${blake3_SOURCE_DIR}/c/blake3_sse2_x86-64_unix.S)
 # TODO: mscv and mingw asm options
 add_library(blake3_sse2 OBJECT ${blake3_SOURCE_DIR}/c/blake3_sse2.c)
-target_compile_options(blake3_sse2 PUBLIC -msse2)
+target_compile_options(blake3_sse2 PUBLIC -msse2 -fPIC)
 add_library(blake3_sse41 OBJECT ${blake3_SOURCE_DIR}/c/blake3_sse41.c)
-target_compile_options(blake3_sse41 PUBLIC -msse4.1)
+target_compile_options(blake3_sse41 PUBLIC -msse4.1 -fPIC)
 add_library(blake3_avx2 OBJECT ${blake3_SOURCE_DIR}/c/blake3_avx2.c)
-target_compile_options(blake3_avx2 PUBLIC -mavx2)
+target_compile_options(blake3_avx2 PUBLIC -mavx2 -fPIC)
 add_library(blake3_avx512 OBJECT ${blake3_SOURCE_DIR}/c/blake3_avx512.c)
-target_compile_options(blake3_avx512 PUBLIC -mavx512f -mavx512vl)
+target_compile_options(blake3_avx512 PUBLIC -mavx512f -mavx512vl -fPIC)
 
 add_library(o1c SHARED ${O1C_SOURCE_FILES}
         ${BLAKE3_SOURCE_FILES} ${BLAKE3_ASM_UNIX_FILES}
