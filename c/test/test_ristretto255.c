@@ -26,7 +26,7 @@ void run_checks(const o1c_test_vector *test) {
     assert(o1c_mem_eq(product->v, actual, o1c_po_group_element_BYTES));
 }
 
-#include "test_ristretto255.h.inc"
+#include "test_ristretto255.txt"
 
 int main(void) {
     for (size_t i = 0; i <= 256; ++i) run_checks(&data[i]);

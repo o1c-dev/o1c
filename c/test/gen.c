@@ -144,9 +144,9 @@ void gen_ed25519(FILE *file, const size_t max) {
 }
 
 int main(void) {
-    run_generator("test_chacha20.h.inc", gen_chacha20);
-    run_generator("test_xchacha20poly1305.h.inc", gen_xchacha20poly1305);
-    run_generator("test_curve25519.h.inc", gen_curve25519);
-    run_generator("test_ristretto255.h.inc", gen_ristretto255);
-    run_generator("test_ed25519.h.inc", gen_ed25519);
+    run_generator("test_chacha20.txt", gen_chacha20);
+    run_generator("test_xchacha20poly1305.txt", gen_xchacha20poly1305);
+    run_generator("test_curve25519.txt", gen_curve25519);
+    run_generator("test_ristretto255.txt", gen_ristretto255);
+    run_generator("test_ed25519.txt", gen_ed25519);
 }

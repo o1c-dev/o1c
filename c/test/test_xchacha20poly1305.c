@@ -23,7 +23,7 @@ void run_checks(const o1c_test_vector *test) {
     assert(o1c_mem_eq(ct, actual, sizeof actual));
 }
 
-#include "test_xchacha20poly1305.h.inc"
+#include "test_xchacha20poly1305.txt"
 
 int main() {
     for (size_t i = 0; i <= 256*256; ++i) run_checks(&data[i]);
