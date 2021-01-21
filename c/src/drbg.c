@@ -38,7 +38,7 @@ inline void drbg_entropy(void *buf, size_t bytes) {
 #endif // system entropy
 
 static _Thread_local struct {
-    alignas(16) struct o1c_crypto_s st;
+    alignas(16) o1c_crypto_s st;
     uint64_t counter;
     bool initialized;
 } drbg_ctx;
@@ -53,7 +53,7 @@ static void drbg_ratchet() {
 }
 
 static void drbg_init() {
-    drbg_entropy(&drbg_ctx.st, sizeof(struct o1c_crypto_s));
+    drbg_entropy(&drbg_ctx.st, sizeof(o1c_crypto_s));
     drbg_ctx.counter = 0;
 }
 

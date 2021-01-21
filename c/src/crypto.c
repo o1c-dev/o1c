@@ -170,7 +170,7 @@ void o1c_crypto_stream(uint8_t *c, size_t len, const uint8_t n[o1c_crypto_NONCE_
     o1c_crypto_key_setup(ctx, k);
     o1c_crypto_nonce_setup(ctx, n);
     o1c_crypto_keystream(ctx, c, len);
-    o1c_bzero(ctx, sizeof(struct o1c_crypto_s));
+    o1c_bzero(ctx, sizeof(o1c_crypto_s));
 }
 
 void o1c_crypto_xor_ic(uint8_t *out, const uint8_t *in, unsigned long bytes, const uint8_t n[o1c_crypto_NONCE_BYTES],
@@ -180,7 +180,7 @@ void o1c_crypto_xor_ic(uint8_t *out, const uint8_t *in, unsigned long bytes, con
     o1c_crypto_key_setup(ctx, k);
     o1c_crypto_nonce_ic_setup(ctx, n, ic);
     o1c_crypto_bytes(ctx, out, in, bytes);
-    o1c_bzero(ctx, sizeof(struct o1c_crypto_s));
+    o1c_bzero(ctx, sizeof(o1c_crypto_s));
 }
 
 void o1c_crypto_xor(uint8_t *out, const uint8_t *in, unsigned long bytes, const uint8_t n[o1c_crypto_NONCE_BYTES],
