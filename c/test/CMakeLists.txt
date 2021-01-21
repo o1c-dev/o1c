@@ -4,8 +4,20 @@ include_directories(../include)
 
 # use libsodium for validating some algorithm compatibility
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(SODIUM REQUIRED IMPORTED_TARGET libsodium)
-link_libraries(PkgConfig::SODIUM)
+pkg_check_modules(SODIUM IMPORTED_TARGET libsodium)
+if (SODIUM_FOUND)
+    link_libraries(PkgConfig::SODIUM)
+else()
+    include(ExternalProject)
+    find_program(MAKE_EXE NAMES gmake nmake make)
+    ExternalProject_Add(sodium
+            URL https://github.com/jedisct1/libsodium/releases/download/1.0.18-RELEASE/libsodium-1.0.18.tar.gz
+            URL_HASH SHA256=6f504490b342a4f8a4c4a02fc9b866cbef8622d5df4e5452b46be121e46636c1
+            CONFIGURE_COMMAND ./configure --prefix=/tmp
+            BUILD_COMMAND ${MAKE_EXE}
+            INSTALL_COMMAND ${MAKE_EXE} install)
+endif ()
+
 
 # tests
 # TODO: find and use a real unit test framework
