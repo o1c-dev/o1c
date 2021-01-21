@@ -65,7 +65,7 @@ O1C_EXPORT unsigned long o1c_pad_len(unsigned long unpadded_len);
 
 typedef struct O1C_EXPORT o1c_crypto_s {
     uint32_t state[16];
-} o1c_crypto_t[1];
+} o1c_crypto_s, o1c_crypto_t[1];
 
 O1C_EXPORT void o1c_crypto_key_setup(o1c_crypto_t ctx, const uint8_t k[o1c_crypto_KEY_BYTES]);
 
@@ -91,9 +91,9 @@ o1c_crypto_xor(uint8_t *out, const uint8_t *in, unsigned long bytes, const uint8
 #define o1c_auth_KEY_BYTES 32
 #define o1c_auth_TAG_BYTES 16
 
-typedef struct O1C_EXPORT {
+typedef struct O1C_EXPORT o1c_auth_s {
     alignas(16) uint8_t state[96]; // large enough for 32-bit and 64-bit state representations
-} o1c_auth_t[1];
+} o1c_auth_s, o1c_auth_t[1];
 
 O1C_EXPORT void
 o1c_auth(uint8_t t[o1c_auth_TAG_BYTES], const uint8_t *m, unsigned long bytes, const uint8_t k[o1c_auth_KEY_BYTES]);
@@ -136,12 +136,30 @@ o1c_aead_decrypt(uint8_t *m, const uint8_t t[o1c_aead_TAG_BYTES], const uint8_t 
 #define o1c_scalar_BYTES 32
 #define o1c_field_BYTES 32
 
+typedef struct o1c_scalar_s {
+    uint8_t v[o1c_scalar_BYTES];
+} o1c_scalar_s, o1c_scalar_t[1];
+
+O1C_EXPORT void o1c_scalar_random(o1c_scalar_t s);
+
+// todo: migrate to struct
 O1C_EXPORT void o1c_field_scalar_keypair(uint8_t pk[o1c_field_BYTES], uint8_t sk[o1c_scalar_BYTES]);
 
 O1C_EXPORT void o1c_field_scalar_mul_base(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES]);
 
 O1C_EXPORT bool
 o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES], const uint8_t p[o1c_field_BYTES]);
+
+#define o1c_po_group_element_BYTES 32
+typedef struct O1C_EXPORT o1c_po_group_element_s {
+    uint8_t v[o1c_po_group_element_BYTES];
+} o1c_po_group_element_s, o1c_po_group_element_t[1];
+
+O1C_EXPORT void o1c_po_group_keypair(o1c_po_group_element_t pk, o1c_scalar_t sk);
+
+O1C_EXPORT bool o1c_po_group_scalar_mul(o1c_po_group_element_t q, const o1c_scalar_t n, const o1c_po_group_element_t p);
+
+O1C_EXPORT bool o1c_po_group_scalar_mul_base(o1c_po_group_element_t q, const o1c_scalar_t n);
 
 #define o1c_sign_BYTES 64
 #define o1c_sign_KEY_BYTES 32

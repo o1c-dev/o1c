@@ -24,3 +24,6 @@ add_test(NAME XChaCha20Poly1305 COMMAND test_chacha20poly1305)
 
 add_executable(test_ed25519 test_ed25519.c)
 add_test(NAME Ed25519 COMMAND test_ed25519)
+
+add_executable(test_ristretto255 test_ristretto255.c)
+add_test(NAME Ristretto255 COMMAND test_ristretto255)

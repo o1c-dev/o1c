@@ -63,7 +63,7 @@ void ge_ext_sub(ge_p1p1 r, const ge_p3 p, const ge_cached q);
 
 void ge_scalar_mul_base(ge_p3 r, const uint8_t a[32]);
 
-void ge_scalar_mul(ge_p2 r, const uint8_t scalar[32], const ge_p3 q);
+void ge_scalar_mul(ge_p3 r, const uint8_t scalar[32], const ge_p3 q);
 
 void ge_scalar_reduce(uint8_t s[64]);
 
