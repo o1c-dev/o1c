@@ -8,6 +8,7 @@
 #include <stdnoreturn.h>
 #include <errno.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "o1c.h"
 #include "mem.h"

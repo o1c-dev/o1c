@@ -1,30 +1,30 @@
-#include <stdlib.h>
-#include <sodium.h>
-
 #include "o1c.h"
-#include "test_util.h"
+#include "test.h"
 
-static inline void init_buf(uint8_t *const buf, const size_t len) {
-    for (size_t i = 0; i < len; ++i) buf[i] = i % UINT8_MAX;
+typedef struct {
+    size_t ad_len;
+    size_t pt_len;
+    char key[o1c_aead_KEY_BYTES * 2 + 1];
+    char nonce[o1c_aead_NONCE_BYTES * 2 + 1];
+    char *ciphertext;
+} o1c_test_vector;
+
+void run_checks(const o1c_test_vector *test) {
+    uint8_t key[o1c_aead_KEY_BYTES], nonce[o1c_aead_NONCE_BYTES];
+    uint8_t ad[test->ad_len], pt[test->pt_len];
+    init_buf(ad, sizeof ad);
+    init_buf(pt, sizeof pt);
+    uint8_t ct[test->pt_len + o1c_aead_TAG_BYTES];
+    o1c_hex2bin(key, o1c_aead_KEY_BYTES, test->key, o1c_aead_KEY_BYTES * 2);
+    o1c_hex2bin(nonce, o1c_aead_NONCE_BYTES, test->nonce, o1c_aead_NONCE_BYTES * 2);
+    o1c_hex2bin(ct, sizeof ct, test->ciphertext, (test->pt_len + o1c_aead_TAG_BYTES) * 2 + 1);
+    uint8_t actual[test->pt_len + o1c_aead_TAG_BYTES];
+    o1c_aead_encrypt(actual, actual + sizeof pt, pt, sizeof pt, ad, sizeof ad, nonce, key);
+    assert(o1c_mem_eq(ct, actual, sizeof actual));
 }
 
-int main() {
-    uint8_t key[o1c_aead_KEY_BYTES], nonce[o1c_aead_NONCE_BYTES], tag[o1c_aead_TAG_BYTES];
-    uint8_t pt[64], ct[64], ad[64], tmp[64];
-    init_buf(key, sizeof key);
-    init_buf(nonce, sizeof nonce);
-    init_buf(pt, sizeof pt);
-    init_buf(ad, sizeof ad);
-    for (size_t m_len = 0; m_len <= 64; ++m_len) {
-        for (size_t ad_len = 0; ad_len <= 64; ++ad_len) {
-            o1c_aead_encrypt(ct, tag, pt, m_len, ad, ad_len, nonce, key);
-            assert(o1c_aead_decrypt(tmp, tag, ct, m_len, ad, ad_len, nonce, key));
-            assert_eq(pt, tmp, m_len);
+#include "test_xchacha20poly1305.h"
 
-            // compatibility tests
-            assert(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(tmp, NULL, ct, m_len, tag, ad, ad_len, nonce,
-                                                                       key) != -1);
-            assert_eq(pt, tmp, m_len);
-        }
-    }
+int main() {
+    for (size_t i = 0; i <= 256*256; ++i) run_checks(&data[i]);
 }

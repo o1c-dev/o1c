@@ -1,8 +1,5 @@
-#include <sodium.h>
-
 #include "o1c.h"
-
-#include "test_util.h"
+#include "test.h"
 
 static bool poly1305_smoke_test() {
     /* example from nacl */
@@ -124,19 +121,5 @@ static bool poly1305_smoke_test() {
 }
 
 int main(void) {
-    assert(poly1305_smoke_test());
-    assert(sodium_init() != -1);
-    uint8_t m[1023];
-    for (int i = 0; i < 1023; ++i) m[i] = (i % UINT8_MAX);
-    uint8_t k[32];
-    for (uint8_t i = 0; i < 32; ++i) k[i] = i;
-    uint8_t expected_mac[16];
-    uint8_t actual_mac[16];
-    o1c_auth_t st;
-    o1c_auth_key_setup(st, k);
-    o1c_auth_update(st, m, 1023);
-    o1c_auth_final(st, actual_mac);
-
-    assert(crypto_onetimeauth_poly1305(expected_mac, m, 1023, k) == 0);
-    assert_eq(expected_mac, actual_mac, 16);
+    return poly1305_smoke_test() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

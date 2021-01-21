@@ -1,32 +1,35 @@
-#include <assert.h>
-#include <sodium.h>
-
 #include "o1c.h"
-#include "test_util.h"
+#include "test.h"
 
-int main() {
-    uint8_t sk[o1c_scalar_BYTES];
-    uint8_t pk[o1c_field_BYTES];
-    drbg_randombytes(sk, o1c_scalar_BYTES);
-    o1c_field_scalar_mul_base(pk, sk);
+typedef struct {
+    char sa[o1c_scalar_BYTES * 2 + 1];
+    char sb[o1c_scalar_BYTES * 2 + 1];
+    char ea[o1c_field_BYTES * 2 + 1];
+    char eb[o1c_field_BYTES * 2 + 1];
+    char product[o1c_field_BYTES * 2 + 1];
+} o1c_test_vector;
 
-    uint8_t expected_pk[o1c_field_BYTES];
-    assert(crypto_scalarmult_curve25519_base(expected_pk, sk) == 0);
-    assert_eq(expected_pk, pk, o1c_field_BYTES);
+void run_checks(const o1c_test_vector *test) {
+    uint8_t sa[o1c_scalar_BYTES], sb[o1c_scalar_BYTES], ea[o1c_field_BYTES], eb[o1c_field_BYTES];
+    uint8_t product[o1c_field_BYTES];
+    o1c_hex2bin(sa, o1c_scalar_BYTES, test->sa, o1c_scalar_BYTES * 2);
+    o1c_hex2bin(sb, o1c_scalar_BYTES, test->sb, o1c_scalar_BYTES * 2);
+    o1c_hex2bin(ea, o1c_field_BYTES, test->ea, o1c_field_BYTES * 2);
+    o1c_hex2bin(eb, o1c_field_BYTES, test->eb, o1c_field_BYTES * 2);
+    o1c_hex2bin(product, o1c_field_BYTES, test->product, o1c_field_BYTES * 2);
+    uint8_t result[o1c_field_BYTES];
+    o1c_field_scalar_mul_base(result, sa);
+    assert(o1c_mem_eq(ea, result, sizeof result));
+    o1c_field_scalar_mul_base(result, sb);
+    assert(o1c_mem_eq(eb, result, sizeof result));
+    o1c_field_scalar_mul(result, sa, eb);
+    assert(o1c_mem_eq(product, result, sizeof result));
+    o1c_field_scalar_mul(result, sb, ea);
+    assert(o1c_mem_eq(product, result, sizeof result));
+}
 
-    uint8_t ss[o1c_field_BYTES];
-    uint8_t peer_pk[o1c_field_BYTES];
-    drbg_randombytes(peer_pk, o1c_field_BYTES);
+#include "test_curve25519.h"
 
-    if (!o1c_field_scalar_mul(ss, sk, peer_pk)) {
-        char ax[65], bx[65], cx[65];
-        fprintf(stderr, "ss = %s, sk = %s, pk = %s\n", o1c_bin2hex(ax, ss, 32), o1c_bin2hex(bx, sk, 32),
-                o1c_bin2hex(cx, peer_pk, 32));
-        return EXIT_FAILURE;
-    }
-
-    uint8_t expected_ss[o1c_field_BYTES];
-    assert(crypto_scalarmult_curve25519(expected_ss, sk, peer_pk) == 0);
-    assert_eq(expected_ss, ss, o1c_field_BYTES);
-
+int main(void) {
+    for (size_t i = 0; i <= 256; ++i) run_checks(&data[i]);
 }

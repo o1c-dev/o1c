@@ -1,44 +1,32 @@
-/* See COPYRIGHT for details
- * SPDX-License-Identifier: MIT OR Apache-2.0 OR BSD-1-Clause
- */
-
-#include <stdbool.h>
-#include <assert.h>
-
-#include <sodium.h>
-
 #include "o1c.h"
+#include "test.h"
 
-bool test_stream(const uint8_t k[o1c_crypto_KEY_BYTES], const uint8_t n[o1c_crypto_NONCE_BYTES], const size_t len) {
-    uint8_t expected[len], actual[len];
-    o1c_crypto_stream(actual, len, n, k);
-    assert(crypto_stream_chacha20_ietf(expected, len, n, k) == 0);
-    return sodium_memcmp(expected, actual, len);
+typedef struct {
+    size_t bytes;
+    char key[o1c_crypto_KEY_BYTES * 2 + 1];
+    char nonce[o1c_crypto_NONCE_BYTES * 2 + 1];
+    char *keystream;
+    char *ciphertext;
+} o1c_test_vector;
+
+void run_checks(const o1c_test_vector *test) {
+    uint8_t key[o1c_crypto_KEY_BYTES], nonce[o1c_crypto_NONCE_BYTES];
+    uint8_t keystream[test->bytes], ciphertext[test->bytes];
+    o1c_hex2bin(key, o1c_crypto_KEY_BYTES, test->key, o1c_crypto_KEY_BYTES * 2);
+    o1c_hex2bin(nonce, o1c_crypto_NONCE_BYTES, test->nonce, o1c_crypto_NONCE_BYTES * 2);
+    o1c_hex2bin(keystream, test->bytes, test->keystream, test->bytes * 2);
+    o1c_hex2bin(ciphertext, test->bytes, test->ciphertext, test->bytes * 2);
+    uint8_t actual[test->bytes];
+    o1c_crypto_stream(actual, test->bytes, nonce, key);
+    assert(o1c_mem_eq(keystream, actual, test->bytes));
+    uint8_t plaintext[test->bytes];
+    init_buf(plaintext, test->bytes);
+    o1c_crypto_xor(actual, plaintext, test->bytes, nonce, key);
+    assert(o1c_mem_eq(ciphertext, actual, test->bytes));
 }
 
-bool test_xor(const uint8_t k[o1c_crypto_KEY_BYTES], const uint8_t n[o1c_crypto_NONCE_BYTES], const size_t len) {
-    uint8_t expected[len], actual[len], input[len];
-    for (size_t i = 0; i < len; ++i) input[i] = i % UINT8_MAX;
-    o1c_crypto_xor(actual, input, len, n, k);
-    assert(crypto_stream_chacha20_ietf_xor(expected, input, len, n, k) == 0);
-    if (sodium_memcmp(expected, actual, len)) return true;
-
-    o1c_crypto_xor(actual, expected, len, n, k);
-    return sodium_memcmp(input, actual, len);
-}
+#include "test_chacha20.h"
 
 int main() {
-    assert(sodium_init() == 0);
-    uint8_t k[o1c_crypto_KEY_BYTES], n[o1c_crypto_NONCE_BYTES];
-    for (size_t i = 0; i < sizeof(k); ++i) k[i] = i;
-    for (size_t i = 0; i < sizeof(n); ++i) n[i] = i;
-
-    bool failure = false;
-
-    for (size_t len = 1; len < 1024; ++len) {
-        if (test_stream(k, n, len)) failure = true;
-        if (test_xor(k, n, len)) failure = true;
-    }
-
-    return failure ? EXIT_FAILURE : EXIT_SUCCESS;
+    for (size_t i = 0; i <= 256; ++i) run_checks(&data[i]);
 }
