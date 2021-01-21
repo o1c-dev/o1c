@@ -15,11 +15,9 @@ else()
             URL_HASH SHA256=6f504490b342a4f8a4c4a02fc9b866cbef8622d5df4e5452b46be121e46636c1
             UPDATE_COMMAND ""
             BUILD_IN_SOURCE 1
-            CONFIGURE_COMMAND ./configure --disable-shared --prefix=/tmp --disable-dependency-tracking
+            CONFIGURE_COMMAND ./configure
             BUILD_COMMAND ${MAKE_EXE}
             INSTALL_COMMAND ${MAKE_EXE} install)
-    include_directories(/tmp/include)
-    link_directories(/tmp/lib)
     add_library(libsodium STATIC IMPORTED GLOBAL)
     link_libraries(libsodium)
 endif ()
