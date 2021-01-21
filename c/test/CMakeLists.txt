@@ -13,9 +13,10 @@ else()
     ExternalProject_Add(sodium
             URL https://github.com/jedisct1/libsodium/releases/download/1.0.18-RELEASE/libsodium-1.0.18.tar.gz
             URL_HASH SHA256=6f504490b342a4f8a4c4a02fc9b866cbef8622d5df4e5452b46be121e46636c1
-            CONFIGURE_COMMAND ./configure --prefix=/tmp
+            CONFIGURE_COMMAND ./configure
             BUILD_COMMAND ${MAKE_EXE}
             INSTALL_COMMAND ${MAKE_EXE} install)
+    add_dependencies(sodium)
 endif ()
 
 
