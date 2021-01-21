@@ -1,5 +1,4 @@
 #include <string.h>
-#include <assert.h>
 
 #include "curve25519.h"
 #include "curve25519/curve25519_tables.h"
@@ -18,20 +17,6 @@
 
 #endif
 
-#define assert_fe(f)                                                    \
-  do {                                                                  \
-    for (unsigned _assert_fe_i = 0; _assert_fe_i < 5; _assert_fe_i++) { \
-      assert(f[_assert_fe_i] <= UINT64_C(0x8cccccccccccc));             \
-    }                                                                   \
-  } while (0)
-
-#define assert_fe_loose(f)                                              \
-  do {                                                                  \
-    for (unsigned _assert_fe_i = 0; _assert_fe_i < 5; _assert_fe_i++) { \
-      assert(f[_assert_fe_i] <= UINT64_C(0x1a666666666664));            \
-    }                                                                   \
-  } while (0)
-
 #else
 
 #ifdef NATIVE_LITTLE_ENDIAN
@@ -43,22 +28,6 @@
 #include "curve25519/fiat/curve25519_32_p.h"
 
 #endif
-
-#define assert_fe(f)                                                     \
-  do {                                                                   \
-    for (unsigned _assert_fe_i = 0; _assert_fe_i < 10; _assert_fe_i++) { \
-      assert(f[_assert_fe_i] <=                                          \
-             ((_assert_fe_i & 1) ? 0x2333333u : 0x4666666u));            \
-    }                                                                    \
-  } while (0)
-
-#define assert_fe_loose(f)                                               \
-  do {                                                                   \
-    for (unsigned _assert_fe_i = 0; _assert_fe_i < 10; _assert_fe_i++) { \
-      assert(f[_assert_fe_i] <=                                          \
-             ((_assert_fe_i & 1) ? 0x6999999u : 0xd333332u));            \
-    }                                                                    \
-  } while (0)
 
 #endif
 
@@ -266,7 +235,7 @@ void ge_proj_serialize(uint8_t s[32], const ge_p2 f) {
     s[31] ^= fe_is_neg(x) << 7;
 }
 
-static void ge_ext_serialize(uint8_t s[32], const ge_p3 f) {
+void ge_ext_serialize(uint8_t s[32], const ge_p3 f) {
     fe recip;
     fe x;
     fe y;
@@ -410,7 +379,7 @@ void ge_ext_sub(ge_p1p1 r, const ge_p3 p, const ge_cached q) {
     fe_add(r->T, trZ, trT);
 }
 
-static void ge_ext_madd(ge_p1p1 r, const ge_p3 p, const ge_precomp q) {
+void ge_ext_madd(ge_p1p1 r, const ge_p3 p, const ge_precomp q) {
     fe trY, trZ, trT;
 
     fe_add(r->X, p->Y, p->X);
@@ -426,7 +395,7 @@ static void ge_ext_madd(ge_p1p1 r, const ge_p3 p, const ge_precomp q) {
     fe_sub(r->T, trZ, trT);
 }
 
-static void ge_ext_msub(ge_p1p1 r, const ge_p3 p, const ge_precomp q) {
+void ge_ext_msub(ge_p1p1 r, const ge_p3 p, const ge_precomp q) {
     fe trY, trZ, trT;
 
     fe_add(r->X, p->Y, p->X);
@@ -442,19 +411,19 @@ static void ge_ext_msub(ge_p1p1 r, const ge_p3 p, const ge_precomp q) {
     fe_add(r->T, trZ, trT);
 }
 
-static void ge_ext_to_proj(ge_p2 r, const ge_p3 p) {
+void ge_ext_to_proj(ge_p2 r, const ge_p3 p) {
     fe_copy(r->X, p->X);
     fe_copy(r->Y, p->Y);
     fe_copy(r->Z, p->Z);
 }
 
-static void ge_comp_to_proj_niels(ge_cached r, const ge_p1p1 p) {
+void ge_comp_to_proj_niels(ge_cached r, const ge_p1p1 p) {
     ge_p3 t;
     ge_comp_to_ext(t, p);
     ge_ext_to_proj_niels(r, t);
 }
 
-static void ge_proj_dbl(ge_p1p1 r, const ge_p2 p) {
+void ge_proj_dbl(ge_p1p1 r, const ge_p2 p) {
     fe trX, trZ, trT;
     fe t0;
 
@@ -472,7 +441,7 @@ static void ge_proj_dbl(ge_p1p1 r, const ge_p2 p) {
     fe_sub(r->T, trT, trZ);
 }
 
-static void ge_ext_dbl(ge_p1p1 r, const ge_p3 p) {
+void ge_ext_dbl(ge_p1p1 r, const ge_p3 p) {
     ge_p2 q;
     ge_ext_to_proj(q, p);
     ge_proj_dbl(r, q);
@@ -682,7 +651,7 @@ static void slide(signed char *r, const uint8_t *a) {
     }
 }
 
-static void ge_double_scalar_mul_vartime(ge_p2 r, const uint8_t *a, const ge_p3 A, const uint8_t *b) {
+void ge_double_scalar_mul_vartime(ge_p2 r, const uint8_t *a, const ge_p3 A, const uint8_t *b) {
     int8_t a_slide[256], b_slide[256];
     struct projective_niels_point Ai[8];
     ge_p1p1 t;
@@ -767,7 +736,7 @@ static uint64_t load_4(const uint8_t *in) {
     return result;
 }
 
-static void ge_scalar_mul_add(uint8_t *s, const uint8_t *a, const uint8_t *b, const uint8_t *c) {
+void ge_scalar_mul_add(uint8_t *s, const uint8_t *a, const uint8_t *b, const uint8_t *c) {
     int64_t a0 = 2097151 & load_3(a);
     int64_t a1 = 2097151 & (load_4(a + 2) >> 5);
     int64_t a2 = 2097151 & (load_3(a + 5) >> 2);

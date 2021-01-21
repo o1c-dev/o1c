@@ -49,22 +49,40 @@ typedef struct projective_niels_point {
 
 void ge_proj_serialize(uint8_t s[32], const ge_p2 f);
 
+void ge_ext_serialize(uint8_t s[32], const ge_p3 f);
+
 int ge_ext_deserialize_vartime(ge_p3 r, const uint8_t s[32]);
 
+void ge_ext_to_proj(ge_p2 r, const ge_p3 p);
+
 void ge_ext_to_proj_niels(ge_cached r, const ge_p3 p);
-
-void ge_comp_to_proj(ge_p2 r, const ge_p1p1 p);
-
-void ge_comp_to_ext(ge_p3 r, const ge_p1p1 p);
 
 void ge_ext_add(ge_p1p1 r, const ge_p3 p, const ge_cached q);
 
 void ge_ext_sub(ge_p1p1 r, const ge_p3 p, const ge_cached q);
 
+void ge_ext_madd(ge_p1p1 r, const ge_p3 p, const ge_precomp q);
+
+void ge_ext_msub(ge_p1p1 r, const ge_p3 p, const ge_precomp q);
+
+void ge_ext_dbl(ge_p1p1 r, const ge_p3 p);
+
+void ge_proj_dbl(ge_p1p1 r, const ge_p2 p);
+
+void ge_comp_to_proj(ge_p2 r, const ge_p1p1 p);
+
+void ge_comp_to_ext(ge_p3 r, const ge_p1p1 p);
+
+void ge_comp_to_proj_niels(ge_cached r, const ge_p1p1 p);
+
 void ge_scalar_mul_base(ge_p3 r, const uint8_t a[32]);
 
 void ge_scalar_mul(ge_p3 r, const uint8_t scalar[32], const ge_p3 q);
 
+void ge_scalar_mul_add(uint8_t *s, const uint8_t *a, const uint8_t *b, const uint8_t *c);
+
 void ge_scalar_reduce(uint8_t s[64]);
+
+void ge_double_scalar_mul_vartime(ge_p2 r, const uint8_t *a, const ge_p3 A, const uint8_t *b);
 
 #endif //O1C_CURVE25519_H
