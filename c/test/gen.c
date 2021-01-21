@@ -10,12 +10,12 @@
 
 typedef void (*gen_fn)(FILE *, size_t);
 
-void run_generator(const char *filename, const gen_fn fn) {
+void run_generator(const char *filename, const gen_fn fn, const size_t max) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         die(true, "fopen(%s)", filename);
     }
-    fn(file, 256);
+    fn(file, max);
     if (fclose(file) != 0) {
         die(true, "fclose(%s)", filename);
     }
@@ -144,9 +144,9 @@ void gen_ed25519(FILE *file, const size_t max) {
 }
 
 int main(void) {
-    run_generator("test_chacha20.txt", gen_chacha20);
-    run_generator("test_xchacha20poly1305.txt", gen_xchacha20poly1305);
-    run_generator("test_curve25519.txt", gen_curve25519);
-    run_generator("test_ristretto255.txt", gen_ristretto255);
-    run_generator("test_ed25519.txt", gen_ed25519);
+    run_generator("test_chacha20.txt", gen_chacha20, 256);
+    run_generator("test_xchacha20poly1305.txt", gen_xchacha20poly1305, 32); // 32*32
+    run_generator("test_curve25519.txt", gen_curve25519, 256);
+    run_generator("test_ristretto255.txt", gen_ristretto255, 256);
+    run_generator("test_ed25519.txt", gen_ed25519, 256);
 }

@@ -26,5 +26,5 @@ void run_checks(const o1c_test_vector *test) {
 #include "test_xchacha20poly1305.txt"
 
 int main() {
-    for (size_t i = 0; i <= 256*256; ++i) run_checks(&data[i]);
+    for (size_t i = 0; i <= 32*32; ++i) run_checks(&data[i]);
 }
