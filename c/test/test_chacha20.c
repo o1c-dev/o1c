@@ -25,8 +25,8 @@ void run_checks(const o1c_test_vector *test) {
     assert(o1c_mem_eq(ciphertext, actual, test->bytes));
 }
 
-#include "test_chacha20.h"
+#include "test_chacha20.h.inc"
 
 int main() {
-    for (size_t i = 0; i <= 256; ++i) run_checks(&data[i]);
+    for (size_t i = 0; i < 256; ++i) run_checks(&data[i]);
 }

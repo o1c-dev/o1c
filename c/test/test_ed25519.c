@@ -28,7 +28,7 @@ void run_checks(const o1c_test_vector *test) {
     assert(o1c_sign_verify_detached(sig, msg, sizeof msg, public_key));
 }
 
-#include "test_ed25519.h"
+#include "test_ed25519.h.inc"
 
 int main() {
     for (size_t i = 0; i <= 256; ++i) run_checks(&data[i]);

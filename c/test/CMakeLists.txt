@@ -20,7 +20,7 @@ add_test(NAME X25519 COMMAND test_curve25519)
 add_executable(test_poly1305 test_poly1305.c)
 add_test(NAME Poly1305 COMMAND test_poly1305)
 
-add_executable(test_chacha20poly1305 test_chacha20poly1305.c)
+add_executable(test_chacha20poly1305 test_xchacha20poly1305.c)
 add_test(NAME XChaCha20Poly1305 COMMAND test_chacha20poly1305)
 
 add_executable(test_ed25519 test_ed25519.c)
