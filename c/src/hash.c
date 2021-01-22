@@ -1,5 +1,5 @@
-#include "o1c.h"
-#include "blake3.h"
+#include "hash.h"
+#include "util.h"
 
 inline void o1c_hash_init(o1c_hash_t ctx) {
     blake3_hasher *state = (blake3_hasher *) ctx->state;

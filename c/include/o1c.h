@@ -6,7 +6,6 @@
 #include <stdalign.h>
 
 #include "o1c_export.h"
-#include "blake3.h"
 
 #ifdef __clang__
 # if 100 * __clang_major__ + __clang_minor__ > 305
@@ -33,6 +32,7 @@
 
 #include "drbg.h"
 #include "util.h"
+#include "hash.h"
 #include "chacha20.h"
 #include "poly1305.h"
 #include "xchacha20poly1305.h"
@@ -40,24 +40,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define o1c_hash_KEY_BYTES BLAKE3_KEY_LEN
-
-typedef struct o1c_hash_s {
-    alignas(16) uint8_t state[sizeof(blake3_hasher)];
-} o1c_hash_s, o1c_hash_t[1];
-
-O1C_EXPORT void o1c_hash_init(o1c_hash_t ctx);
-
-O1C_EXPORT void o1c_hash_key_setup(o1c_hash_t ctx, const uint8_t k[o1c_hash_KEY_BYTES]);
-
-O1C_EXPORT void o1c_hash_kdf_setup(o1c_hash_t ctx, const char *context);
-
-O1C_EXPORT void o1c_hash_update(o1c_hash_t ctx, const uint8_t *m, unsigned long bytes);
-
-O1C_EXPORT void o1c_hash_final(o1c_hash_t ctx, uint8_t *out, unsigned long out_bytes);
-
-O1C_EXPORT void o1c_hash(uint8_t *out, unsigned long out_bytes, const uint8_t *in, unsigned long in_bytes);
 
 #define o1c_scalar_BYTES 32
 #define o1c_field_BYTES 32
