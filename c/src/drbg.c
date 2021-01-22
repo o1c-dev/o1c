@@ -14,10 +14,13 @@ inline void drbg_entropy(void *buf, size_t bytes) {
 }
 
 #elif defined(__linux__)
+#include <stdlib.h>
 #include <sys/random.h>
 
 inline void drbg_entropy(void *buf, size_t bytes) {
-    (void) getrandom(buf, bytes, 0);
+    if (getrandom(buf, bytes, 0) == -1) {
+        abort();
+    }
 }
 
 #elif defined(_WIN32)
