@@ -25,7 +25,7 @@
 // no-op assembler instruction that compilers supposedly understand to avoid optimizing away
 #define BARRIER(X) __asm__("": "+r"(X):)
 
-#include "o1c.h"
+#include "util.h"
 
 inline bool
 o1c_mem_eq(const void *const fst, const void *const snd, const size_t len) {

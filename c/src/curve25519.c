@@ -4,7 +4,6 @@
 #include "curve25519/curve25519_tables.h"
 
 #include "o1c.h"
-#include "sha512.h"
 
 #if (ARCH_WORD_BITS == 64)
 #ifdef NATIVE_LITTLE_ENDIAN
@@ -1645,8 +1644,8 @@ o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTE
 
 void o1c_sign_seed_keypair(uint8_t pk[o1c_sign_KEY_BYTES], uint8_t sk[o1c_sign_KEYPAIR_BYTES],
                            const uint8_t seed[o1c_sign_KEY_BYTES]) {
-    uint8_t az[sha512_HASH_BYTES];
-    sha512(az, seed, o1c_sign_KEY_BYTES);
+    uint8_t az[o1c_sha512_HASH_BYTES];
+    o1c_sha512(az, seed, o1c_sign_KEY_BYTES);
     az[0] &= 248;
     az[31] &= 127;
     az[31] |= 64;
@@ -1667,28 +1666,28 @@ void o1c_sign_keypair(uint8_t pk[o1c_sign_KEY_BYTES], uint8_t sk[o1c_sign_KEYPAI
 void
 o1c_sign_detached(uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len,
                   const uint8_t sk[o1c_sign_KEYPAIR_BYTES]) {
-    uint8_t az[sha512_HASH_BYTES];
-    sha512(az, sk, 32);
+    uint8_t az[o1c_sha512_HASH_BYTES];
+    o1c_sha512(az, sk, 32);
     az[0] &= 248;
     az[31] &= 63;
     az[31] |= 64;
 
-    sha512_ctx_t ctx;
-    sha512_init(ctx);
-    sha512_update(ctx, az + 32, 32);
-    sha512_update(ctx, m, len);
-    uint8_t nonce[sha512_HASH_BYTES];
-    sha512_final(ctx, nonce);
+    o1c_sha512_ctx_t ctx;
+    o1c_sha512_init(ctx);
+    o1c_sha512_update(ctx, az + 32, 32);
+    o1c_sha512_update(ctx, m, len);
+    uint8_t nonce[o1c_sha512_HASH_BYTES];
+    o1c_sha512_final(ctx, nonce);
     ge_scalar_reduce(nonce);
     ge_p3 R;
     ge_scalar_mul_base(R, nonce);
     ge_ext_serialize(s, R);
-    sha512_init(ctx);
-    sha512_update(ctx, s, 32);
-    sha512_update(ctx, sk + 32, 32);
-    sha512_update(ctx, m, len);
-    uint8_t hram[sha512_HASH_BYTES];
-    sha512_final(ctx, hram);
+    o1c_sha512_init(ctx);
+    o1c_sha512_update(ctx, s, 32);
+    o1c_sha512_update(ctx, sk + 32, 32);
+    o1c_sha512_update(ctx, m, len);
+    uint8_t hram[o1c_sha512_HASH_BYTES];
+    o1c_sha512_final(ctx, hram);
     ge_scalar_reduce(hram);
     ge_scalar_mul_add(s + 32, hram, az, nonce);
 }
@@ -1724,13 +1723,13 @@ o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsi
         if (s_copy.u64[i] > kOrder[i] || i == 0) return false;
         if (s_copy.u64[i] < kOrder[i]) break;
     }
-    sha512_ctx_t ctx;
-    sha512_init(ctx);
-    sha512_update(ctx, s, 32);
-    sha512_update(ctx, pk, 32);
-    sha512_update(ctx, m, len);
-    uint8_t hash[sha512_HASH_BYTES];
-    sha512_final(ctx, hash);
+    o1c_sha512_ctx_t ctx;
+    o1c_sha512_init(ctx);
+    o1c_sha512_update(ctx, s, 32);
+    o1c_sha512_update(ctx, pk, 32);
+    o1c_sha512_update(ctx, m, len);
+    uint8_t hash[o1c_sha512_HASH_BYTES];
+    o1c_sha512_final(ctx, hash);
     ge_scalar_reduce(hash);
     ge_p2 R;
     ge_double_scalar_mul_vartime(R, hash, A, s_copy.u8);

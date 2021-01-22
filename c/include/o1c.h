@@ -36,6 +36,7 @@
 #include "chacha20.h"
 #include "poly1305.h"
 #include "xchacha20poly1305.h"
+#include "sha512.h"
 
 #ifdef __cplusplus
 extern "C" {

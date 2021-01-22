@@ -3,6 +3,13 @@
  */
 
 #include "sha512.h"
+#include "mem.h"
+
+#if defined _MSC_VER
+# define O1C_NOINLINE __declspec(noinline)
+#else
+# define O1C_NOINLINE __attribute__((noinline))
+#endif
 
 #define SHR(x, c) ((x) >> (c))
 #define ROTR(x, c) rotr64((x),(c))
@@ -46,7 +53,7 @@
   b = a; \
   a = T1 + T2;
 
-static O1C_NOINLINE void hash_block(sha512_ctx_t ctx) {
+static O1C_NOINLINE void hash_block(o1c_sha512_ctx_t ctx) {
     const uint8_t *in = ctx->block;
     uint64_t a = ctx->state[0];
     uint64_t b = ctx->state[1];
@@ -179,7 +186,7 @@ static O1C_NOINLINE void hash_block(sha512_ctx_t ctx) {
     ctx->state[7] += h;
 }
 
-void sha512_init(sha512_ctx_t ctx) {
+void o1c_sha512_init(o1c_sha512_ctx_t ctx) {
     static const uint64_t iv[8] = {
             0x6a09e667f3bcc908,
             0xbb67ae8584caa73b,
@@ -195,7 +202,7 @@ void sha512_init(sha512_ctx_t ctx) {
     ctx->bytes_processed = 0;
 }
 
-void sha512_update(sha512_ctx_t ctx, const uint8_t *msg, size_t len) {
+void o1c_sha512_update(o1c_sha512_ctx_t ctx, const uint8_t *msg, size_t len) {
     while (len > 0) {
         size_t grab = len, off = ctx->bytes_processed % 128;
         if (grab > 128 - off) grab = 128 - off;
@@ -211,7 +218,7 @@ void sha512_update(sha512_ctx_t ctx, const uint8_t *msg, size_t len) {
     }
 }
 
-void sha512_final(sha512_ctx_t ctx, uint8_t *out) {
+void o1c_sha512_final(o1c_sha512_ctx_t ctx, uint8_t *out) {
     size_t off = ctx->bytes_processed % 128;
     uint64_t bp = ctx->bytes_processed * 8;
     ctx->block[off] = 0x80;
@@ -226,9 +233,17 @@ void sha512_final(sha512_ctx_t ctx, uint8_t *out) {
         ctx->block[120 + i] = (uint8_t) (bp >> (56 - 8 * i));
     hash_block(ctx);
 
-    for (size_t i = 0; i < sha512_HASH_BYTES; i++) {
+    for (size_t i = 0; i < o1c_sha512_HASH_BYTES; i++) {
         out[i] = (uint8_t) (ctx->state[i / 8] >> (56 - 8 * (i % 8)));
     }
 
-    sha512_init(ctx);
+    o1c_sha512_init(ctx);
+}
+
+void o1c_sha512(uint8_t *const out, const uint8_t *const msg, const size_t msg_len) {
+    o1c_sha512_ctx_t ctx;
+    o1c_sha512_init(ctx);
+    o1c_sha512_update(ctx, msg, msg_len);
+    o1c_sha512_final(ctx, out);
+    o1c_bzero(ctx, sizeof ctx);
 }
