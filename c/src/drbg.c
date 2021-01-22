@@ -48,19 +48,19 @@ static _Thread_local struct {
 
 #define drbg_RESEED_INTERVAL (UINT64_C(1) << 48)
 
-static void drbg_ratchet() {
+static void drbg_ratchet(void) {
     uint8_t n[o1c_crypto_NONCE_BYTES] = {0};
     store64_le(n, drbg_ctx.counter++);
     o1c_crypto_nonce_setup(&drbg_ctx.st, n);
     o1c_crypto_keystream(&drbg_ctx.st, NULL, 0);
 }
 
-static void drbg_init() {
+static void drbg_init(void) {
     drbg_entropy(&drbg_ctx.st, sizeof(o1c_crypto_s));
     drbg_ctx.counter = 0;
 }
 
-static void drbg_ensure_init() {
+static void drbg_ensure_init(void) {
     if (!drbg_ctx.initialized) {
         drbg_init();
         o1c_crypto_keystream(&drbg_ctx.st, NULL, 0);

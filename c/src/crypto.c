@@ -147,7 +147,7 @@ void o1c_crypto_bytes(o1c_crypto_t ctx, uint8_t *c, const uint8_t *m, size_t len
 
         if (len <= 64) {
             if (len < 64) {
-                for (i = 0;i < len;++i) ctarget[i] = c[i];
+                memcpy(ctarget, c, len);
             }
             ctx->state[12] = j12;
             ctx->state[13] = j13;
