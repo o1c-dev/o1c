@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stdalign.h>
 
-#include "o1c_export.h"
-
 #ifdef __clang__
 # if 100 * __clang_major__ + __clang_minor__ > 305
 #  define O1C_UNROLL _Pragma("clang loop unroll(full)")
@@ -37,62 +35,8 @@
 #include "poly1305.h"
 #include "xchacha20poly1305.h"
 #include "sha512.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define o1c_scalar_BYTES 32
-#define o1c_field_BYTES 32
-
-typedef struct o1c_scalar_s {
-    uint8_t v[o1c_scalar_BYTES];
-} o1c_scalar_s, o1c_scalar_t[1];
-
-O1C_EXPORT void o1c_scalar_random(o1c_scalar_t s);
-
-// todo: migrate to struct
-O1C_EXPORT void o1c_field_scalar_keypair(uint8_t pk[o1c_field_BYTES], uint8_t sk[o1c_scalar_BYTES]);
-
-O1C_EXPORT void o1c_field_scalar_mul_base(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES]);
-
-O1C_EXPORT bool
-o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES], const uint8_t p[o1c_field_BYTES]);
-
-#define o1c_po_group_element_BYTES 32
-#define o1c_po_group_element_HASH_BYTES 64
-typedef struct o1c_po_group_element_s {
-    uint8_t v[o1c_po_group_element_BYTES];
-} o1c_po_group_element_s, o1c_po_group_element_t[1];
-
-O1C_EXPORT void o1c_po_group_keypair(o1c_po_group_element_t pk, o1c_scalar_t sk);
-
-O1C_EXPORT bool o1c_po_group_scalar_mul(o1c_po_group_element_t q, const o1c_scalar_t n, const o1c_po_group_element_t p);
-
-O1C_EXPORT bool o1c_po_group_scalar_mul_base(o1c_po_group_element_t q, const o1c_scalar_t n);
-
-O1C_EXPORT void
-o1c_po_group_element_from_hash(o1c_po_group_element_t q, const uint8_t h[o1c_po_group_element_HASH_BYTES]);
-
-#define o1c_sign_BYTES 64
-#define o1c_sign_KEY_BYTES 32
-#define o1c_sign_KEYPAIR_BYTES 64
-
-O1C_EXPORT void o1c_sign_seed_keypair(uint8_t pk[o1c_sign_KEY_BYTES], uint8_t sk[o1c_sign_KEYPAIR_BYTES],
-                                      const uint8_t seed[o1c_sign_KEY_BYTES]);
-
-O1C_EXPORT void o1c_sign_keypair(uint8_t pk[o1c_sign_KEY_BYTES], uint8_t sk[o1c_sign_KEYPAIR_BYTES]);
-
-O1C_EXPORT void
-o1c_sign_detached(uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len,
-                  const uint8_t sk[o1c_sign_KEYPAIR_BYTES]);
-
-O1C_EXPORT bool
-o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len,
-                         const uint8_t pk[o1c_sign_KEY_BYTES]);
-
-#ifdef __cplusplus
-}
-#endif
+#include "x25519.h"
+#include "ed25519.h"
+#include "ristretto255.h"
 
 #endif //O1C_O1C_H

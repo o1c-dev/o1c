@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdnoreturn.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <jni.h>
 
@@ -24,6 +25,7 @@ static inline void release(JNIEnv *env, jarray array, void *c_array) {
 }
 
 void Java_dev_o1c_lib_O1CLib_randomBytes(JNIEnv *env, jclass cls, jbyteArray buf) {
+    (void) cls;
     jsize bytes = (*env)->GetArrayLength(env, buf);
     jbyte *data = acquire(env, buf);
     drbg_randombytes(data, bytes);
@@ -31,6 +33,7 @@ void Java_dev_o1c_lib_O1CLib_randomBytes(JNIEnv *env, jclass cls, jbyteArray buf
 }
 
 void Java_dev_o1c_lib_O1CLib_entropyBytes(JNIEnv *env, jclass cls, jbyteArray buf) {
+    (void) cls;
     jsize bytes = (*env)->GetArrayLength(env, buf);
     jbyte *data = (*env)->GetPrimitiveArrayCritical(env, buf, NULL);
     if (data == NULL) jvm_die(env, "Cannot acquire buffer");
@@ -39,16 +42,20 @@ void Java_dev_o1c_lib_O1CLib_entropyBytes(JNIEnv *env, jclass cls, jbyteArray bu
 }
 
 jint Java_dev_o1c_lib_O1CLib_hashStateSize(JNIEnv *env, jclass cls) {
+    (void) env;
+    (void) cls;
     return sizeof(o1c_hash_s);
 }
 
 void Java_dev_o1c_lib_O1CLib_hashInit(JNIEnv *env, jclass cls, jbyteArray hashState) {
+    (void) cls;
     o1c_hash_s *st = acquire(env, hashState);
     o1c_hash_init(st);
     release(env, hashState, st);
 }
 
 void Java_dev_o1c_lib_O1CLib_keyedHashInit(JNIEnv *env, jclass cls, jbyteArray hashState, jbyteArray key) {
+    (void) cls;
     o1c_hash_s *st = acquire(env, hashState);
     uint8_t *k = acquire(env, key);
     o1c_hash_key_setup(st, k);
@@ -57,6 +64,7 @@ void Java_dev_o1c_lib_O1CLib_keyedHashInit(JNIEnv *env, jclass cls, jbyteArray h
 }
 
 void Java_dev_o1c_lib_O1CLib_kdfHashInit(JNIEnv *env, jclass cls, jbyteArray hashState, jbyteArray context) {
+    (void) cls;
     o1c_hash_s *st = acquire(env, hashState);
     char *context_ = acquire(env, context);
     o1c_hash_kdf_setup(st, context_);
@@ -66,6 +74,7 @@ void Java_dev_o1c_lib_O1CLib_kdfHashInit(JNIEnv *env, jclass cls, jbyteArray has
 
 void Java_dev_o1c_lib_O1CLib_hashUpdate(JNIEnv *env, jclass cls, jbyteArray hashState, jbyteArray in, jint offset,
                                         jint length) {
+    (void) cls;
     o1c_hash_s *st = acquire(env, hashState);
     uint8_t *m = acquire(env, in);
     o1c_hash_update(st, m + offset, length);
@@ -75,6 +84,7 @@ void Java_dev_o1c_lib_O1CLib_hashUpdate(JNIEnv *env, jclass cls, jbyteArray hash
 
 void Java_dev_o1c_lib_O1CLib_hashFinal(JNIEnv *env, jclass cls, jbyteArray hashState, jbyteArray hash, jint offset,
                                        jint length) {
+    (void) cls;
     o1c_hash_s *st = acquire(env, hashState);
     uint8_t *h = acquire(env, hash);
     o1c_hash_final(st, h + offset, length);
@@ -84,6 +94,7 @@ void Java_dev_o1c_lib_O1CLib_hashFinal(JNIEnv *env, jclass cls, jbyteArray hashS
 
 void Java_dev_o1c_lib_O1CLib_hash(JNIEnv *env, jclass cls, jbyteArray in, jint offset, jint length, jbyteArray hash,
                                   jint hashOffset, jint hashLength) {
+    (void) cls;
     o1c_hash_t ctx;
     o1c_hash_init(ctx);
     uint8_t *m = acquire(env, in);
@@ -96,6 +107,7 @@ void Java_dev_o1c_lib_O1CLib_hash(JNIEnv *env, jclass cls, jbyteArray in, jint o
 
 void Java_dev_o1c_lib_O1CLib_keyedHash(JNIEnv *env, jclass cls, jbyteArray key, jbyteArray in, jint offset, jint length,
                                        jbyteArray hash, jint hashOffset, jint hashLength) {
+    (void) cls;
     uint8_t *k = acquire(env, key);
     o1c_hash_t ctx;
     o1c_hash_key_setup(ctx, k);
@@ -109,19 +121,21 @@ void Java_dev_o1c_lib_O1CLib_keyedHash(JNIEnv *env, jclass cls, jbyteArray key, 
 }
 
 void Java_dev_o1c_lib_O1CLib_scalarFieldBaseMultiply(JNIEnv *env, jclass cls, jbyteArray result, jbyteArray scalar) {
-    uint8_t *n = acquire(env, scalar);
-    uint8_t *q = acquire(env, result);
-    o1c_field_scalar_mul_base(q, n);
+    (void) cls;
+    o1c_x25519_scalar_s *n = acquire(env, scalar);
+    o1c_x25519_element_s *q = acquire(env, result);
+    o1c_x25519_scalar_mul_base(q, n);
     release(env, result, q);
     release(env, scalar, n);
 }
 
 void Java_dev_o1c_lib_O1CLib_scalarFieldMultiply(JNIEnv *env, jclass cls, jbyteArray result, jbyteArray scalar,
                                                  jbyteArray fieldElement) {
-    uint8_t *p = acquire(env, fieldElement);
-    uint8_t *n = acquire(env, scalar);
-    uint8_t *q = acquire(env, result);
-    o1c_field_scalar_mul(q, n, p);
+    (void) cls;
+    o1c_x25519_element_s *p = acquire(env, fieldElement);
+    o1c_x25519_scalar_s *n = acquire(env, scalar);
+    o1c_x25519_element_s *q = acquire(env, result);
+    o1c_x25519_scalar_mul(q, n, p);
     release(env, result, q);
     release(env, scalar, n);
     release(env, fieldElement, p);
@@ -129,9 +143,10 @@ void Java_dev_o1c_lib_O1CLib_scalarFieldMultiply(JNIEnv *env, jclass cls, jbyteA
 
 void Java_dev_o1c_lib_O1CLib_generateScalarFieldKeyPair(JNIEnv *env, jclass cls, jbyteArray publicKey,
                                                         jbyteArray privateKey) {
-    uint8_t *pk = acquire(env, publicKey);
-    uint8_t *sk = acquire(env, privateKey);
-    o1c_field_scalar_keypair(pk, sk);
+    (void) cls;
+    o1c_x25519_element_s *pk = acquire(env, publicKey);
+    o1c_x25519_scalar_s *sk = acquire(env, privateKey);
+    o1c_x25519_keypair(pk, sk);
     release(env, privateKey, sk);
     release(env, publicKey, pk);
 }
@@ -141,6 +156,7 @@ void Java_dev_o1c_lib_O1CLib_authenticatedEncrypt(JNIEnv *env, jclass cls, jbyte
                                                   jbyteArray ct, jint ctOff, jbyteArray tag, jint tagOff) {
     // TODO: consider exposing multi-part API for AEAD similar to stream/auth/hash APIs
     //  (this will allow minimizing length of time we acquire different arrays from the args for larger messages)
+    (void) cls;
     uint8_t *k = acquire(env, key);
     uint8_t *n = acquire(env, nonce);
     uint8_t *ad = acquire(env, context);
@@ -159,6 +175,7 @@ void Java_dev_o1c_lib_O1CLib_authenticatedEncrypt(JNIEnv *env, jclass cls, jbyte
 jboolean Java_dev_o1c_lib_O1CLib_authenticatedDecrypt(JNIEnv *env, jclass cls, jbyteArray key, jbyteArray nonce,
                                                       jbyteArray context, jbyteArray ct, jint ctOff, jint ctLen,
                                                       jbyteArray tag, jint tagOff, jbyteArray pt, jint ptOff) {
+    (void) cls;
     uint8_t *k = acquire(env, key);
     uint8_t *n = acquire(env, nonce);
     uint8_t *ad = acquire(env, context);
@@ -177,30 +194,35 @@ jboolean Java_dev_o1c_lib_O1CLib_authenticatedDecrypt(JNIEnv *env, jclass cls, j
 
 void Java_dev_o1c_lib_O1CLib_deriveKeyPairFromSeed(JNIEnv *env, jclass cls, jbyteArray publicKey,
                                                    jbyteArray expandedPrivateKey, jbyteArray seed) {
-    uint8_t *s = acquire(env, seed);
-    uint8_t *sk = acquire(env, expandedPrivateKey);
-    uint8_t *pk = acquire(env, publicKey);
-    o1c_sign_seed_keypair(pk, sk, s);
-    release(env, publicKey, pk);
+    (void) cls;
+    o1c_ed25519_seed_s *s = acquire(env, seed);
+    o1c_ed25519_expanded_key_s *sk = acquire(env, expandedPrivateKey);
+    o1c_ed25519_expand_key(sk, s);
     release(env, expandedPrivateKey, sk);
     release(env, seed, s);
+
+    o1c_ed25519_public_key_s *pk = acquire(env, publicKey);
+    memcpy(pk->v, sk->v + o1c_ed25519_SEED_BYTES, o1c_ed25519_PUBLIC_BYTES);
+    release(env, publicKey, pk);
 }
 
 void Java_dev_o1c_lib_O1CLib_generateSignKeyPair(JNIEnv *env, jclass cls, jbyteArray publicKey,
                                                  jbyteArray expandedPrivateKey) {
-    uint8_t *pk = acquire(env, publicKey);
-    uint8_t *sk = acquire(env, expandedPrivateKey);
-    o1c_sign_keypair(pk, sk);
+    (void) cls;
+    o1c_ed25519_public_key_s *pk = acquire(env, publicKey);
+    o1c_ed25519_expanded_key_s *sk = acquire(env, expandedPrivateKey);
+    o1c_ed25519_keypair(pk, sk);
     release(env, expandedPrivateKey, sk);
     release(env, publicKey, pk);
 }
 
 void Java_dev_o1c_lib_O1CLib_sign(JNIEnv *env, jclass cls, jbyteArray expandedPrivateKey, jbyteArray in, jint offset,
                                   jint length, jbyteArray sig, jint sigOffset) {
-    uint8_t *sk = acquire(env, expandedPrivateKey);
+    (void) cls;
+    o1c_ed25519_expanded_key_s *sk = acquire(env, expandedPrivateKey);
     uint8_t *m = acquire(env, in);
     uint8_t *s = acquire(env, sig);
-    o1c_sign_detached(s + sigOffset, m + offset, length, sk);
+    o1c_ed25519_sign(s + sigOffset, m + offset, length, sk);
     release(env, sig, s);
     release(env, in, m);
     release(env, expandedPrivateKey, sk);
@@ -209,12 +231,13 @@ void Java_dev_o1c_lib_O1CLib_sign(JNIEnv *env, jclass cls, jbyteArray expandedPr
 jboolean
 Java_dev_o1c_lib_O1CLib_verify(JNIEnv *env, jclass cls, jbyteArray publicKey, jbyteArray in, jint offset, jint length,
                                jbyteArray sig, jint sigOffset) {
-    uint8_t *pk = acquire(env, publicKey);
+    (void) cls;
+    o1c_ed25519_public_key_s *pk = acquire(env, publicKey);
     uint8_t *m = acquire(env, in);
     uint8_t *s = acquire(env, sig);
-    bool ret = o1c_sign_verify_detached(s + sigOffset, m + offset, length, pk);
+    jboolean ret = o1c_ed25519_verify(s + sigOffset, m + offset, length, pk);
     release(env, sig, s);
     release(env, in, m);
     release(env, publicKey, pk);
-    return (jboolean) ret;
+    return ret;
 }

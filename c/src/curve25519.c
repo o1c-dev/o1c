@@ -3,7 +3,11 @@
 #include "curve25519.h"
 #include "curve25519/curve25519_tables.h"
 
-#include "o1c.h"
+#include "drbg.h"
+#include "sha512.h"
+#include "x25519.h"
+#include "ed25519.h"
+#include "ristretto255.h"
 
 #if (ARCH_WORD_BITS == 64)
 #ifdef NATIVE_LITTLE_ENDIAN
@@ -62,7 +66,7 @@ static inline void fe_1(fe f) {
 }
 
 static inline int fe_is_neg(const fe f) {
-    uint8_t tmp[o1c_scalar_BYTES];
+    uint8_t tmp[o1c_x25519_ELEMENT_BYTES];
     fe_serialize(tmp, f);
     return tmp[0] & 1;
 }
@@ -70,9 +74,9 @@ static inline int fe_is_neg(const fe f) {
 static inline bool fe_is_nonzero(fe f) {
     fe tight;
     fe_reduce(tight, f);
-    uint8_t tmp[o1c_field_BYTES];
+    uint8_t tmp[o1c_x25519_ELEMENT_BYTES];
     fe_serialize(tmp, tight);
-    return !o1c_is_zero(tmp, o1c_field_BYTES);
+    return !o1c_is_zero(tmp, o1c_x25519_ELEMENT_BYTES);
 }
 
 static inline void fe_abs(fe h, const fe f) {
@@ -831,11 +835,11 @@ void ge_scalar_mul_add(uint8_t *s, const uint8_t *a, const uint8_t *b, const uin
     s8 = c8 + a0 * b8 + a1 * b7 + a2 * b6 + a3 * b5 + a4 * b4 + a5 * b3 + a6 * b2 + a7 * b1 + a8 * b0;
     s9 = c9 + a0 * b9 + a1 * b8 + a2 * b7 + a3 * b6 + a4 * b5 + a5 * b4 + a6 * b3 + a7 * b2 + a8 * b1 + a9 * b0;
     s10 = c10 + a0 * b10 + a1 * b9 + a2 * b8 + a3 * b7 + a4 * b6 + a5 * b5 + a6 * b4 + a7 * b3 + a8 * b2 + a9 * b1 +
-            a10 * b0;
+          a10 * b0;
     s11 = c11 + a0 * b11 + a1 * b10 + a2 * b9 + a3 * b8 + a4 * b7 + a5 * b6 + a6 * b5 + a7 * b4 + a8 * b3 + a9 * b2 +
-            a10 * b1 + a11 * b0;
+          a10 * b1 + a11 * b0;
     s12 = a1 * b11 + a2 * b10 + a3 * b9 + a4 * b8 + a5 * b7 + a6 * b6 + a7 * b5 + a8 * b4 + a9 * b3 + a10 * b2 +
-            a11 * b1;
+          a11 * b1;
     s13 = a2 * b11 + a3 * b10 + a4 * b9 + a5 * b8 + a6 * b7 + a7 * b6 + a8 * b5 + a9 * b4 + a10 * b3 + a11 * b2;
     s14 = a3 * b11 + a4 * b10 + a5 * b9 + a6 * b8 + a7 * b7 + a8 * b6 + a9 * b5 + a10 * b4 + a11 * b3;
     s15 = a4 * b11 + a5 * b10 + a6 * b9 + a7 * b8 + a8 * b7 + a9 * b6 + a10 * b5 + a11 * b4;
@@ -1542,7 +1546,7 @@ void ge_scalar_reduce(uint8_t s[64]) {
     s[31] = s11 >> 17;
 }
 
-static bool ge_scalar_is_canonical(const o1c_scalar_t s) {
+static bool ge_scalar_is_canonical(const uint8_t s[32]) {
     /* 2^252+27742317777372353535851937790883648493 */
     static const uint8_t L[32] = {
             0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7,
@@ -1555,53 +1559,48 @@ static bool ge_scalar_is_canonical(const o1c_scalar_t s) {
 
     do {
         i--;
-        c |= ((s->v[i] - L[i]) >> 8) & n;
-        n &= ((s->v[i] ^ L[i]) - 1) >> 8;
+        c |= ((s[i] - L[i]) >> 8) & n;
+        n &= ((s[i] ^ L[i]) - 1) >> 8;
     } while (i != 0);
 
     return (c != 0);
 }
 
-void o1c_scalar_random(o1c_scalar_t s) {
+void o1c_x25519_scalar_random(o1c_x25519_scalar_t s) {
     do {
-        drbg_randombytes(s->v, o1c_scalar_BYTES);
-        s->v[o1c_scalar_BYTES - 1] &= 0x1f;
-    } while (!ge_scalar_is_canonical(s) || o1c_is_zero(s->v, o1c_scalar_BYTES));
+        drbg_randombytes(s->v, o1c_x25519_SCALAR_BYTES);
+        s->v[o1c_x25519_SCALAR_BYTES - 1] &= 0x1f;
+    } while (!ge_scalar_is_canonical(s->v) || o1c_is_zero(s->v, o1c_x25519_SCALAR_BYTES));
 }
 
-void o1c_field_scalar_keypair(uint8_t pk[o1c_field_BYTES], uint8_t sk[o1c_scalar_BYTES]) {
-    drbg_randombytes(sk, o1c_scalar_BYTES);
-    o1c_field_scalar_mul_base(pk, sk);
+void o1c_ristretto255_scalar_random(o1c_ristretto255_scalar_t s) {
+    do {
+        drbg_randombytes(s->v, o1c_ristretto255_SCALAR_BYTES);
+        s->v[o1c_ristretto255_SCALAR_BYTES - 1] &= 0x1f;
+    } while (!ge_scalar_is_canonical(s->v) || o1c_is_zero(s->v, o1c_ristretto255_SCALAR_BYTES));
 }
 
-void o1c_field_scalar_mul_base(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES]) {
-    uint8_t t[o1c_scalar_BYTES];
-    memcpy(t, n, o1c_scalar_BYTES);
-    t[0] &= 248;
-    t[31] &= 127;
-    t[31] |= 64;
-    ge_p3 Q;
-    ge_scalar_mul_base(Q, t);
-    fe zplusy, zminusy, zminusy_inv;
-    fe_add(zplusy, Q->Z, Q->Y);
-    fe_sub(zminusy, Q->Z, Q->Y);
-    fe_invert(zminusy_inv, zminusy);
-    fe_mul(zminusy_inv, zplusy, zminusy_inv);
-    fe_serialize(q, zminusy_inv);
+void o1c_x25519_keypair(o1c_x25519_element_t pk, o1c_x25519_scalar_t sk) {
+    o1c_x25519_scalar_random(sk);
+    o1c_x25519_scalar_mul_base(pk, sk);
 }
 
-bool
-o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTES], const uint8_t p[o1c_field_BYTES]) {
+void o1c_ristretto255_keypair(o1c_ristretto255_element_t pk, o1c_ristretto255_scalar_t sk) {
+    o1c_ristretto255_scalar_random(sk);
+    assert(o1c_ristretto255_scalar_mul_base(pk, sk));
+}
+
+bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, const o1c_x25519_element_t p) {
     fe x1, x2, z2, x3, z3, tmp0, tmp1, x2l, z2l, x3l, tmp0l, tmp1l;
     unsigned swap = 0;
-    uint8_t t[o1c_scalar_BYTES];
+    uint8_t t[o1c_x25519_SCALAR_BYTES];
 
-    memcpy(t, n, o1c_scalar_BYTES);
+    memcpy(t, n, o1c_x25519_SCALAR_BYTES);
     t[0] &= 248;
     t[31] &= 127;
     t[31] |= 64;
 
-    fe_deserialize(x1, p);
+    fe_deserialize(x1, p->v);
     fe_1(x2);
     fe_0(z2);
     fe_copy(x3, x1);
@@ -1638,36 +1637,49 @@ o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTE
 
     fe_invert(z2, z2);
     fe_mul(x2, x2, z2);
-    fe_serialize(q, x2);
-    return !o1c_is_zero(q, o1c_field_BYTES);
+    fe_serialize(q->v, x2);
+    return !o1c_is_zero(q, o1c_x25519_ELEMENT_BYTES);
 }
 
-void o1c_sign_seed_keypair(uint8_t pk[o1c_sign_KEY_BYTES], uint8_t sk[o1c_sign_KEYPAIR_BYTES],
-                           const uint8_t seed[o1c_sign_KEY_BYTES]) {
+void o1c_x25519_scalar_mul_base(o1c_x25519_element_t q, const o1c_x25519_scalar_t n) {
+    uint8_t t[o1c_x25519_SCALAR_BYTES];
+    memcpy(t, n->v, o1c_x25519_SCALAR_BYTES);
+    t[0] &= 248;
+    t[31] &= 127;
+    t[31] |= 64;
+    ge_p3 Q;
+    ge_scalar_mul_base(Q, t);
+    fe zplusy, zminusy, zminusy_inv;
+    fe_add(zplusy, Q->Z, Q->Y);
+    fe_sub(zminusy, Q->Z, Q->Y);
+    fe_invert(zminusy_inv, zminusy);
+    fe_mul(zminusy_inv, zplusy, zminusy_inv);
+    fe_serialize(q->v, zminusy_inv);
+}
+
+void o1c_ed25519_expand_key(o1c_ed25519_expanded_key_t private_key, const o1c_ed25519_seed_t seed) {
     uint8_t az[o1c_sha512_HASH_BYTES];
-    o1c_sha512(az, seed, o1c_sign_KEY_BYTES);
+    o1c_sha512(az, seed->v, o1c_ed25519_SEED_BYTES);
     az[0] &= 248;
     az[31] &= 127;
     az[31] |= 64;
     ge_p3 A;
     ge_scalar_mul_base(A, az);
-    ge_ext_serialize(pk, A);
-    memmove(sk, seed, 32);
-    memmove(sk + 32, pk, 32);
+    memcpy(private_key->v, seed->v, o1c_ed25519_SEED_BYTES);
+    ge_ext_serialize(private_key->v + 32, A);
 }
 
-void o1c_sign_keypair(uint8_t pk[o1c_sign_KEY_BYTES], uint8_t sk[o1c_sign_KEYPAIR_BYTES]) {
-    uint8_t seed[32];
-    drbg_randombytes(seed, 32);
-    o1c_sign_seed_keypair(pk, sk, seed);
-    o1c_bzero(seed, 32);
+void o1c_ed25519_keypair(o1c_ed25519_public_key_t public_key, o1c_ed25519_expanded_key_t private_key) {
+    o1c_ed25519_seed_t seed;
+    drbg_randombytes(seed->v, o1c_ed25519_SEED_BYTES);
+    o1c_ed25519_expand_key(private_key, seed);
+    memcpy(public_key->v, private_key->v + 32, 32);
 }
 
-void
-o1c_sign_detached(uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len,
-                  const uint8_t sk[o1c_sign_KEYPAIR_BYTES]) {
+void o1c_ed25519_sign(uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_t len,
+                      const o1c_ed25519_expanded_key_t key) {
     uint8_t az[o1c_sha512_HASH_BYTES];
-    o1c_sha512(az, sk, 32);
+    o1c_sha512(az, key->v, 32);
     az[0] &= 248;
     az[31] &= 63;
     az[31] |= 64;
@@ -1684,7 +1696,7 @@ o1c_sign_detached(uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len
     ge_ext_serialize(s, R);
     o1c_sha512_init(ctx);
     o1c_sha512_update(ctx, s, 32);
-    o1c_sha512_update(ctx, sk + 32, 32);
+    o1c_sha512_update(ctx, key->v + 32, 32);
     o1c_sha512_update(ctx, m, len);
     uint8_t hram[o1c_sha512_HASH_BYTES];
     o1c_sha512_final(ctx, hram);
@@ -1692,11 +1704,10 @@ o1c_sign_detached(uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len
     ge_scalar_mul_add(s + 32, hram, az, nonce);
 }
 
-bool
-o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsigned long len,
-                         const uint8_t pk[o1c_sign_KEY_BYTES]) {
+bool o1c_ed25519_verify(const uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_t len,
+                        const o1c_ed25519_public_key_t key) {
     ge_p3 A;
-    if ((s[63] & 224) != 0 || !ge_ext_deserialize_vartime(A, pk)) {
+    if ((s[63] & 224) != 0 || !ge_ext_deserialize_vartime(A, key->v)) {
         return false;
     }
     fe t;
@@ -1704,8 +1715,8 @@ o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsi
     fe_reduce(A->X, t);
     fe_neg(t, A->T);
     fe_reduce(A->T, t);
-    uint8_t pk_copy[o1c_sign_KEY_BYTES];
-    memcpy(pk_copy, pk, o1c_sign_KEY_BYTES);
+    uint8_t pk_copy[o1c_ed25519_PUBLIC_BYTES];
+    memcpy(pk_copy, key->v, o1c_ed25519_PUBLIC_BYTES);
     uint8_t r_copy[32];
     memcpy(r_copy, s, 32);
     union {
@@ -1726,7 +1737,7 @@ o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsi
     o1c_sha512_ctx_t ctx;
     o1c_sha512_init(ctx);
     o1c_sha512_update(ctx, s, 32);
-    o1c_sha512_update(ctx, pk, 32);
+    o1c_sha512_update(ctx, key->v, 32);
     o1c_sha512_update(ctx, m, len);
     uint8_t hash[o1c_sha512_HASH_BYTES];
     o1c_sha512_final(ctx, hash);
@@ -1738,7 +1749,7 @@ o1c_sign_verify_detached(const uint8_t s[o1c_sign_BYTES], const uint8_t *m, unsi
     return o1c_mem_eq(r_check, r_copy, 32);
 }
 
-static bool po_group_is_canonical(const o1c_po_group_element_t f) {
+static bool po_group_is_canonical(const o1c_ristretto255_element_t f) {
     uint8_t C, D, E;
     unsigned int i;
     C = (f->v[31] & 0x7f) ^ 0x7f;
@@ -1753,7 +1764,7 @@ static bool po_group_is_canonical(const o1c_po_group_element_t f) {
 }
 
 // https://ristretto.group/formulas/decoding.html
-static bool po_group_deserialize(ge_p3 h, const o1c_po_group_element_t f) {
+static bool po_group_deserialize(ge_p3 h, const o1c_ristretto255_element_t f) {
     fe inv_sqrt, one, s, ss, u1, u2, u1u1, u2u2, v, v_u2u2;
     if (!po_group_is_canonical(f)) return false;
 
@@ -1787,7 +1798,7 @@ static bool po_group_deserialize(ge_p3 h, const o1c_po_group_element_t f) {
 }
 
 // https://ristretto.group/formulas/encoding.html
-static void po_group_serialize(o1c_po_group_element_t f, const ge_p3 p) {
+static void po_group_serialize(o1c_ristretto255_element_t f, const ge_p3 p) {
     fe u1;
     fe_add(u1, p->Z, p->Y); // Z+Y
     fe zmy;
@@ -1885,36 +1896,10 @@ static void po_group_elligator(ge_p3 p, const fe t) {
     fe_mul(p->T, w0, w2);
 }
 
-void o1c_po_group_keypair(o1c_po_group_element_t pk, o1c_scalar_t sk) {
-    o1c_scalar_random(sk);
-    (void) o1c_po_group_scalar_mul_base(pk, sk);
-}
-
-bool o1c_po_group_scalar_mul(o1c_po_group_element_t q, const o1c_scalar_t n, const o1c_po_group_element_t p) {
-    ge_p3 Q, P;
-    if (!po_group_deserialize(P, p)) return false;
-    uint8_t t[o1c_scalar_BYTES];
-    memcpy(t, n->v, o1c_scalar_BYTES);
-    t[31] &= 0x7f;
-    ge_scalar_mul(Q, t, P);
-    po_group_serialize(q, Q);
-    return !o1c_is_zero(q->v, sizeof(o1c_po_group_element_s));
-}
-
-bool o1c_po_group_scalar_mul_base(o1c_po_group_element_t q, const o1c_scalar_t n) {
-    ge_p3 Q;
-    uint8_t t[o1c_scalar_BYTES];
-    memcpy(t, n->v, o1c_scalar_BYTES);
-    t[31] &= 0x7f;
-    ge_scalar_mul_base(Q, t);
-    po_group_serialize(q, Q);
-    return !o1c_is_zero(q->v, sizeof(o1c_po_group_element_s));
-}
-
-void o1c_po_group_element_from_hash(o1c_po_group_element_t q, const uint8_t h[o1c_po_group_element_HASH_BYTES]) {
+void o1c_ristretto255_from_hash(o1c_ristretto255_element_t q, const uint8_t h[o1c_ristretto255_HASH_BYTES]) {
     fe r0, r1;
     fe_deserialize(r0, h);
-    fe_deserialize(r1, h + o1c_field_BYTES);
+    fe_deserialize(r1, h + o1c_ristretto255_ELEMENT_BYTES);
     ge_p3 p0, p1;
     po_group_elligator(p0, r0);
     po_group_elligator(p1, r1);
@@ -1925,4 +1910,26 @@ void o1c_po_group_element_from_hash(o1c_po_group_element_t q, const uint8_t h[o1
     ge_p3 p;
     ge_comp_to_ext(p, p1_p1p1);
     po_group_serialize(q, p);
+}
+
+bool o1c_ristretto255_scalar_mul(o1c_ristretto255_element_t q, const o1c_ristretto255_scalar_t n,
+                                 const o1c_ristretto255_element_t p) {
+    ge_p3 Q, P;
+    if (!po_group_deserialize(P, p)) return false;
+    uint8_t t[o1c_ristretto255_SCALAR_BYTES];
+    memcpy(t, n->v, o1c_ristretto255_SCALAR_BYTES);
+    t[31] &= 0x7f;
+    ge_scalar_mul(Q, t, P);
+    po_group_serialize(q, Q);
+    return !o1c_is_zero(q->v, o1c_ristretto255_ELEMENT_BYTES);
+}
+
+bool o1c_ristretto255_scalar_mul_base(o1c_ristretto255_element_t q, const o1c_ristretto255_scalar_t n) {
+    ge_p3 Q;
+    uint8_t t[o1c_ristretto255_SCALAR_BYTES];
+    memcpy(t, n->v, o1c_ristretto255_SCALAR_BYTES);
+    t[31] &= 0x7f;
+    ge_scalar_mul_base(Q, t);
+    po_group_serialize(q, Q);
+    return !o1c_is_zero(q->v, o1c_ristretto255_ELEMENT_BYTES);
 }
