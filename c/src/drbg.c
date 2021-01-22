@@ -1,25 +1,46 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdalign.h>
+#include <string.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdnoreturn.h>
+#include <stdarg.h>
 
 #include "o1c.h"
 #include "mem.h"
 
-// system entropy
-#if defined(__APPLE__)
-#include <sys/random.h>
+static inline noreturn void
+die(bool print_errno, const char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+    if (print_errno) {
+        fprintf(stderr, "- %s", strerror(errno));
+    }
+    fprintf(stderr, "\n");
+    abort();
+}
 
-inline void drbg_entropy(void *buf, size_t bytes) {
-    getentropy(buf, bytes);
+// system entropy
+#if defined(__APPLE__) || defined(HAVE_GETENTROPY)
+#include <sys/random.h>
+#include <unistd.h>
+
+void drbg_entropy(void *buf, size_t bytes) {
+    if (getentropy(buf, bytes) == -1) {
+        die(true, "getentropy()");
+    }
 }
 
 #elif defined(__linux__)
-#include <stdlib.h>
 #include <sys/random.h>
 
-inline void drbg_entropy(void *buf, size_t bytes) {
+void drbg_entropy(void *buf, size_t bytes) {
     if (getrandom(buf, bytes, 0) == -1) {
-        abort();
+        die(true, "getrandom()");
     }
 }
 
