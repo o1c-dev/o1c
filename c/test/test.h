@@ -14,7 +14,7 @@ static inline void init_buf(uint8_t *b, const size_t len) {
     for (size_t i = 0; i < len; ++i) b[i] = (uint8_t) (i % UINT8_MAX);
 }
 
-static noreturn void
+static inline noreturn void
 die(bool print_errno, const char *format, ...) {
     va_list ap;
     va_start(ap, format);

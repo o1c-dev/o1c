@@ -63,7 +63,7 @@ O1C_EXPORT unsigned long o1c_pad_len(unsigned long unpadded_len);
 #define o1c_crypto_KEY_BYTES 32
 #define o1c_crypto_NONCE_BYTES 12
 
-typedef struct O1C_EXPORT o1c_crypto_s {
+typedef struct o1c_crypto_s {
     uint32_t state[16];
 } o1c_crypto_s, o1c_crypto_t[1];
 
@@ -91,7 +91,7 @@ o1c_crypto_xor(uint8_t *out, const uint8_t *in, unsigned long bytes, const uint8
 #define o1c_auth_KEY_BYTES 32
 #define o1c_auth_TAG_BYTES 16
 
-typedef struct O1C_EXPORT o1c_auth_s {
+typedef struct o1c_auth_s {
     alignas(16) uint8_t state[96]; // large enough for 32-bit and 64-bit state representations
 } o1c_auth_s, o1c_auth_t[1];
 
@@ -106,7 +106,7 @@ O1C_EXPORT void o1c_auth_final(o1c_auth_t ctx, uint8_t t[o1c_auth_TAG_BYTES]);
 
 #define o1c_hash_KEY_BYTES BLAKE3_KEY_LEN
 
-typedef struct O1C_EXPORT o1c_hash_s {
+typedef struct o1c_hash_s {
     alignas(16) uint8_t state[sizeof(blake3_hasher)];
 } o1c_hash_s, o1c_hash_t[1];
 
@@ -154,7 +154,7 @@ o1c_field_scalar_mul(uint8_t q[o1c_field_BYTES], const uint8_t n[o1c_scalar_BYTE
 
 #define o1c_po_group_element_BYTES 32
 #define o1c_po_group_element_HASH_BYTES 64
-typedef struct O1C_EXPORT o1c_po_group_element_s {
+typedef struct o1c_po_group_element_s {
     uint8_t v[o1c_po_group_element_BYTES];
 } o1c_po_group_element_s, o1c_po_group_element_t[1];
 
