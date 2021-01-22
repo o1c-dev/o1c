@@ -33,5 +33,3 @@ inline void o1c_hash(uint8_t *out, unsigned long out_bytes, const uint8_t *in, u
     o1c_hash_final(ctx, out, out_bytes);
     o1c_bzero(ctx, sizeof(blake3_hasher));
 }
-
-

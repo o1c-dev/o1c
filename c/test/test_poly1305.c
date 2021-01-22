@@ -1,4 +1,7 @@
-#include "o1c.h"
+#include <stdbool.h>
+
+#include "poly1305.h"
+#include "util.h"
 #include "test.h"
 
 static bool poly1305_smoke_test() {
@@ -69,8 +72,8 @@ static bool poly1305_smoke_test() {
             0xd2,0x87,0xf9,0x7c,0x44,0x62,0x3d,0x39
     };
 
-    o1c_auth_t ctx;
-    o1c_auth_t total_ctx;
+    o1c_poly1305_t ctx;
+    o1c_poly1305_t total_ctx;
     unsigned char all_key[32];
     unsigned char all_msg[256];
     unsigned char mac[16];
@@ -79,43 +82,43 @@ static bool poly1305_smoke_test() {
 
     for (i = 0; i < sizeof(mac); i++)
         mac[i] = 0;
-    o1c_auth(mac, nacl_msg, sizeof(nacl_msg), nacl_key);
-    result &= o1c_mem_eq(nacl_mac, mac, o1c_auth_TAG_BYTES);
+    o1c_poly1305(mac, nacl_msg, sizeof(nacl_msg), nacl_key);
+    result &= o1c_mem_eq(nacl_mac, mac, o1c_poly1305_TAG_BYTES);
 
     for (i = 0; i < sizeof(mac); i++)
         mac[i] = 0;
-    o1c_auth_key_setup(ctx, nacl_key);
-    o1c_auth_update(ctx, nacl_msg + 0, 32);
-    o1c_auth_update(ctx, nacl_msg + 32, 64);
-    o1c_auth_update(ctx, nacl_msg + 96, 16);
-    o1c_auth_update(ctx, nacl_msg + 112, 8);
-    o1c_auth_update(ctx, nacl_msg + 120, 4);
-    o1c_auth_update(ctx, nacl_msg + 124, 2);
-    o1c_auth_update(ctx, nacl_msg + 126, 1);
-    o1c_auth_update(ctx, nacl_msg + 127, 1);
-    o1c_auth_update(ctx, nacl_msg + 128, 1);
-    o1c_auth_update(ctx, nacl_msg + 129, 1);
-    o1c_auth_update(ctx, nacl_msg + 130, 1);
-    o1c_auth_final(ctx, mac);
-    result &= o1c_mem_eq(nacl_mac, mac, o1c_auth_TAG_BYTES);
+    o1c_poly1305_key_setup(ctx, nacl_key);
+    o1c_poly1305_update(ctx, nacl_msg + 0, 32);
+    o1c_poly1305_update(ctx, nacl_msg + 32, 64);
+    o1c_poly1305_update(ctx, nacl_msg + 96, 16);
+    o1c_poly1305_update(ctx, nacl_msg + 112, 8);
+    o1c_poly1305_update(ctx, nacl_msg + 120, 4);
+    o1c_poly1305_update(ctx, nacl_msg + 124, 2);
+    o1c_poly1305_update(ctx, nacl_msg + 126, 1);
+    o1c_poly1305_update(ctx, nacl_msg + 127, 1);
+    o1c_poly1305_update(ctx, nacl_msg + 128, 1);
+    o1c_poly1305_update(ctx, nacl_msg + 129, 1);
+    o1c_poly1305_update(ctx, nacl_msg + 130, 1);
+    o1c_poly1305_final(ctx, mac);
+    result &= o1c_mem_eq(nacl_mac, mac, o1c_poly1305_TAG_BYTES);
 
     for (i = 0; i < sizeof(mac); i++)
         mac[i] = 0;
-    o1c_auth(mac, wrap_msg, sizeof(wrap_msg), wrap_key);
-    result &= o1c_mem_eq(wrap_mac, mac, o1c_auth_TAG_BYTES);
+    o1c_poly1305(mac, wrap_msg, sizeof(wrap_msg), wrap_key);
+    result &= o1c_mem_eq(wrap_mac, mac, o1c_poly1305_TAG_BYTES);
 
-    o1c_auth_key_setup(total_ctx, total_key);
+    o1c_poly1305_key_setup(total_ctx, total_key);
     for (i = 0; i < 256; i++) {
         /* set key and message to 'i,i,i..' */
         for (j = 0; j < sizeof(all_key); j++)
             all_key[j] = i;
         for (j = 0; j < i; j++)
             all_msg[j] = i;
-        o1c_auth(mac, all_msg, i, all_key);
-        o1c_auth_update(total_ctx, mac, 16);
+        o1c_poly1305(mac, all_msg, i, all_key);
+        o1c_poly1305_update(total_ctx, mac, 16);
     }
-    o1c_auth_final(total_ctx, mac);
-    result &= o1c_mem_eq(total_mac, mac, o1c_auth_TAG_BYTES);
+    o1c_poly1305_final(total_ctx, mac);
+    result &= o1c_mem_eq(total_mac, mac, o1c_poly1305_TAG_BYTES);
 
     return result;
 }

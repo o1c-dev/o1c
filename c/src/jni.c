@@ -148,7 +148,7 @@ void Java_dev_o1c_lib_O1CLib_authenticatedEncrypt(JNIEnv *env, jclass cls, jbyte
     uint8_t *c = acquire(env, ct);
     uint8_t *t = acquire(env, tag);
     jsize ad_len = (*env)->GetArrayLength(env, context);
-    o1c_aead_encrypt(c + ctOff, t + tagOff, p + ptOff, ptLen, ad, ad_len, n, k);
+    o1c_xchacha20poly1305_encrypt(c + ctOff, t + tagOff, p + ptOff, ptLen, ad, ad_len, n, k);
     release(env, tag, t);
     release(env, ct, c);
     release(env, pt, p);
@@ -166,7 +166,7 @@ jboolean Java_dev_o1c_lib_O1CLib_authenticatedDecrypt(JNIEnv *env, jclass cls, j
     uint8_t *t = acquire(env, tag);
     uint8_t *p = acquire(env, pt);
     jsize ad_len = (*env)->GetArrayLength(env, context);
-    bool ret = o1c_aead_decrypt(p + ptOff, t + tagOff, c + ctOff, ctLen, ad, ad_len, n, k);
+    bool ret = o1c_xchacha20poly1305_decrypt(p + ptOff, t + tagOff, c + ctOff, ctLen, ad, ad_len, n, k);
     release(env, pt, p);
     release(env, tag, t);
     release(env, ct, c);
