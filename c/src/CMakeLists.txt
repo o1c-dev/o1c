@@ -42,7 +42,7 @@ target_include_directories(o1c PUBLIC ../include ${blake3_SOURCE_DIR}/c ${PROJEC
 target_include_directories(o1c PRIVATE include)
 target_compile_options(o1c PRIVATE
         -pedantic -fstack-protector-strong -Wstrict-prototypes -Wno-error=strict-prototypes -fvisibility=hidden)
-target_compile_definitions(o1c PRIVATE _DEFAULT_SOURCE=1 _FORTIFY_SOURCE=2)
+target_compile_definitions(o1c PRIVATE _DEFAULT_SOURCE _FORTIFY_SOURCE _GNU_SOURCE)
 
 find_package(JNI REQUIRED)
 target_include_directories(o1c PUBLIC ${JNI_INCLUDE_DIRS})
