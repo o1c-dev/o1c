@@ -1,12 +1,12 @@
+#include "include/dev_o1c_lib_O1CLib.h"
+#include "o1c.h"
+
+#include <jni.h>
+
 #include <stdint.h>
 #include <stdnoreturn.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <jni.h>
-
-#include "include/dev_o1c_lib_O1CLib.h"
-#include "o1c.h"
 
 static noreturn inline void
 jvm_die(JNIEnv *env, const char *msg) {

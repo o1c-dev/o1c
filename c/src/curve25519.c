@@ -1,13 +1,11 @@
-#include <string.h>
-
-#include "curve25519.h"
-#include "curve25519/curve25519_tables.h"
-
 #include "drbg.h"
 #include "sha512.h"
 #include "x25519.h"
 #include "ed25519.h"
 #include "ristretto255.h"
+
+#include "curve25519.h"
+#include "curve25519/curve25519_tables.h"
 
 #if (ARCH_WORD_BITS == 64)
 #ifdef NATIVE_LITTLE_ENDIAN
@@ -44,6 +42,8 @@
 #define fe_select fiat_25519_selectznz
 #define fe_deserialize_strict fiat_25519_from_bytes
 #define fe_serialize fiat_25519_to_bytes
+
+#include <string.h>
 
 static inline void fe_deserialize(fe h, const uint8_t s[32]) {
     uint8_t t[32];

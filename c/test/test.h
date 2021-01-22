@@ -1,6 +1,8 @@
 #ifndef O1C_TEST_H
 #define O1C_TEST_H
 
+#include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>
 #include <stdarg.h>

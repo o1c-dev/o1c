@@ -1,12 +1,12 @@
-#include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
-
 #include "xchacha20poly1305.h"
 #include "chacha20.h"
 #include "poly1305.h"
 #include "util.h"
 #include "mem.h"
+
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 static const uint8_t pad0[16] = {0};
 

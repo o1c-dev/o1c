@@ -1,12 +1,12 @@
+#include "test.h"
+
+#include <sodium.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
-#include <sodium.h>
-
-#include "test.h"
 
 typedef void (*gen_fn)(FILE *, size_t);
 

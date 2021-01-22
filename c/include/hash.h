@@ -8,13 +8,14 @@
 #include "blake3.h"
 
 #define o1c_hash_KEY_BYTES BLAKE3_KEY_LEN
+#define o1c_hash_STATE_BYTES sizeof(blake3_hasher)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct o1c_hash_s {
-    alignas(16) uint8_t state[sizeof(blake3_hasher)];
+    alignas(16) uint8_t state[o1c_hash_STATE_BYTES];
 } o1c_hash_s, o1c_hash_t[1];
 
 O1C_EXPORT void o1c_hash_init(o1c_hash_t ctx);

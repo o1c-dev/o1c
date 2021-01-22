@@ -1,3 +1,8 @@
+#include "drbg.h"
+#include "chacha20.h"
+
+#include "mem.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdalign.h>
@@ -7,11 +12,6 @@
 #include <stdlib.h>
 #include <stdnoreturn.h>
 #include <stdarg.h>
-
-#include "drbg.h"
-#include "chacha20.h"
-
-#include "mem.h"
 
 static inline noreturn void
 die(bool print_errno, const char *format, ...) {

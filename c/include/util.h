@@ -2,6 +2,7 @@
 #define O1C_UTIL_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "o1c_export.h"
 
