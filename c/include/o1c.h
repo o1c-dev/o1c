@@ -1,5 +1,8 @@
-#ifndef o1c_H
-#define o1c_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "drbg.h"
 #include "util.h"
@@ -12,4 +15,6 @@
 #include "ed25519.h"
 #include "ristretto255.h"
 
-#endif //o1c_H
+#ifdef __cplusplus
+}
+#endif

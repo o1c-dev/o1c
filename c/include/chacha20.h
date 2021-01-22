@@ -1,5 +1,4 @@
-#ifndef O1C_CHACHA20_H
-#define O1C_CHACHA20_H
+#pragma once
 
 #include <stdint.h>
 
@@ -9,10 +8,6 @@
 #define o1c_chacha20_NONCE_BYTES 12
 #define o1c_hchacha20_KEY_BYTES 32
 #define o1c_hchacha20_NONCE_BYTES 16
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct o1c_chacha20_s {
     uint32_t state[16];
@@ -42,9 +37,3 @@ o1c_chacha20_xor(uint8_t *out, const uint8_t *in, unsigned long bytes, const uin
 O1C_EXPORT void
 o1c_hchacha20(uint8_t sk[o1c_hchacha20_KEY_BYTES], const uint8_t n[o1c_hchacha20_NONCE_BYTES],
               const uint8_t k[o1c_hchacha20_KEY_BYTES]);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif //O1C_CHACHA20_H

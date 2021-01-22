@@ -1,14 +1,9 @@
-#ifndef O1C_UTIL_H
-#define O1C_UTIL_H
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "o1c_export.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // Overwrites a buffer with zeros.
 O1C_EXPORT void o1c_bzero(void *buf, unsigned long bytes);
@@ -27,9 +22,3 @@ O1C_EXPORT char *o1c_bin2hex(char *hex, const uint8_t *bin, unsigned long bytes)
 
 // Calculates optimal padding length for the given unpadded length.
 O1C_EXPORT unsigned long o1c_pad_len(unsigned long unpadded_len);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif //O1C_UTIL_H

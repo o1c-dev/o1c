@@ -1,16 +1,10 @@
-#ifndef O1C_SHA512_H
-#define O1C_SHA512_H
+#pragma once
+
+#include "util.h"
+#include "o1c_export.h"
 
 #include <stdint.h>
 #include <stddef.h>
-
-#include "o1c_export.h"
-
-#include "util.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct sha512_ctx_s {
     uint64_t state[8];
@@ -27,9 +21,3 @@ O1C_EXPORT void o1c_sha512_update(o1c_sha512_ctx_t ctx, const uint8_t *msg, size
 O1C_EXPORT void o1c_sha512_final(o1c_sha512_ctx_t ctx, uint8_t *out);
 
 O1C_EXPORT void o1c_sha512(uint8_t *out, const uint8_t *msg, size_t msg_len);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif //O1C_SHA512_H

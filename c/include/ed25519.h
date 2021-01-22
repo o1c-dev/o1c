@@ -1,5 +1,4 @@
-#ifndef O1C_ED25519_H
-#define O1C_ED25519_H
+#pragma once
 
 #include <stdint.h>
 #include <stdalign.h>
@@ -12,10 +11,6 @@
 #define o1c_ed25519_EXPANDED_BYTES 64
 #define o1c_ed25519_PUBLIC_BYTES 32
 #define o1c_ed25519_SIGN_BYTES 64
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct o1c_ed25519_seed_s {
     alignas(16) uint8_t v[o1c_ed25519_SEED_BYTES];
@@ -38,9 +33,3 @@ o1c_ed25519_sign(uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_t len
 
 O1C_EXPORT bool o1c_ed25519_verify(const uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_t len,
                                    const o1c_ed25519_public_key_t key);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif //O1C_ED25519_H
