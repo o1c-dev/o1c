@@ -25,16 +25,16 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>dev.o1c</groupId>
-  <artifactId>o1crypto-parent</artifactId>
+  <artifactId>o1crypto</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <name>O(1) Cryptography Project</name>
+  <name>O(1) Cryptography</name>
   <description>
     O(1) Cryptography is an easy to use, hard to misuse Java cryptographic library based on O(1) cryptographic algorithms.
   </description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>8</maven.compiler.release>
   </properties>
 
   <developers>
@@ -72,77 +72,60 @@
   </licenses>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.2</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <compilerArgs>
+            <arg>-h</arg>
+            <arg>${project.build.directory}/javah</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
+      </plugin>
+    </plugins>
   </build>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.jetbrains</groupId>
-        <artifactId>annotations</artifactId>
-        <version>20.1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk15on</artifactId>
-        <version>1.67</version>
-      </dependency>
-      <dependency>
-        <groupId>cafe.cryptography</groupId>
-        <artifactId>curve25519-elisabeth</artifactId>
-        <version>0.1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>cafe.cryptography</groupId>
-        <artifactId>ed25519-elisabeth</artifactId>
-        <version>0.1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>de.mkammerer</groupId>
-        <artifactId>argon2-jvm</artifactId>
-        <version>2.7</version>
-      </dependency>
-      <dependency>
-        <groupId>com.kosprov.jargon2</groupId>
-        <artifactId>jargon2-api</artifactId>
-        <version>1.1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.kosprov.jargon2</groupId>
-        <artifactId>jargon2-native-ri-backend</artifactId>
-        <version>1.1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.7.0</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.jr</groupId>
-        <artifactId>jackson-jr-objects</artifactId>
-        <version>2.12.0</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <modules>
-    <module>java8</module>
-    <module>java11</module>
-    <module>java15</module>
-    <module>all</module>
-  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>20.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.67</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>cafe.cryptography</groupId>
+      <artifactId>curve25519-elisabeth</artifactId>
+      <version>0.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>cafe.cryptography</groupId>
+      <artifactId>ed25519-elisabeth</artifactId>
+      <version>0.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.jr</groupId>
+      <artifactId>jackson-jr-objects</artifactId>
+      <version>2.12.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
 </project>
