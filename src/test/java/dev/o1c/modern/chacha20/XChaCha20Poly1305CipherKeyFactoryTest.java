@@ -23,11 +23,14 @@ package dev.o1c.modern.chacha20;
 import dev.o1c.spi.CipherKeyFactoryTest;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import java.util.List;
 
 class XChaCha20Poly1305CipherKeyFactoryTest {
     @TestFactory
+    @EnabledForJreRange(min = JRE.JAVA_11)
     List<DynamicNode> loadTestVectors() {
         return CipherKeyFactoryTest.loadAEADTests("xchacha20poly1305.txt.gz", new XChaCha20Poly1305CipherKeyFactory());
     }
