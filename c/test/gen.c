@@ -143,10 +143,54 @@ void gen_ed25519(FILE *file, const size_t max) {
     fflush(file);
 }
 
+void gen_scalar25519(FILE *file, const size_t max) {
+    uint8_t a[crypto_core_ristretto255_SCALARBYTES], b[crypto_core_ristretto255_SCALARBYTES],
+            c[crypto_core_ristretto255_SCALARBYTES], d[crypto_core_ristretto255_SCALARBYTES];
+    uint8_t nonreduced[crypto_core_ristretto255_NONREDUCEDSCALARBYTES];
+
+    char ax[crypto_core_ristretto255_SCALARBYTES * 2 + 1];
+    char bx[crypto_core_ristretto255_SCALARBYTES * 2 + 1];
+    char cx[crypto_core_ristretto255_SCALARBYTES * 2 + 1];
+    char dx[crypto_core_ristretto255_SCALARBYTES * 2 + 1];
+    char nonreducedx[crypto_core_ristretto255_NONREDUCEDSCALARBYTES * 2 + 1];
+
+    fprintf(file, "static const o1c_test_vector data[] = {\n");
+    for (size_t i = 0; i <= max; ++i) {
+        crypto_core_ristretto255_scalar_random(a);
+        crypto_core_ristretto255_scalar_random(d);
+        crypto_core_ristretto255_scalar_random(c);
+        fprintf(file, "{\"%s\",\"%s\",\"%s\",", sodium_bin2hex(ax, sizeof ax, a, sizeof a),
+                sodium_bin2hex(bx, sizeof bx, b, sizeof b), sodium_bin2hex(cx, sizeof cx, c, sizeof c));
+
+        crypto_core_ristretto255_scalar_negate(d, a);
+        fprintf(file, "\"%s\",", sodium_bin2hex(dx, sizeof dx, d, sizeof d));
+
+        crypto_core_ristretto255_scalar_negate(d, b);
+        fprintf(file, "\"%s\",", sodium_bin2hex(dx, sizeof dx, d, sizeof d));
+
+        crypto_core_ristretto255_scalar_mul(d, a, b);
+        crypto_core_ristretto255_scalar_add(d, d, c);
+        fprintf(file, "\"%s\",", sodium_bin2hex(dx, sizeof dx, d, sizeof d));
+
+        crypto_core_ristretto255_scalar_mul(d, a, b);
+        crypto_core_ristretto255_scalar_sub(d, d, c);
+        fprintf(file, "\"%s\",", sodium_bin2hex(dx, sizeof dx, d, sizeof d));
+
+        randombytes_buf(nonreduced, sizeof nonreduced);
+        fprintf(file, "\"%s\",", sodium_bin2hex(nonreducedx, sizeof nonreducedx, nonreduced, sizeof nonreduced));
+
+        crypto_core_ristretto255_scalar_reduce(d, nonreduced);
+        fprintf(file, "\"%s\"},\n", sodium_bin2hex(dx, sizeof dx, d, sizeof d));
+    }
+    fprintf(file, "};\n");
+    fflush(file);
+}
+
 int main(void) {
     run_generator("test_chacha20.txt", gen_chacha20, 256);
     run_generator("test_xchacha20poly1305.txt", gen_xchacha20poly1305, 32); // 32*32
     run_generator("test_curve25519.txt", gen_curve25519, 256);
     run_generator("test_ristretto255.txt", gen_ristretto255, 256);
     run_generator("test_ed25519.txt", gen_ed25519, 256);
+    run_generator("test_scalar25519.txt", gen_scalar25519, 256);
 }

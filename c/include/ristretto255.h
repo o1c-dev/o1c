@@ -1,19 +1,16 @@
-#ifndef O1C_RISTRETTO255_H
-#define O1C_RISTRETTO255_H
+#pragma once
+
+#include "o1c_export.h"
+#include "hash.h"
 
 #include <stdint.h>
 #include <stdalign.h>
 #include <stdbool.h>
 
-#include "o1c_export.h"
-
 #define o1c_ristretto255_SCALAR_BYTES 32
 #define o1c_ristretto255_ELEMENT_BYTES 32
 #define o1c_ristretto255_HASH_BYTES 64
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define o1c_ristretto255_SIGN_BYTES 64
 
 typedef struct o1c_ristretto255_scalar_s {
     alignas(16) uint8_t v[o1c_ristretto255_SCALAR_BYTES];
@@ -34,8 +31,35 @@ O1C_EXPORT bool o1c_ristretto255_scalar_mul(o1c_ristretto255_element_t q, const 
 
 O1C_EXPORT bool o1c_ristretto255_scalar_mul_base(o1c_ristretto255_element_t q, const o1c_ristretto255_scalar_t n);
 
-#ifdef __cplusplus
-}
-#endif
+#ifdef TODO_SIGNCRYPT
+typedef struct o1c_ristretto255_aead_s {
+    size_t key_bytes;
 
-#endif //O1C_RISTRETTO255_H
+    void (*encrypt)(uint8_t *c, uint8_t *t, const uint8_t *m, size_t m_len, const uint8_t *ad, size_t ad_len,
+                    const uint8_t *n, const uint8_t *k);
+
+    bool (*decrypt)(uint8_t *m, const uint8_t *t, const uint8_t *c, size_t c_len, const uint8_t *ad, size_t ad_len,
+                    const uint8_t *n, const uint8_t *k);
+} o1c_ristretto255_aead_s, o1c_ristretto255_aead_t[1];
+
+O1C_EXPORT bool
+o1c_ristretto255_signcrypt(const o1c_ristretto255_aead_t aead, uint8_t sig[o1c_ristretto255_SIGN_BYTES], uint8_t *tag,
+                           uint8_t *c, const uint8_t *m, size_t m_len, const uint8_t *ad, size_t ad_len,
+                           const uint8_t *nonce,
+                           const uint8_t *sender_id, size_t sender_id_len,
+                           const uint8_t *recipient_id, size_t recipient_id_len,
+                           const uint8_t *context, size_t context_len,
+                           const o1c_ristretto255_scalar_t sender_sk,
+                           const o1c_ristretto255_element_t recipient_pk);
+
+O1C_EXPORT bool
+o1c_ristretto255_signcrypt_open(const o1c_ristretto255_aead_t aead,
+                                const uint8_t sig[o1c_ristretto255_SIGN_BYTES], const uint8_t *tag,
+                                uint8_t *m, const uint8_t *c, size_t c_len, const uint8_t *ad, size_t ad_len,
+                                const uint8_t *nonce,
+                                const uint8_t *sender_id, size_t sender_id_len,
+                                const uint8_t *recipient_id, size_t recipient_id_len,
+                                const uint8_t *context, size_t context_len,
+                                const o1c_ristretto255_element_t sender_pk,
+                                const o1c_ristretto255_scalar_t recipient_sk);
+#endif

@@ -3,7 +3,11 @@ include(CheckSymbolExists)
 include(GenerateExportHeader)
 include(FetchContent)
 
-set(O1C_SOURCE_FILES util.c hash.c chacha20.c poly1305.c xchacha20poly1305.c sha512.c drbg.c curve25519.c jni.c)
+set(O1C_SOURCE_FILES
+        scalar25519.c curve25519.c ed25519.c x25519.c ristretto255.c
+        chacha20.c poly1305.c xchacha20poly1305.c
+        drbg.c util.c hash.c sha512.c
+        jni.c)
 
 FetchContent_Declare(blake3
         GIT_REPOSITORY https://github.com/BLAKE3-team/BLAKE3.git
