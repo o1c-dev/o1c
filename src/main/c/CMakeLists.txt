@@ -42,8 +42,7 @@ add_library(o1c SHARED ${O1C_SOURCE_FILES}
         $<TARGET_OBJECTS:blake3_sse2> $<TARGET_OBJECTS:blake3_sse41>
         $<TARGET_OBJECTS:blake3_avx2> $<TARGET_OBJECTS:blake3_avx512>)
 generate_export_header(o1c)
-target_include_directories(o1c PUBLIC ../include ${blake3_SOURCE_DIR}/c ${PROJECT_BINARY_DIR}/src)
-target_include_directories(o1c PRIVATE include)
+target_include_directories(o1c PUBLIC include ${blake3_SOURCE_DIR}/c ${PROJECT_BINARY_DIR}/src/main/c)
 target_compile_options(o1c PRIVATE
         -pedantic -fstack-protector-strong -Wstrict-prototypes -Wno-error=strict-prototypes -fvisibility=hidden)
 target_compile_definitions(o1c PRIVATE _DEFAULT_SOURCE _GNU_SOURCE)
