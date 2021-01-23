@@ -47,7 +47,7 @@ target_compile_options(o1c PRIVATE
         -pedantic -fstack-protector-strong -Wstrict-prototypes -Wno-error=strict-prototypes -fvisibility=hidden)
 target_compile_definitions(o1c PRIVATE _DEFAULT_SOURCE _GNU_SOURCE)
 
-find_package(JNI REQUIRED)
+find_package(JNI 1.8 REQUIRED)
 target_include_directories(o1c PUBLIC ${JNI_INCLUDE_DIRS})
 #target_link_libraries(o1c PUBLIC ${JNI_LIBRARIES})
 # TODO: https://cmake.org/cmake/help/latest/module/UseJava.html

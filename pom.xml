@@ -147,6 +147,52 @@
         <maven.compiler.release>8</maven.compiler.release>
       </properties>
     </profile>
+    <profile>
+      <id>native</id>
+      <!-- support for building the C code. the cmake maven plugin itself requires Java 11, but not our own code -->
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.googlecode.cmake-maven-project</groupId>
+            <artifactId>cmake-maven-plugin</artifactId>
+            <version>3.19.2-b1</version>
+            <executions>
+              <execution>
+                <id>cmake-generate</id>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <configuration>
+                  <sourcePath>${project.basedir}</sourcePath>
+                  <targetPath>${project.build.directory}/cmake</targetPath>
+                </configuration>
+              </execution>
+              <execution>
+                <id>cmake-compile</id>
+                <goals>
+                  <goal>compile</goal>
+                </goals>
+                <configuration>
+                  <projectDirectory>${project.build.directory}/cmake</projectDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>cmake-test</id>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <buildDirectory>${project.build.directory}/cmake</buildDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
