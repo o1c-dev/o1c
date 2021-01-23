@@ -22,6 +22,8 @@ package dev.o1c.internal;
 
 import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -29,6 +31,7 @@ import java.security.KeyPair;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@EnabledForJreRange(min = JRE.JAVA_11)
 class RistrettoChaChaVaultTest {
 
     public static final String TEST_MSG = "Ristretto is traditionally a short shot of espresso coffee made with the normal " +

@@ -22,6 +22,8 @@ package dev.o1c;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import javax.crypto.SecretKey;
 import java.nio.ByteBuffer;
@@ -29,6 +31,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
+@EnabledForJreRange(min = JRE.JAVA_11)
 class SecretKeySealTest {
 
     private Random random;
