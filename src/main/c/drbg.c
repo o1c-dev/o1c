@@ -1,11 +1,8 @@
 #include "drbg.h"
-#include "chacha20.h"
-
-#include "mem.h"
+#include "blake3.h"
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdalign.h>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
@@ -64,44 +61,41 @@ inline void drbg_entropy(void *buf, size_t bytes) {
 #endif // system entropy
 
 static _Thread_local struct {
-    alignas(16) o1c_chacha20_s st;
+    blake3_hasher st;
     uint64_t counter;
     bool initialized;
-} drbg_ctx;
+} drbg;
 
 #define drbg_RESEED_INTERVAL (UINT64_C(1) << 48)
 
 static void drbg_ratchet(void) {
-    uint8_t n[o1c_chacha20_NONCE_BYTES] = {0};
-    store64_le(n, drbg_ctx.counter++);
-    o1c_chacha20_nonce_setup(&drbg_ctx.st, n);
-    o1c_chacha20_keystream(&drbg_ctx.st, NULL, 0);
-}
-
-static void drbg_init(void) {
-    drbg_entropy(&drbg_ctx.st, sizeof(o1c_chacha20_s));
-    drbg_ctx.counter = 0;
+    if (++drbg.counter == drbg_RESEED_INTERVAL) {
+        drbg_reseed();
+    } else {
+        uint8_t key[BLAKE3_KEY_LEN];
+        blake3_hasher_finalize(&drbg.st, key, BLAKE3_KEY_LEN);
+        blake3_hasher_init_keyed(&drbg.st, key);
+    }
 }
 
 static void drbg_ensure_init(void) {
-    if (!drbg_ctx.initialized) {
-        drbg_init();
-        o1c_chacha20_keystream(&drbg_ctx.st, NULL, 0);
+    if (!drbg.initialized) {
+        drbg.counter = 0;
+        uint8_t seed[BLAKE3_KEY_LEN];
+        drbg_entropy(seed, BLAKE3_KEY_LEN);
         drbg_ratchet();
-        drbg_ctx.initialized = true;
-    } else if (drbg_ctx.counter > drbg_RESEED_INTERVAL) {
-        drbg_reseed();
+        drbg.initialized = true;
     }
 }
 
 void drbg_randombytes(void *buf, unsigned long bytes) {
     drbg_ensure_init();
     uint8_t *b = (uint8_t *) buf;
-    o1c_chacha20_keystream(&drbg_ctx.st, b, bytes);
+    blake3_hasher_finalize_seek(&drbg.st, 64, b, bytes);
     drbg_ratchet();
 }
 
 void drbg_reseed(void) {
-    drbg_ctx.initialized = false;
+    drbg.initialized = false;
     drbg_ensure_init();
 }

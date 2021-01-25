@@ -25,7 +25,7 @@ import cafe.cryptography.ed25519.Ed25519ExpandedPrivateKey;
 import cafe.cryptography.ed25519.Ed25519PrivateKey;
 import cafe.cryptography.ed25519.Ed25519PublicKey;
 import cafe.cryptography.ed25519.Ed25519Signature;
-import dev.o1c.modern.chacha20.ChaCha20RandomBytesGenerator;
+import dev.o1c.modern.blake3.Blake3RandomBytesGenerator;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.SignatureFactory;
 import dev.o1c.spi.SigningKey;
@@ -42,7 +42,7 @@ public class Ed25519SignatureFactory implements SignatureFactory {
 
     @Override
     public @NotNull SigningKey generateSigningKey() {
-        return parseSigningKey(ChaCha20RandomBytesGenerator.getInstance().generateBytes(keyLength()));
+        return parseSigningKey(Blake3RandomBytesGenerator.getInstance().generateBytes(keyLength()));
     }
 
     @Override
