@@ -240,11 +240,11 @@ void fe_cmov(fe f, const fe g, const uint8_t b) {
     fe_select(f, b, f, g);
 }
 
-void fe_cswap(fe f, fe g, fe_limb_t b) {
-    b = 0 - b;
+void fe_cswap(fe f, fe g, const uint8_t b) {
+    fe_limb_t mask = 0 - (fe_limb_t) b;
     for (unsigned int i = 0; i < fe_LIMBS; ++i) {
         fe_limb_t x = f[i] ^g[i];
-        x &= b;
+        x &= mask;
         f[i] ^= x;
         g[i] ^= x;
     }

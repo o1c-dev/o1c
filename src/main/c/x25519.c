@@ -17,7 +17,7 @@ void o1c_x25519_keypair(o1c_x25519_element_t pk, o1c_x25519_scalar_t sk) {
 
 bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, const o1c_x25519_element_t p) {
     fe x1, x2, z2, x3, z3, tmp0, tmp1, x2l, z2l, x3l, tmp0l, tmp1l;
-    unsigned swap = 0;
+    uint8_t swap = 0;
     o1c_scalar25519_t t;
     o1c_scalar25519_deserialize(t, n->v);
 
@@ -28,7 +28,7 @@ bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, 
     fe_1(z3);
 
     for (int pos = 254; pos >= 0; --pos) {
-        unsigned b = 1 & (t->v[pos / 8] >> (pos & 7));
+        uint8_t b = 1 & (t->v[pos / 8] >> (pos & 7));
         swap ^= b;
         fe_cswap(x2, x3, swap);
         fe_cswap(z2, z3, swap);

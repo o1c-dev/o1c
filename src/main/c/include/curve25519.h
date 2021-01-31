@@ -33,7 +33,7 @@ void fe_select(fe h, uint8_t b, const fe f, const fe g);
 
 void fe_cmov(fe f, const fe g, uint8_t b);
 
-void fe_cswap(fe f, fe g, fe_limb_t b);
+void fe_cswap(fe f, fe g, uint8_t b);
 
 void fe_deserialize(fe h, const uint8_t s[32]);
 
