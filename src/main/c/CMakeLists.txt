@@ -3,10 +3,13 @@ include(CheckSymbolExists)
 include(GenerateExportHeader)
 include(FetchContent)
 
+add_subdirectory(random)
+
 set(O1C_SOURCE_FILES
         scalar25519.c curve25519.c ed25519.c x25519.c ristretto255.c
         chacha20.c poly1305.c xchacha20poly1305.c
-        drbg.c util.c hash.c sha512.c
+        drbg.c $<TARGET_OBJECTS:entropy>
+        util.c hash.c sha512.c
         jni.c)
 
 FetchContent_Declare(blake3
@@ -70,9 +73,4 @@ endif ()
 check_symbol_exists(memset_s string.h HAVE_MEMSET_S)
 if (${HAVE_MEMSET_S})
     add_compile_definitions(o1c PUBLIC HAVE_MEMSET_S)
-endif ()
-
-check_symbol_exists(getentropy unistd.h HAVE_GETENTROPY)
-if (${HAVE_GETENTROPY})
-    add_compile_definitions(o1c PRIVATE HAVE_GETENTROPY)
 endif ()

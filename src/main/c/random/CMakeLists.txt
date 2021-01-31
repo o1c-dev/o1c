@@ -1,0 +1,21 @@
+include(CheckSymbolExists)
+include(CheckIncludeFile)
+
+check_symbol_exists(getentropy unistd.h;sys/random.h HAVE_GETENTROPY)
+check_symbol_exists(getrandom sys/random.h HAVE_GETRANDOM)
+check_symbol_exists(_rdseed64_step immintrin.h HAVE_RDSEED64)
+check_include_file(windows.h HAVE_WINDOWS_H)
+
+if (${HAVE_GETENTROPY})
+    add_library(entropy OBJECT entropy_getentropy.c)
+elseif(${HAVE_GETRANDOM})
+    add_library(entropy OBJECT entropy_getrandom.c)
+elseif(${HAVE_RDSEED64})
+    add_library(entropy OBJECT entropy_rdseed64.c)
+    target_compile_options(entropy PUBLIC -mrdseed)
+elseif(${HAVE_WINDOWS_H})
+    add_library(entropy OBJECT entropy_windows.c)
+endif ()
+
+target_include_directories(entropy PUBLIC ../include)
+target_compile_options(entropy PUBLIC -fPIC)
