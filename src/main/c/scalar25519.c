@@ -18,7 +18,7 @@ static inline int64_t int64_lshift21(int64_t a) {
     return (int64_t) ((uint64_t) a << 21);
 }
 
-static uint64_t load_3(const uint8_t *in) {
+static inline uint64_t load_3(const uint8_t *in) {
     uint64_t result;
     result = (uint64_t) in[0];
     result |= ((uint64_t) in[1]) << 8;
@@ -26,7 +26,7 @@ static uint64_t load_3(const uint8_t *in) {
     return result;
 }
 
-static uint64_t load_4(const uint8_t *in) {
+static inline uint64_t load_4(const uint8_t *in) {
     uint64_t result;
     result = (uint64_t) in[0];
     result |= ((uint64_t) in[1]) << 8;
