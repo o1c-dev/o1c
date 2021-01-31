@@ -68,10 +68,10 @@ void o1c_x25519_scalar_mul_base(o1c_x25519_element_t q, const o1c_x25519_scalar_
     o1c_scalar25519_deserialize(t, n->v);
     ge_p3 Q;
     ge_scalar_mul_base(Q, t);
-    fe zplusy, zminusy, zminusy_inv;
-    fe_add(zplusy, Q->Z, Q->Y);
-    fe_sub(zminusy, Q->Z, Q->Y);
-    fe_invert(zminusy_inv, zminusy);
-    fe_mul(zminusy_inv, zplusy, zminusy_inv);
-    fe_serialize(q->v, zminusy_inv);
+    fe zpy, zmy, zmy_inv;
+    fe_add(zpy, Q->Z, Q->Y); // Z + Y
+    fe_sub(zmy, Q->Z, Q->Y); // Z - Y
+    fe_invert(zmy_inv, zmy); // 1/(Z - Y)
+    fe_mul(zmy_inv, zpy, zmy_inv); // (Z + Y)/(Z - Y)
+    fe_serialize(q->v, zmy_inv);
 }
