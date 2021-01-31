@@ -6,7 +6,7 @@ static inline void rdseed(uint64_t *seed) {
     while (_rdseed64_step(seed) == 0) /* retry */;
 }
 
-void drbg_entropy(void *buf, rsize_t bytes) {
+void drbg_entropy(void *buf, size_t bytes) {
     while (bytes > 8) {
         rdseed((uint64_t *) buf);
         buf += 8;
