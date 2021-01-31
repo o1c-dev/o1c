@@ -16,41 +16,42 @@ void o1c_x25519_keypair(o1c_x25519_element_t pk, o1c_x25519_scalar_t sk) {
 }
 
 bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, const o1c_x25519_element_t p) {
-    fe x1, x2, z2, x3, z3, tmp0, tmp1, x2l, z2l, x3l, tmp0l, tmp1l;
     uint8_t swap = 0;
     o1c_scalar25519_t t;
     o1c_scalar25519_deserialize(t, n->v);
 
+    fe x1, x2, z2, x3, z3;
     fe_deserialize(x1, p->v);
     fe_1(x2);
     fe_0(z2);
     fe_copy(x3, x1);
     fe_1(z3);
 
+    fe tmp0, tmp1;
     for (int pos = 254; pos >= 0; --pos) {
         uint8_t b = 1 & (t->v[pos / 8] >> (pos & 7));
         swap ^= b;
         fe_cswap(x2, x3, swap);
         fe_cswap(z2, z3, swap);
         swap = b;
-        fe_sub(tmp0l, x3, z3);
-        fe_sub(tmp1l, x2, z2);
-        fe_add(x2l, x2, z2);
-        fe_add(z2l, x3, z3);
-        fe_mul(z3, tmp0l, x2l);
-        fe_mul(z2, z2l, tmp1l);
-        fe_sqr(tmp0, tmp1l);
-        fe_sqr(tmp1, x2l);
-        fe_add(x3l, z3, z2);
-        fe_sub(z2l, z3, z2);
+        fe_sub(tmp0, x3, z3);
+        fe_sub(tmp1, x2, z2);
+        fe_add(x2, x2, z2);
+        fe_add(z2, x3, z3);
+        fe_mul(z3, tmp0, x2);
+        fe_mul(z2, z2, tmp1);
+        fe_sqr(tmp0, tmp1);
+        fe_sqr(tmp1, x2);
+        fe_add(x3, z3, z2);
+        fe_sub(z2, z3, z2);
         fe_mul(x2, tmp1, tmp0);
-        fe_sub(tmp1l, tmp1, tmp0);
-        fe_sqr(z2, z2l);
-        fe_mul121666(z3, tmp1l);
-        fe_sqr(x3, x3l);
-        fe_add(tmp0l, tmp0, z3);
+        fe_sub(tmp1, tmp1, tmp0);
+        fe_sqr(z2, z2);
+        fe_mul121666(z3, tmp1);
+        fe_sqr(x3, x3);
+        fe_add(tmp0, tmp0, z3);
         fe_mul(z3, x1, z2);
-        fe_mul(z2, tmp1l, tmp0l);
+        fe_mul(z2, tmp1, tmp0);
     }
 
     fe_cswap(x2, x3, swap);
