@@ -3,7 +3,7 @@ include(CheckSymbolExists)
 include(GenerateExportHeader)
 include(FetchContent)
 
-add_subdirectory(random)
+add_subdirectory(entropy)
 
 set(O1C_SOURCE_FILES
         scalar25519.c curve25519.c ed25519.c x25519.c ristretto255.c
