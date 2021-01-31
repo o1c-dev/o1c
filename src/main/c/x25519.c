@@ -1,13 +1,16 @@
 #include "x25519.h"
 #include "curve25519.h"
 #include "util.h"
-
-#include <string.h>
+#include "drbg.h"
 
 void o1c_x25519_scalar_random(o1c_x25519_scalar_t s) {
-    o1c_scalar25519_t scalar;
-    o1c_scalar25519_random(scalar);
-    memcpy(s->v, scalar->v, o1c_x25519_SCALAR_BYTES);
+    drbg_randombytes(s->v, o1c_x25519_SCALAR_BYTES);
+    // inverse clamp; https://tools.ietf.org/html/rfc7748#section-5 specifies that scalars need to be clamped
+    // when decoded, so we'll make sure they're not clamped in the generated encoded form so that broken implementations
+    // are deterministically broken. idea from BoringSSL
+    s->v[0] |= ~248;
+    s->v[31] &= ~64;
+    s->v[31] |= ~127;
 }
 
 void o1c_x25519_keypair(o1c_x25519_element_t pk, o1c_x25519_scalar_t sk) {
