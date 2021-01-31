@@ -18,12 +18,8 @@ void o1c_x25519_keypair(o1c_x25519_element_t pk, o1c_x25519_scalar_t sk) {
 bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, const o1c_x25519_element_t p) {
     fe x1, x2, z2, x3, z3, tmp0, tmp1, x2l, z2l, x3l, tmp0l, tmp1l;
     unsigned swap = 0;
-    uint8_t t[o1c_x25519_SCALAR_BYTES];
-
-    memcpy(t, n, o1c_x25519_SCALAR_BYTES);
-    t[0] &= 248;
-    t[31] &= 127;
-    t[31] |= 64;
+    o1c_scalar25519_t t;
+    o1c_scalar25519_deserialize(t, n->v);
 
     fe_deserialize(x1, p->v);
     fe_1(x2);
@@ -32,7 +28,7 @@ bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, 
     fe_1(z3);
 
     for (int pos = 254; pos >= 0; --pos) {
-        unsigned b = 1 & (t[pos / 8] >> (pos & 7));
+        unsigned b = 1 & (t->v[pos / 8] >> (pos & 7));
         swap ^= b;
         fe_cswap(x2, x3, swap);
         fe_cswap(z2, z3, swap);
@@ -68,10 +64,7 @@ bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, 
 
 void o1c_x25519_scalar_mul_base(o1c_x25519_element_t q, const o1c_x25519_scalar_t n) {
     o1c_scalar25519_t t;
-    memcpy(t->v, n->v, o1c_x25519_SCALAR_BYTES);
-    t->v[0] &= 248;
-    t->v[31] &= 127;
-    t->v[31] |= 64;
+    o1c_scalar25519_deserialize(t, n->v);
     ge_p3 Q;
     ge_scalar_mul_base(Q, t);
     fe zplusy, zminusy, zminusy_inv;

@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <stdint.h>
+#include <string.h>
 
 /* 2^252+27742317777372353535851937790883648493 */
 static const uint8_t L[] = {
@@ -386,6 +387,14 @@ void o1c_scalar25519_reduce(o1c_scalar25519_t s, const uint8_t n[o1c_scalar25519
     s->v[29] = s11 >> 1;
     s->v[30] = s11 >> 9;
     s->v[31] = s11 >> 17;
+}
+
+void o1c_scalar25519_deserialize(o1c_scalar25519_t s, const uint8_t n[o1c_scalar25519_BYTES]) {
+    memmove(s->v, n, o1c_scalar25519_BYTES);
+    s->v[0] &= 248;
+    // note that BoringSSL clamps this more strictly by using 63 instead of 127 in its ed25519 code
+    s->v[31] &= 127;
+    s->v[31] |= 64;
 }
 
 void o1c_scalar25519_mul_add(o1c_scalar25519_t s, const o1c_scalar25519_t a, const o1c_scalar25519_t b,

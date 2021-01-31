@@ -9,12 +9,11 @@
 void o1c_ed25519_expand_key(o1c_ed25519_expanded_key_t private_key, const o1c_ed25519_seed_t seed) {
     uint8_t az[o1c_sha512_HASH_BYTES];
     o1c_sha512(az, seed->v, o1c_ed25519_SEED_BYTES);
-    az[0] &= 248;
-    az[31] &= 127;
-    az[31] |= 64;
-    ge_p3 A;
+
     o1c_scalar25519_t as;
-    memcpy(as->v, az, 32);
+    o1c_scalar25519_deserialize(as, az);
+
+    ge_p3 A;
     ge_scalar_mul_base(A, as);
     memcpy(private_key->v, seed->v, o1c_ed25519_SEED_BYTES);
     ge_ext_serialize(private_key->v + 32, A);
@@ -31,9 +30,6 @@ void o1c_ed25519_sign(uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_
                       const o1c_ed25519_expanded_key_t key) {
     uint8_t az[o1c_sha512_HASH_BYTES];
     o1c_sha512(az, key->v, 32);
-    az[0] &= 248;
-    az[31] &= 63;
-    az[31] |= 64;
 
     o1c_sha512_ctx_t ctx;
     o1c_sha512_init(ctx);
@@ -54,7 +50,7 @@ void o1c_ed25519_sign(uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_
     o1c_sha512_final(ctx, hram);
     o1c_scalar25519_t hram_r, result, az_r;
     o1c_scalar25519_reduce(hram_r, hram);
-    memcpy(az_r->v, az, 32);
+    o1c_scalar25519_deserialize(az_r, az);
     o1c_scalar25519_mul_add(result, hram_r, az_r, nonce_r);
     memcpy(s + 32, result->v, 32);
 }
@@ -74,6 +70,9 @@ bool o1c_ed25519_verify(const uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *
     memcpy(pk_copy, key->v, o1c_ed25519_PUBLIC_BYTES);
     uint8_t r_copy[32];
     memcpy(r_copy, s, 32);
+#ifdef NATIVE_BIG_ENDIAN
+    #error "TODO: this needs to be fixed for big endian systems"
+#endif
     union {
         uint64_t u64[4];
         uint8_t u8[32];
