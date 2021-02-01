@@ -11,7 +11,7 @@ void o1c_ed25519_expand_key(o1c_ed25519_expanded_key_t private_key, const o1c_ed
     o1c_sha512(az, seed->v, o1c_ed25519_SEED_BYTES);
 
     o1c_scalar25519_t as;
-    o1c_scalar25519_deserialize(as, az);
+    o1c_scalar25519_clamp(as, az);
 
     ge_p3 A;
     ge_scalar_mul_base(A, as);
@@ -50,7 +50,7 @@ void o1c_ed25519_sign(uint8_t s[o1c_ed25519_SIGN_BYTES], const uint8_t *m, size_
     o1c_sha512_final(ctx, hram);
     o1c_scalar25519_t hram_r, result, az_r;
     o1c_scalar25519_reduce(hram_r, hram);
-    o1c_scalar25519_deserialize(az_r, az);
+    o1c_scalar25519_clamp(az_r, az);
     o1c_scalar25519_mul_add(result, hram_r, az_r, nonce_r);
     memcpy(s + 32, result->v, 32);
 }

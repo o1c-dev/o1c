@@ -15,11 +15,17 @@ void hex2ret(o1c_ristretto255_t r, const char *hex) {
     o1c_ristretto255_deserialize(r, serialized);
 }
 
+void hex2scalar(o1c_scalar25519_t s, const char *hex) {
+    uint8_t serialized[o1c_scalar25519_BYTES];
+    o1c_hex2bin(serialized, o1c_scalar25519_BYTES, hex, o1c_scalar25519_BYTES * 2);
+    o1c_scalar25519_deserialize(s, serialized);
+}
+
 void run_checks(const o1c_test_vector *test) {
     o1c_scalar25519_t scalar;
     o1c_ristretto255_t element, point, product, actual;
     uint8_t hash[o1c_ristretto255_HASH_BYTES];
-    o1c_hex2bin(scalar->v, o1c_scalar25519_BYTES, test->scalar, o1c_scalar25519_BYTES * 2);
+    hex2scalar(scalar, test->scalar);
     hex2ret(element, test->element);
     hex2ret(point, test->point);
     o1c_hex2bin(hash, o1c_ristretto255_HASH_BYTES, test->hash, o1c_ristretto255_HASH_BYTES * 2);

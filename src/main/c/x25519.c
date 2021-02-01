@@ -21,7 +21,7 @@ void o1c_x25519_keypair(o1c_x25519_element_t pk, o1c_x25519_scalar_t sk) {
 bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, const o1c_x25519_element_t p) {
     uint8_t swap = 0;
     o1c_scalar25519_t t;
-    o1c_scalar25519_deserialize(t, n->v);
+    o1c_scalar25519_clamp(t, n->v);
 
     fe x1, x2, z2, x3, z3;
     fe_deserialize(x1, p->v);
@@ -68,7 +68,7 @@ bool o1c_x25519_scalar_mul(o1c_x25519_element_t q, const o1c_x25519_scalar_t n, 
 
 void o1c_x25519_scalar_mul_base(o1c_x25519_element_t q, const o1c_x25519_scalar_t n) {
     o1c_scalar25519_t t;
-    o1c_scalar25519_deserialize(t, n->v);
+    o1c_scalar25519_clamp(t, n->v);
     ge_p3 Q;
     ge_scalar_mul_base(Q, t);
     fe zpy, zmy, zmy_inv;

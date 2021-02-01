@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdalign.h>
 #include <stdbool.h>
 
 #include "o1c_export.h"
@@ -10,11 +9,11 @@
 #define o1c_x25519_ELEMENT_BYTES 32
 
 typedef struct o1c_x25519_scalar_s {
-    alignas(16) uint8_t v[o1c_x25519_SCALAR_BYTES];
+    uint8_t v[o1c_x25519_SCALAR_BYTES];
 } o1c_x25519_scalar_s, o1c_x25519_scalar_t[1];
 
 typedef struct o1c_x25519_element_s {
-    alignas(16) uint8_t v[o1c_x25519_ELEMENT_BYTES];
+    uint8_t v[o1c_x25519_ELEMENT_BYTES];
 } o1c_x25519_element_s, o1c_x25519_element_t[1];
 
 O1C_EXPORT void o1c_x25519_scalar_random(o1c_x25519_scalar_t s);
