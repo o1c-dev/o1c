@@ -1,9 +1,12 @@
 #include "ristretto255.h"
 #include "curve25519.h"
 #include "util.h"
+#include "hash.h"
 
 // TODO: separate constants
 #include "curve25519/curve25519_tables.h"
+
+#include <string.h>
 
 bool o1c_ristretto255_is_canonical(const uint8_t f[o1c_ristretto255_BYTES]) {
     uint8_t C, D, E;
@@ -220,31 +223,40 @@ bool o1c_ristretto255_scalar_mul_base(o1c_ristretto255_t q, const o1c_scalar2551
     return !o1c_is_zero(result, o1c_ristretto255_BYTES);
 }
 
-#ifdef TODO_RISTRETTO_SIGN
-typedef struct keypair_ctx {
-    const uint8_t *seed;
-    uint8_t *key;
-    uint8_t hash[o1c_ristretto255_HASH_BYTES];
-} keypair_ctx;
-
-static void expand_keypair(keypair_ctx *kp) {
-    o1c_hash(kp->hash, o1c_ristretto255_HASH_BYTES, kp->seed, o1c_ristretto255_SEED_BYTES);
+void o1c_ristretto255b3_derive_pubkey(uint8_t *const pubkey, const uint8_t *const key) {
+    o1c_hash_t st;
+    // Ed25519 uses SHA-512 as an AMAC here to derive the scalar and prefix
+    // this uses Blake3 in keyed mode to derive the same
+    o1c_hash_key_setup(st, key);
+    uint8_t scalar[o1c_scalar25519_BYTES];
+    // we don't need to compute the prefix quite yet, so we'll defer that for now
+    o1c_hash_final(st, scalar, o1c_scalar25519_BYTES);
     o1c_scalar25519_t a;
-    o1c_scalar25519_deserialize(a, kp->hash);
+    o1c_scalar25519_clamp(a, scalar);
     o1c_ristretto255_t A;
     o1c_ristretto255_scalar_mul_base(A, a);
-    o1c_ristretto255_serialize(kp->key, A);
+    o1c_ristretto255_serialize(pubkey, A);
 }
 
-void o1c_ristretto255_sign(uint8_t sig[o1c_ristretto255_SIGN_BYTES], const uint8_t *m, size_t m_len,
-                           const uint8_t seed[o1c_ristretto255_SEED_BYTES]) {
-    // basically EdDSA with Curve25519 and BLAKE3 (512) using Ristretto encoding instead of edwards serialize
-    uint8_t key[o1c_ristretto255_BYTES];
-    keypair_ctx ctx = {.seed = seed, .key = key};
-    expand_keypair(&ctx);
+void o1c_ristretto255b3_sign(uint8_t *const sig, const uint8_t *const m, const size_t m_len, const uint8_t *const key) {
+    // derive scalar, pubkey, and prefix
     o1c_hash_t st;
+    o1c_hash_key_setup(st, key);
+    uint8_t hash[o1c_ristretto255_HASH_BYTES];
+    o1c_hash_final(st, hash, o1c_ristretto255_HASH_BYTES);
+
+    o1c_scalar25519_t a;
+    o1c_scalar25519_clamp(a, hash);
+    o1c_ristretto255_t A;
+    o1c_ristretto255_scalar_mul_base(A, a);
+
+    uint8_t pk[o1c_ristretto255_BYTES];
+    o1c_ristretto255_serialize(pk, A);
+
+    // Ed25519 uses SHA-512 for calculating the signature
+    // this uses Blake3 in hashed mode
     o1c_hash_init(st);
-    o1c_hash_update(st, ctx.hash + 32, 32);
+    o1c_hash_update(st, hash + 32, 32);
     o1c_hash_update(st, m, m_len);
     uint8_t nonce[o1c_ristretto255_HASH_BYTES];
     o1c_hash_final(st, nonce, o1c_ristretto255_HASH_BYTES);
@@ -252,24 +264,60 @@ void o1c_ristretto255_sign(uint8_t sig[o1c_ristretto255_SIGN_BYTES], const uint8
     o1c_scalar25519_reduce(r, nonce);
     o1c_ristretto255_t R;
     o1c_ristretto255_scalar_mul_base(R, r);
-    o1c_ristretto255_serialize(sig, R);
+    uint8_t r_bytes[o1c_ristretto255_BYTES];
+    // Ed25519 compresses a point via Y/Z and a sign bit for X/Z
+    // this uses the Ristretto255 encoding for compression
+    o1c_ristretto255_serialize(r_bytes, R);
 
+    // the remainder of this algorithm matches Ed25519's scalar calculation
     o1c_hash_init(st);
-    o1c_hash_update(st, sig, 32);
-    o1c_hash_update(st, key, 32);
+    o1c_hash_update(st, r_bytes, o1c_ristretto255_BYTES);
+    o1c_hash_update(st, pk, o1c_ristretto255_BYTES);
     o1c_hash_update(st, m, m_len);
-    uint8_t hash[o1c_ristretto255_HASH_BYTES];
     o1c_hash_final(st, hash, o1c_ristretto255_HASH_BYTES);
-    o1c_scalar25519_t h, a, s;
+    o1c_scalar25519_t h, s;
     o1c_scalar25519_reduce(h, hash);
-    memcpy(a->v, ctx.hash, 32);
     o1c_scalar25519_mul_add(s, h, a, r);
+    memcpy(sig, r_bytes, 32);
     memcpy(sig + 32, s->v, 32);
 }
 
-bool o1c_ristretto255_verify(const uint8_t sig[o1c_ristretto255_SIGN_BYTES], const uint8_t *m, size_t m_len,
-                             const o1c_ristretto255_t pubkey) {
-    // TODO
-    return false;
+bool o1c_ristretto255b3_verify(const uint8_t *const sig, const uint8_t *const m, const size_t m_len,
+                             const uint8_t *const pk) {
+    /* TODO: this implementation uses constant time algorithms where some optimizations may be allowed
+     * Ideally, we can adapt ge_double_scalar_mul_vartime to work here, though the function as exists
+     * does not fit properly.
+     */
+    o1c_ristretto255_t A, r;
+    o1c_scalar25519_t s, k;
+
+    if (!o1c_ristretto255_deserialize(r, sig) || !o1c_ristretto255_deserialize(A, pk)) return false;
+    o1c_scalar25519_deserialize(s, sig + 32);
+    ge_p3 sB;
+    ge_scalar_mul_base(sB, s);
+    ge_cached sB_cached;
+    ge_ext_to_proj_niels(sB_cached, sB);
+
+    struct extended_point negA = A->point;
+    fe t;
+    fe_neg(t, negA.X);
+    fe_reduce(negA.X, t);
+    fe_neg(t, negA.T);
+    fe_reduce(negA.T, t);
+
+    o1c_hash_t st;
+    o1c_hash_init(st);
+    o1c_hash_update(st, sig, 32);
+    o1c_hash_update(st, pk, o1c_ristretto255_BYTES);
+    o1c_hash_update(st, m, m_len);
+    uint8_t hash[o1c_ristretto255_HASH_BYTES];
+    o1c_hash_final(st, hash, o1c_ristretto255_HASH_BYTES);
+    o1c_scalar25519_reduce(k, hash);
+    ge_p3 neg_kA;
+    ge_scalar_mul(neg_kA, k, &negA);
+    ge_p1p1 check;
+    ge_ext_add(check, neg_kA, sB_cached);
+    o1c_ristretto255_t r_check;
+    ge_comp_to_ext(&r_check->point, check);
+    return o1c_ristretto255_equal(r_check, r);
 }
-#endif

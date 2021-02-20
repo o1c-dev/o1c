@@ -18,21 +18,27 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.spi;
+package dev.o1c.modern.ristretto255;
 
-import dev.o1c.O1CException;
+import dev.o1c.spi.InvalidSignatureException;
+import dev.o1c.spi.SignatureFactory;
+import dev.o1c.spi.SigningKey;
+import org.junit.jupiter.api.Test;
 
-// TODO: update code to use this instead of IllegalArgumentException
-public class InvalidKeyException extends O1CException {
-    public InvalidKeyException(String message) {
-        super(message);
-    }
+import java.nio.charset.StandardCharsets;
 
-    public InvalidKeyException(String message, Throwable cause) {
-        super(message, cause);
-    }
+import static org.junit.jupiter.api.Assertions.*;
 
-    public InvalidKeyException(Throwable cause) {
-        super(cause);
+class Ristretto255B3SignatureFactoryTest {
+    @Test
+    void smokeTest() {
+        SignatureFactory signatureFactory = new Ristretto255B3SignatureFactory();
+        SigningKey key = signatureFactory.generateSigningKey();
+        byte[] message = "Hello, world!".getBytes(StandardCharsets.UTF_8);
+        byte[] signature = key.sign(message);
+        key.verify(message, signature);
+        signature[0] >>>= 3;
+        signature[1] = (byte) ~signature[1];
+        assertThrows(InvalidSignatureException.class, () -> key.verify(message, signature));
     }
 }

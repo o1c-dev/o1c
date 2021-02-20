@@ -32,5 +32,5 @@ add_test(NAME Ristretto255 COMMAND test_ristretto255)
 add_executable(test_scalar25519 test_scalar25519.c)
 add_test(NAME Scalar25519 COMMAND test_scalar25519)
 
-#add_executable(test_signcrypt test_signcrypt.c)
-#add_test(NAME SignCrypt COMMAND test_signcrypt)
+add_executable(test_ristretto255b3 test_ristretto255b3.c)
+add_test(NAME Ristretto255B3 COMMAND test_ristretto255b3)
