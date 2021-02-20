@@ -128,4 +128,11 @@ void ge_scalar_mul_base(ge_p3 h, const o1c_scalar25519_t s);
 
 void ge_scalar_mul(ge_p3 r, const o1c_scalar25519_t s, const ge_p3 q);
 
+/*
+ r = a * A + b * B
+ where a = a[0]+256*a[1]+...+256^31 a[31].
+ and b = b[0]+256*b[1]+...+256^31 b[31].
+ B is the Ed25519 base point (x,4/5) with x positive.
+ Only used for signatures verification.
+ */
 void ge_double_scalar_mul_vartime(ge_p2 r, const o1c_scalar25519_t a, const ge_p3 A, const o1c_scalar25519_t b);
