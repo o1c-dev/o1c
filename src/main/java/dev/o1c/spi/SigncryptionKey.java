@@ -22,7 +22,9 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface SigncryptionKey extends SigningKey, ExchangeKey {
+public interface SigncryptionKey {
+    int signatureLength();
+
     int tagLength();
 
     @NotNull PublicKey publicKey();

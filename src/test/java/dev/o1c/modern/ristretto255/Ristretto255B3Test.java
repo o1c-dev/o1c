@@ -20,20 +20,20 @@
 
 package dev.o1c.modern.ristretto255;
 
+import dev.o1c.spi.CertificateFactory;
 import dev.o1c.spi.InvalidSignatureException;
-import dev.o1c.spi.SignatureFactory;
-import dev.o1c.spi.SigningKey;
+import dev.o1c.spi.PrivateKey;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class Ristretto255B3SignatureFactoryTest {
+class Ristretto255B3Test {
     @Test
-    void smokeTest() {
-        SignatureFactory signatureFactory = new Ristretto255B3SignatureFactory();
-        SigningKey key = signatureFactory.generateSigningKey();
+    void signatureSmokeTest() {
+        CertificateFactory factory = new Ristretto255B3CertificateFactory();
+        PrivateKey key = factory.generateKey();
         byte[] message = "Hello, world!".getBytes(StandardCharsets.UTF_8);
         byte[] signature = key.sign(message);
         key.verify(message, signature);

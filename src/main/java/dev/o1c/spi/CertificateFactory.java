@@ -22,16 +22,10 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface VerifyingKey {
-    int signatureLength();
+public interface CertificateFactory {
+    @NotNull Certificate parsePublicKey(byte @NotNull [] publicKey);
 
-    void verify(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
+    @NotNull PrivateKey parsePrivateKey(byte @NotNull [] privateKey);
 
-    default void verify(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature) {
-        verify(message, offset, length, signature, 0);
-    }
-
-    default void verify(byte @NotNull [] message, byte @NotNull [] signature) {
-        verify(message, 0, message.length, signature, 0);
-    }
+    @NotNull PrivateKey generateKey();
 }

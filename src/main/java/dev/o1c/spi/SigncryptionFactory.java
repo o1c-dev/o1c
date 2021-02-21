@@ -22,7 +22,7 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface SigncryptionFactory extends SignatureFactory, KeyExchangeFactory {
+public interface SigncryptionFactory {
     @NotNull SigncryptionKey generateSigncryptionKey(byte @NotNull [] id);
 
     @NotNull SigncryptionKey parseSigncryptionKey(byte @NotNull [] privateKey, byte @NotNull [] id);
