@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class Ristretto255B3Test {
+class Ristretto255B3CertificateFactoryTest {
     @Test
     void signatureSmokeTest() {
         CertificateFactory factory = new Ristretto255B3CertificateFactory();
