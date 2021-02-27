@@ -65,7 +65,7 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
         return bytes;
     }
 
-    public static Blake3RandomBytesGenerator getInstance() {
+    public static @NotNull Blake3RandomBytesGenerator getInstance() {
         if (CURRENT.get() == null) {
             CURRENT.set(new Blake3RandomBytesGenerator());
         }
