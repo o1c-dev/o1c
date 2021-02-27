@@ -41,7 +41,6 @@ public class SystemSeedGenerator implements SeedGenerator {
                     random = SecureRandom.getInstanceStrong();
                 } catch (NoSuchAlgorithmException e) {
                     random = new SecureRandom();
-                    // TODO: verify this instance can be used for seeding or throw exception
                 }
             }
         }
