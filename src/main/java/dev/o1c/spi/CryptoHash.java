@@ -20,6 +20,7 @@
 
 package dev.o1c.spi;
 
+import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
 public interface CryptoHash {
@@ -36,6 +37,13 @@ public interface CryptoHash {
     void update(byte @NotNull [] in, int offset, int length);
 
     void finish(byte @NotNull [] out, int offset, int length);
+
+    default void updateRLE(byte @NotNull [] buffer) {
+        byte[] length = new byte[Integer.BYTES];
+        ByteOps.packIntLE(buffer.length, length, 0);
+        update(length);
+        update(buffer);
+    }
 
     default void finish(byte @NotNull [] out, int offset) {
         finish(out, offset, hashLength());

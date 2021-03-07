@@ -33,11 +33,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public enum Ristretto255KeyFactory implements KeyFactory {
-    /**
-     * The singleton instance.
-     */
-    INSTANCE;
+public class Ristretto255KeyFactory implements KeyFactory {
+    private final CryptoHash expandHash = Blake3HashFactory.INSTANCE.initKDF("expand_key");
 
     @Override
     public @NotNull SecretKey generateKey(byte @NotNull [] id) {
@@ -51,8 +48,9 @@ public enum Ristretto255KeyFactory implements KeyFactory {
             throw new InvalidKeyException("Keys must be 32 bytes");
         }
         byte[] expandedKey = new byte[64];
-        // TODO: consider using KDF context here?
-        Blake3HashFactory.INSTANCE.init(keyData).finish(expandedKey);
+        expandHash.reset();
+        expandHash.update(keyData);
+        expandHash.finish(expandedKey);
         byte[] lower = Arrays.copyOf(expandedKey, 32);
         byte[] upper = Arrays.copyOfRange(expandedKey, 32, 64);
         lower[0] &= 248;

@@ -29,6 +29,14 @@ public interface SecretKey extends PublicKey {
         return sign(message, 0, message.length);
     }
 
+    void clientToServer(
+            @NotNull PublicKey server, byte @NotNull [] context,
+            byte @NotNull [] rx, int rxOffset, byte @NotNull [] tx, int txOffset);
+
+    void serverToClient(
+            @NotNull PublicKey client, byte @NotNull [] context,
+            byte @NotNull [] rx, int rxOffset, byte @NotNull [] tx, int txOffset);
+
     void encrypt(
             @NotNull PublicKey recipient, byte @NotNull [] nonce, byte @NotNull [] context,
             byte @NotNull [] plaintext, int ptOffset, int ptLength,
@@ -52,8 +60,4 @@ public interface SecretKey extends PublicKey {
             byte @NotNull [] tag, int tagOffset,
             byte @NotNull [] signature, int sigOffset,
             byte @NotNull [] plaintext, int ptOffset);
-
-    @NotNull CipherSession exchangeWithServer(@NotNull PublicKey serverKey);
-
-    @NotNull CipherSession exchangeWithClient(@NotNull PublicKey clientKey);
 }

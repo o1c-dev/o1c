@@ -20,7 +20,8 @@
 
 package dev.o1c.impl.ristretto255;
 
-import dev.o1c.spi.CipherSession;
+import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
+import dev.o1c.spi.KeyFactory;
 import dev.o1c.spi.SecretKey;
 import org.junit.jupiter.api.Test;
 
@@ -30,23 +31,43 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class Ristretto255KeyFactoryTest {
 
+    private final KeyFactory keyFactory = new Ristretto255KeyFactory();
+    private final SecretKey alice = keyFactory.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
+    private final SecretKey bob = keyFactory.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
+
     @Test
     void signatureSmokeTest() {
-        SecretKey alice = Ristretto255KeyFactory.INSTANCE.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
         byte[] message = "Hello, world!".getBytes(StandardCharsets.UTF_8);
         byte[] signature = alice.sign(message);
         assertTrue(alice.isValidSignature(signature, message));
-        SecretKey bob = Ristretto255KeyFactory.INSTANCE.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
         assertFalse(bob.isValidSignature(signature, message));
     }
 
     @Test
     void keyExchangeSmokeTest() {
-        SecretKey alice = Ristretto255KeyFactory.INSTANCE.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
-        SecretKey bob = Ristretto255KeyFactory.INSTANCE.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
-        CipherSession a2b = alice.exchangeWithServer(bob);
-        CipherSession b2a = bob.exchangeWithClient(alice);
-        assertArrayEquals(a2b.transmitKey(), b2a.receiveKey());
-        assertArrayEquals(b2a.transmitKey(), a2b.receiveKey());
+        byte[] context = "test_kx".getBytes(StandardCharsets.UTF_8);
+        byte[] a2bTx = new byte[32];
+        byte[] a2bRx = new byte[32];
+        byte[] b2aTx = new byte[32];
+        byte[] b2aRx = new byte[32];
+        alice.clientToServer(bob, context, a2bRx, 0, a2bTx, 0);
+        bob.serverToClient(alice, context, b2aRx, 0, b2aTx, 0);
+        assertArrayEquals(a2bTx, b2aRx);
+        assertArrayEquals(b2aTx, a2bRx);
+    }
+
+    @Test
+    void signcryptSmokeTest() {
+        byte[] message = "Hello, world!".getBytes(StandardCharsets.UTF_8);
+        byte[] context = "Fresh-ground fresh-roasted fresh-brewed coffee".getBytes(StandardCharsets.UTF_8);
+        byte[] tag = new byte[16];
+        byte[] sig = new byte[64];
+        byte[] nonce = Blake3RandomBytesGenerator.getInstance().generateBytes(24);
+        byte[] ciphertext = new byte[message.length];
+        byte[] plaintext = new byte[message.length];
+
+        alice.signcrypt(bob, nonce, context, message, 0, message.length, ciphertext, 0, tag, 0, sig, 0);
+        bob.unsigncrypt(alice, nonce, context, ciphertext, 0, ciphertext.length, tag, 0, sig, 0, plaintext, 0);
+        assertArrayEquals(message, plaintext);
     }
 }

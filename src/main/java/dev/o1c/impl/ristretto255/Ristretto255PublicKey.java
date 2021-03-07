@@ -34,8 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255PublicKey implements PublicKey {
-    private final byte[] id;
-    private final RistrettoElement element;
+    final CryptoHash signKeyHash = Blake3HashFactory.INSTANCE.initKDF("sign_key");
+    final byte[] id;
+    final RistrettoElement element;
     private final RistrettoElement negatedElement; // TODO: this should be lazily initialized when first verifying
     final CompressedRistretto compressed;
 
@@ -62,10 +63,6 @@ public class Ristretto255PublicKey implements PublicKey {
         return id.clone();
     }
 
-    public @NotNull RistrettoElement element() {
-        return element;
-    }
-
     @Override
     public boolean isValidSignature(byte @NotNull [] signature, byte @NotNull [] message, int offset, int length) {
         if (signature.length != 64) {
@@ -81,11 +78,13 @@ public class Ristretto255PublicKey implements PublicKey {
         } catch (InvalidEncodingException | IllegalArgumentException ignored) {
             return false;
         }
-        CryptoHash hash = Blake3HashFactory.INSTANCE.init(64);
-        hash.update(r);
-        hash.update(compressed.toByteArray());
-        hash.update(message, offset, length);
-        Scalar k = Scalar.fromBytesModOrderWide(hash.finish());
+        signKeyHash.reset();
+        signKeyHash.update(r);
+        signKeyHash.update(compressed.toByteArray());
+        signKeyHash.update(message, offset, length);
+        byte[] hash = new byte[64];
+        signKeyHash.finish(hash);
+        Scalar k = Scalar.fromBytesModOrderWide(hash);
         RistrettoElement checkR = negatedElement.multiply(k).add(S);
         return R.equals(checkR);
     }
