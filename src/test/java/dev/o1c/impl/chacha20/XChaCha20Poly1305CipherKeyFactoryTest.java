@@ -32,6 +32,7 @@ class XChaCha20Poly1305CipherKeyFactoryTest {
     @TestFactory
     @EnabledForJreRange(min = JRE.JAVA_11)
     List<DynamicNode> loadTestVectors() {
-        return CipherKeyFactoryTest.loadAEADTests("xchacha20poly1305.txt.gz", new XChaCha20Poly1305CipherKeyFactory());
+        return CipherKeyFactoryTest
+                .loadAEADTests("xchacha20poly1305.txt.gz", XChaCha20Poly1305CipherKeyFactory.INSTANCE);
     }
 }

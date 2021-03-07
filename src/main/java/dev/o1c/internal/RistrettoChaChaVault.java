@@ -30,7 +30,6 @@ import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
 import dev.o1c.impl.chacha20.XChaCha20Poly1305CipherKeyFactory;
 import dev.o1c.modern.blake2.Blake2bHashFactory;
 import dev.o1c.spi.CipherKey;
-import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.InvalidSealException;
 import dev.o1c.spi.InvalidSignatureException;
@@ -59,8 +58,6 @@ public class RistrettoChaChaVault implements Vault {
     private static final String ALGORITHM = "Ristretto255";
     private static final RistrettoGeneratorTable BASE_GENERATOR = Constants.RISTRETTO_GENERATOR_TABLE;
 
-    private final CipherKeyFactory cipherKeyFactory = new XChaCha20Poly1305CipherKeyFactory();
-
     @Override
     public KeyPair generateKeyPair() {
         byte[] key = Blake3RandomBytesGenerator.getInstance().generateBytes(ASYMMETRIC_KEY_SIZE);
@@ -88,7 +85,7 @@ public class RistrettoChaChaVault implements Vault {
         Objects.requireNonNull(secretKey);
         Objects.requireNonNull(context);
         Objects.requireNonNull(data);
-        CipherKey key = cipherKeyFactory.parseKey(secretKey.getEncoded());
+        CipherKey key = XChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(secretKey.getEncoded());
         byte[] nonce = Blake3RandomBytesGenerator.getInstance().generateBytes(nonceLength());
         byte[] sealed = Arrays.copyOf(nonce, nonceLength() + data.length + tagLength());
         key.encrypt(nonce, context, data, 0, data.length, sealed, nonceLength(), sealed, sealed.length - tagLength());
@@ -104,7 +101,7 @@ public class RistrettoChaChaVault implements Vault {
         if (msgLen < 0) {
             throw new InvalidSealException("Missing metadata");
         }
-        CipherKey key = cipherKeyFactory.parseKey(secretKey.getEncoded());
+        CipherKey key = XChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(secretKey.getEncoded());
         byte[] nonce = Arrays.copyOf(sealedData, nonceLength());
         byte[] data = new byte[msgLen];
         key.decrypt(nonce, context, sealedData, nonceLength(), data.length, sealedData, sealedData.length - key.tagLength(), data, 0);
@@ -152,7 +149,7 @@ public class RistrettoChaChaVault implements Vault {
         hash.update(k);
         absorbContextInfo.accept(hash);
         byte[] sharedKey = hash.finish();
-        CipherKey key = cipherKeyFactory.parseKey(sharedKey);
+        CipherKey key = XChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(sharedKey);
 
         hash = Blake2bHashFactory.INSTANCE.init(signatureLength());
         hash.update(SIGN_KEY);
@@ -197,7 +194,7 @@ public class RistrettoChaChaVault implements Vault {
         }
 
         byte[] k = sender.multiply(reduced).add(publicSigningKey).multiply(recipient).compress().toByteArray();
-        CryptoHash hash = Blake2bHashFactory.INSTANCE.init(cipherKeyFactory.keyLength());
+        CryptoHash hash = Blake2bHashFactory.INSTANCE.init(XChaCha20Poly1305CipherKeyFactory.INSTANCE.keyLength());
         hash.update(SHARED_KEY);
         hash.update(k);
         hash.update((byte) senderId.length);
@@ -207,7 +204,7 @@ public class RistrettoChaChaVault implements Vault {
         hash.update((byte) context.length);
         hash.update(context);
         byte[] sharedKey = hash.finish();
-        CipherKey key = cipherKeyFactory.parseKey(sharedKey);
+        CipherKey key = XChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(sharedKey);
 
         byte[] nonce = Arrays.copyOf(wrappedData, nonceLength());
         hash = Blake2bHashFactory.INSTANCE.init(signatureLength());

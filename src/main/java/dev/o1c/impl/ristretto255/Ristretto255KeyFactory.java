@@ -33,7 +33,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public class Ristretto255KeyFactory implements KeyFactory {
+public enum Ristretto255KeyFactory implements KeyFactory {
+    /**
+     * The singleton instance.
+     */
+    INSTANCE;
+
     @Override
     public @NotNull SecretKey generateKey(byte @NotNull [] id) {
         byte[] keyData = Blake3RandomBytesGenerator.getInstance().generateBytes(32);

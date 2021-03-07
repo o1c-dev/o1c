@@ -21,7 +21,6 @@
 package dev.o1c.impl.ristretto255;
 
 import dev.o1c.spi.CipherSession;
-import dev.o1c.spi.KeyFactory;
 import dev.o1c.spi.SecretKey;
 import org.junit.jupiter.api.Test;
 
@@ -31,22 +30,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class Ristretto255KeyFactoryTest {
 
-    private final KeyFactory keyFactory = new Ristretto255KeyFactory();
-
     @Test
     void signatureSmokeTest() {
-        SecretKey alice = keyFactory.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
+        SecretKey alice = Ristretto255KeyFactory.INSTANCE.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
         byte[] message = "Hello, world!".getBytes(StandardCharsets.UTF_8);
         byte[] signature = alice.sign(message);
         assertTrue(alice.isValidSignature(signature, message));
-        SecretKey bob = keyFactory.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
+        SecretKey bob = Ristretto255KeyFactory.INSTANCE.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
         assertFalse(bob.isValidSignature(signature, message));
     }
 
     @Test
     void keyExchangeSmokeTest() {
-        SecretKey alice = keyFactory.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
-        SecretKey bob = keyFactory.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
+        SecretKey alice = Ristretto255KeyFactory.INSTANCE.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
+        SecretKey bob = Ristretto255KeyFactory.INSTANCE.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
         CipherSession a2b = alice.exchangeWithServer(bob);
         CipherSession b2a = bob.exchangeWithClient(alice);
         assertArrayEquals(a2b.transmitKey(), b2a.receiveKey());

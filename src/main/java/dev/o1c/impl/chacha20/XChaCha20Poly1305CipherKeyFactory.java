@@ -27,7 +27,11 @@ import org.jetbrains.annotations.NotNull;
 
 // https://tools.ietf.org/html/rfc8439
 // https://tools.ietf.org/html/draft-irtf-cfrg-xchacha-03
-public class XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
+public enum XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
+    /**
+     * The singleton instance.
+     */
+    INSTANCE;
 
     @Override
     public int keyLength() {
