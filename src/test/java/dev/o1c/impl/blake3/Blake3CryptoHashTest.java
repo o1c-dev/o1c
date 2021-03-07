@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.blake3;
+package dev.o1c.impl.blake3;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 import dev.o1c.spi.CryptoHash;

@@ -18,10 +18,11 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.blake3;
+package dev.o1c.impl.blake3;
 
 import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.HashFactory;
+import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,6 +59,9 @@ public class Blake3HashFactory implements HashFactory {
      */
     @Override
     public @NotNull CryptoHash init(byte @NotNull [] key) {
+        if (key.length != 32) {
+            throw new InvalidKeyException("Keys must be 32 bytes");
+        }
         return new Blake3CryptoHash(ByteOps.unpackIntsLE(key, 0, 8), Constants.KEYED_HASH);
     }
 

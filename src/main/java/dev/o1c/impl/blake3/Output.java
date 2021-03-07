@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.blake3;
+package dev.o1c.impl.blake3;
 
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
