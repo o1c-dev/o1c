@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.chacha20;
+package dev.o1c.impl.chacha20;
 
 class ChaCha20 {
     /**

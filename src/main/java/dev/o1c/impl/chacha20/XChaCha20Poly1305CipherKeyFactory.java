@@ -18,20 +18,30 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.chacha20;
+package dev.o1c.impl.chacha20;
 
-import dev.o1c.spi.CipherKeyFactoryTest;
-import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
+import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
+import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.CipherKeyFactory;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+// https://tools.ietf.org/html/rfc8439
+// https://tools.ietf.org/html/draft-irtf-cfrg-xchacha-03
+public class XChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
 
-class XChaCha20Poly1305CipherKeyFactoryTest {
-    @TestFactory
-    @EnabledForJreRange(min = JRE.JAVA_11)
-    List<DynamicNode> loadTestVectors() {
-        return CipherKeyFactoryTest.loadAEADTests("xchacha20poly1305.txt.gz", new XChaCha20Poly1305CipherKeyFactory());
+    @Override
+    public int keyLength() {
+        return 32;
+    }
+
+    @Override
+    public CipherKey generateKey() {
+        return new XChaCha20Poly1305CipherKey(Blake3RandomBytesGenerator.getInstance().generateBytes(keyLength()));
+    }
+
+    @Override
+    public CipherKey parseKey(byte @NotNull [] key) {
+        checkKeyLength(key.length);
+        return new XChaCha20Poly1305CipherKey(key);
     }
 }

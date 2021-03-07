@@ -26,9 +26,9 @@ import cafe.cryptography.curve25519.InvalidEncodingException;
 import cafe.cryptography.curve25519.RistrettoElement;
 import cafe.cryptography.curve25519.RistrettoGeneratorTable;
 import cafe.cryptography.curve25519.Scalar;
+import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
+import dev.o1c.impl.chacha20.XChaCha20Poly1305CipherKeyFactory;
 import dev.o1c.modern.blake2.Blake2bHashFactory;
-import dev.o1c.modern.chacha20.ChaCha20RandomBytesGenerator;
-import dev.o1c.modern.chacha20.XChaCha20Poly1305CipherKeyFactory;
 import dev.o1c.spi.CipherKey;
 import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.CryptoHash;
@@ -65,7 +65,7 @@ public class RistrettoChaChaVault implements Vault {
 
     @Override
     public KeyPair generateKeyPair() {
-        byte[] key = ChaCha20RandomBytesGenerator.getInstance().generateBytes(ASYMMETRIC_KEY_SIZE);
+        byte[] key = Blake3RandomBytesGenerator.getInstance().generateBytes(ASYMMETRIC_KEY_SIZE);
         KeyPair keyPair = parsePrivateKey(key);
         ByteOps.overwriteWithZeroes(key);
         return keyPair;
@@ -79,7 +79,7 @@ public class RistrettoChaChaVault implements Vault {
 
     @Override
     public SecretKey generateSecretKey() {
-        byte[] key = ChaCha20RandomBytesGenerator.getInstance().generateBytes(SYMMETRIC_KEY_SIZE);
+        byte[] key = Blake3RandomBytesGenerator.getInstance().generateBytes(SYMMETRIC_KEY_SIZE);
         SecretKey secretKey = new SecretKeySpec(key, ALGORITHM);
         ByteOps.overwriteWithZeroes(key);
         return secretKey;
@@ -91,7 +91,7 @@ public class RistrettoChaChaVault implements Vault {
         Objects.requireNonNull(context);
         Objects.requireNonNull(data);
         CipherKey key = cipherKeyFactory.parseKey(secretKey.getEncoded());
-        byte[] nonce = ChaCha20RandomBytesGenerator.getInstance().generateBytes(nonceLength());
+        byte[] nonce = Blake3RandomBytesGenerator.getInstance().generateBytes(nonceLength());
         byte[] sealed = Arrays.copyOf(nonce, nonceLength() + data.length + tagLength());
         key.encrypt(nonce, context, data, 0, data.length, sealed, nonceLength(), sealed, sealed.length - tagLength());
         return sealed;
@@ -140,7 +140,7 @@ public class RistrettoChaChaVault implements Vault {
         hash.update(NONCE);
         hash.update(senderKey.getEncoded());
         hash.update(recipientKey.getEncoded());
-        byte[] noise = ChaCha20RandomBytesGenerator.getInstance().generateBytes(32);
+        byte[] noise = Blake3RandomBytesGenerator.getInstance().generateBytes(32);
         hash.update(noise);
         hash.update(data);
         Scalar ephemeralPrivateKey = Scalar.fromBytesModOrderWide(hash.finish());
@@ -160,7 +160,7 @@ public class RistrettoChaChaVault implements Vault {
         hash.update(SIGN_KEY);
         hash.update(r);
         absorbContextInfo.accept(hash);
-        byte[] nonce = ChaCha20RandomBytesGenerator.getInstance().generateBytes(nonceLength());
+        byte[] nonce = Blake3RandomBytesGenerator.getInstance().generateBytes(nonceLength());
         int ctLen = nonceLength() + data.length + tagLength();
         byte[] wrapped = Arrays.copyOf(nonce, ctLen + signatureLength());
         key.encrypt(nonce, context, data, 0, data.length, wrapped, nonceLength(), wrapped, nonceLength() + data.length);
