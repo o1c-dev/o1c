@@ -22,10 +22,20 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface CertificateFactory {
-    @NotNull Certificate parsePublicKey(byte @NotNull [] publicKey);
+public final class CipherSession {
+    private final byte[] receiveKey;
+    private final byte[] transmitKey;
 
-    @NotNull PrivateKey parsePrivateKey(byte @NotNull [] privateKey);
+    public CipherSession(byte @NotNull [] receiveKey, byte @NotNull [] transmitKey) {
+        this.receiveKey = receiveKey.clone();
+        this.transmitKey = transmitKey.clone();
+    }
 
-    @NotNull PrivateKey generateKey();
+    public byte @NotNull [] receiveKey() {
+        return receiveKey.clone();
+    }
+
+    public byte @NotNull [] transmitKey() {
+        return transmitKey.clone();
+    }
 }

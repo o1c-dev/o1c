@@ -21,26 +21,34 @@
 package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class PublicKey {
-    private final byte @NotNull [] key;
-    private final byte @Nullable [] id;
+public interface PublicKey {
+    /**
+     * Identifies this public key with a unique byte string such as the public key itself or some other principal identifier.
+     *
+     * @return identifier of this key
+     */
+    byte @NotNull [] id();
 
-    public PublicKey(byte @NotNull [] key) {
-        this(key, null);
-    }
+    /**
+     * Checks if the given message and signature were signed by this key's private key.
+     *
+     * @param signature message signature to validate
+     * @param message   message buffer to validate
+     * @param offset    where in the message buffer to validate from
+     * @param length    how many bytes in the message buffer to validate
+     * @return true if the signature is valid for this key or false otherwise
+     */
+    boolean isValidSignature(byte @NotNull [] signature, byte @NotNull [] message, int offset, int length);
 
-    public PublicKey(byte @NotNull [] key, byte @Nullable [] id) {
-        this.key = key.clone();
-        this.id = id == null ? null : id.clone();
-    }
-
-    public byte @NotNull [] key() {
-        return key.clone();
-    }
-
-    public byte @NotNull [] id() {
-        return id != null ? id.clone() : key.clone();
+    /**
+     * Checks if the given message and signature were signed by this key's private key.
+     *
+     * @param signature message signature to validate
+     * @param message   message buffer to validate
+     * @return true if the signature is valid for this key or false otherwise
+     */
+    default boolean isValidSignature(byte @NotNull [] signature, byte @NotNull [] message) {
+        return isValidSignature(signature, message, 0, message.length);
     }
 }

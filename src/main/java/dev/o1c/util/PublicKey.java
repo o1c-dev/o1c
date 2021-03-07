@@ -18,27 +18,29 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.modern.ristretto255;
+package dev.o1c.util;
 
-import dev.o1c.spi.CertificateFactory;
-import dev.o1c.spi.InvalidSignatureException;
-import dev.o1c.spi.PrivateKey;
-import org.junit.jupiter.api.Test;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
+public final class PublicKey {
+    private final byte @NotNull [] key;
+    private final byte @Nullable [] id;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+    public PublicKey(byte @NotNull [] key) {
+        this(key, null);
+    }
 
-class Ristretto255B3CertificateFactoryTest {
-    @Test
-    void signatureSmokeTest() {
-        CertificateFactory factory = new Ristretto255B3CertificateFactory();
-        PrivateKey key = factory.generateKey();
-        byte[] message = "Hello, world!".getBytes(StandardCharsets.UTF_8);
-        byte[] signature = key.sign(message);
-        key.verify(message, signature);
-        signature[0] >>>= 3;
-        signature[1] = (byte) ~signature[1];
-        assertThrows(InvalidSignatureException.class, () -> key.verify(message, signature));
+    public PublicKey(byte @NotNull [] key, byte @Nullable [] id) {
+        this.key = key.clone();
+        this.id = id == null ? null : id.clone();
+    }
+
+    public byte @NotNull [] key() {
+        return key.clone();
+    }
+
+    public byte @NotNull [] id() {
+        return id != null ? id.clone() : key.clone();
     }
 }

@@ -20,6 +20,7 @@
 
 package dev.o1c.spi;
 
+import dev.o1c.util.PublicKey;
 import org.jetbrains.annotations.NotNull;
 
 public interface SigncryptionKey {
