@@ -22,6 +22,7 @@ package dev.o1c.impl.ristretto255;
 
 import cafe.cryptography.curve25519.Constants;
 import cafe.cryptography.curve25519.Scalar;
+import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.spi.CipherSession;
 import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.PublicKey;
@@ -48,7 +49,7 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         challenge.finish(digest);
         Scalar r = Scalar.fromBytesModOrderWide(digest);
         byte[] R = Constants.RISTRETTO_GENERATOR_TABLE.multiply(r).compress().toByteArray();
-        CryptoHash hash = Ristretto255KeyFactory.BLAKE3.init(64);
+        CryptoHash hash = Blake3HashFactory.INSTANCE.init(64);
         hash.update(R);
         hash.update(compressed.toByteArray());
         hash.update(message, offset, length);
@@ -99,7 +100,7 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         Ristretto255PublicKey key = (Ristretto255PublicKey) serverKey;
         // TODO: determine if keyed hash or KDF hash could be more appropriate
         // this kx derivation is currently based on libsodium switching blake2b with blake3 and curve25519 with ristretto255
-        CryptoHash hash = Ristretto255KeyFactory.BLAKE3.init(64);
+        CryptoHash hash = Blake3HashFactory.INSTANCE.init(64);
         hash.update(key.element().multiply(scalar).compress().toByteArray());
         hash.update(compressed.toByteArray());
         hash.update(key.compressed.toByteArray());
@@ -115,7 +116,7 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
             throw new IllegalArgumentException("Invalid client public key type: " + clientKey.getClass());
         }
         Ristretto255PublicKey key = (Ristretto255PublicKey) clientKey;
-        CryptoHash hash = Ristretto255KeyFactory.BLAKE3.init(64);
+        CryptoHash hash = Blake3HashFactory.INSTANCE.init(64);
         hash.update(key.element().multiply(scalar).compress().toByteArray());
         hash.update(key.compressed.toByteArray());
         hash.update(compressed.toByteArray());

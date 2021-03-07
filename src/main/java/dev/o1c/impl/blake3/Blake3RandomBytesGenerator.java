@@ -21,7 +21,6 @@
 package dev.o1c.impl.blake3;
 
 import dev.o1c.spi.CryptoHash;
-import dev.o1c.spi.HashFactory;
 import dev.o1c.spi.RandomBytesGenerator;
 import dev.o1c.spi.SeedGenerator;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
     private static final ThreadLocal<Blake3RandomBytesGenerator> CURRENT = new ThreadLocal<>();
     private static final long RESEED_INTERVAL = 1L << 48;
-    private final HashFactory hashFactory = new Blake3HashFactory();
     private CryptoHash hash;
     private long counter;
 
@@ -42,7 +40,7 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
     private void reseed() {
         counter = 0;
         byte[] seed = SeedGenerator.getInstance().generateSeed(32);
-        hash = hashFactory.init(seed);
+        hash = Blake3HashFactory.INSTANCE.init(seed);
     }
 
     private void ratchet() {
@@ -51,7 +49,7 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
         } else {
             byte[] nextKey = new byte[32];
             hash.finish(nextKey);
-            hash = hashFactory.init(nextKey);
+            hash = Blake3HashFactory.INSTANCE.init(nextKey);
         }
     }
 

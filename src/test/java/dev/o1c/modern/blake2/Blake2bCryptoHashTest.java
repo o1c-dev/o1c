@@ -29,7 +29,7 @@ import java.util.List;
 class Blake2bCryptoHashTest {
     @TestFactory
     List<DynamicNode> loadTestVectors() {
-        Blake2bHashFactory factory = new Blake2bHashFactory();
+        Blake2bHashFactory factory = Blake2bHashFactory.INSTANCE;
         return CryptoHashTest.loadHashTests("blake2b256.txt.gz", factory.init(32));
     }
 }

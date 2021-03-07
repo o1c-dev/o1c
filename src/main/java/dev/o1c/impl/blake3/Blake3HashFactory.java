@@ -29,7 +29,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Produces {@link CryptoHash} instances using the <a href="https://github.com/BLAKE3-team/BLAKE3">BLAKE3 hash function</a>.
  */
-public class Blake3HashFactory implements HashFactory {
+public enum Blake3HashFactory implements HashFactory {
+    /**
+     * The singleton instance.
+     */
+    INSTANCE;
+
     /**
      * Creates a fresh BLAKE3 hasher in hash mode.
      *

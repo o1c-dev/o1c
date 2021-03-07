@@ -27,7 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 
-public class Blake2bHashFactory implements HashFactory {
+public enum Blake2bHashFactory implements HashFactory {
+    INSTANCE;
+
     private static final byte[] DERIVE_KEY_CONTEXT = "DeriveKeyContext".getBytes(StandardCharsets.US_ASCII);
     private static final byte[] DERIVE_KEY_SUBTEXT = "DeriveKeySubtext".getBytes(StandardCharsets.US_ASCII);
 

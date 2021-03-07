@@ -25,6 +25,7 @@ import cafe.cryptography.curve25519.Constants;
 import cafe.cryptography.curve25519.InvalidEncodingException;
 import cafe.cryptography.curve25519.RistrettoElement;
 import cafe.cryptography.curve25519.Scalar;
+import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.PublicKey;
@@ -80,7 +81,7 @@ public class Ristretto255PublicKey implements PublicKey {
         } catch (InvalidEncodingException | IllegalArgumentException ignored) {
             return false;
         }
-        CryptoHash hash = Ristretto255KeyFactory.BLAKE3.init(64);
+        CryptoHash hash = Blake3HashFactory.INSTANCE.init(64);
         hash.update(r);
         hash.update(compressed.toByteArray());
         hash.update(message, offset, length);

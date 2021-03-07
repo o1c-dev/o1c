@@ -32,7 +32,6 @@ import dev.o1c.modern.blake2.Blake2bHashFactory;
 import dev.o1c.spi.CipherKey;
 import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.CryptoHash;
-import dev.o1c.spi.HashFactory;
 import dev.o1c.spi.InvalidSealException;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.Vault;
@@ -61,7 +60,6 @@ public class RistrettoChaChaVault implements Vault {
     private static final RistrettoGeneratorTable BASE_GENERATOR = Constants.RISTRETTO_GENERATOR_TABLE;
 
     private final CipherKeyFactory cipherKeyFactory = new XChaCha20Poly1305CipherKeyFactory();
-    private final HashFactory hashFactory = new Blake2bHashFactory();
 
     @Override
     public KeyPair generateKeyPair() {
@@ -136,7 +134,7 @@ public class RistrettoChaChaVault implements Vault {
             hash.update((byte) context.length);
             hash.update(context);
         };
-        CryptoHash hash = hashFactory.init(ASYMMETRIC_KEY_SIZE * 2);
+        CryptoHash hash = Blake2bHashFactory.INSTANCE.init(ASYMMETRIC_KEY_SIZE * 2);
         hash.update(NONCE);
         hash.update(senderKey.getEncoded());
         hash.update(recipientKey.getEncoded());
@@ -149,14 +147,14 @@ public class RistrettoChaChaVault implements Vault {
 
         RistrettoElement kp = recipient.multiply(Scalar.fromBits(r).multiplyAndAdd(sender, ephemeralPrivateKey));
         byte[] k = kp.compress().toByteArray();
-        hash = hashFactory.init(SYMMETRIC_KEY_SIZE);
+        hash = Blake2bHashFactory.INSTANCE.init(SYMMETRIC_KEY_SIZE);
         hash.update(SHARED_KEY);
         hash.update(k);
         absorbContextInfo.accept(hash);
         byte[] sharedKey = hash.finish();
         CipherKey key = cipherKeyFactory.parseKey(sharedKey);
 
-        hash = hashFactory.init(signatureLength());
+        hash = Blake2bHashFactory.INSTANCE.init(signatureLength());
         hash.update(SIGN_KEY);
         hash.update(r);
         absorbContextInfo.accept(hash);
@@ -199,7 +197,7 @@ public class RistrettoChaChaVault implements Vault {
         }
 
         byte[] k = sender.multiply(reduced).add(publicSigningKey).multiply(recipient).compress().toByteArray();
-        CryptoHash hash = hashFactory.init(cipherKeyFactory.keyLength());
+        CryptoHash hash = Blake2bHashFactory.INSTANCE.init(cipherKeyFactory.keyLength());
         hash.update(SHARED_KEY);
         hash.update(k);
         hash.update((byte) senderId.length);
@@ -212,7 +210,7 @@ public class RistrettoChaChaVault implements Vault {
         CipherKey key = cipherKeyFactory.parseKey(sharedKey);
 
         byte[] nonce = Arrays.copyOf(wrappedData, nonceLength());
-        hash = hashFactory.init(signatureLength());
+        hash = Blake2bHashFactory.INSTANCE.init(signatureLength());
         hash.update(SIGN_KEY);
         hash.update(r);
         hash.update((byte) senderId.length);

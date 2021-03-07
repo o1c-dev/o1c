@@ -45,7 +45,7 @@ class Blake3CryptoHashTest {
         byte[] key = testVector.key.getBytes(StandardCharsets.UTF_8);
         byte[] context = testVector.context_string.getBytes(StandardCharsets.UTF_8);
         List<DynamicNode> tests = new ArrayList<>();
-        HashFactory hashFactory = new Blake3HashFactory();
+        HashFactory hashFactory = Blake3HashFactory.INSTANCE;
         CryptoHash hasher = hashFactory.init();
         for (Case testCase : testVector.cases) {
             byte[] input = new byte[testCase.input_len];

@@ -25,7 +25,6 @@ import cafe.cryptography.curve25519.Scalar;
 import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
 import dev.o1c.spi.CryptoHash;
-import dev.o1c.spi.HashFactory;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.KeyFactory;
 import dev.o1c.spi.PublicKey;
@@ -35,8 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255KeyFactory implements KeyFactory {
-    static final HashFactory BLAKE3 = new Blake3HashFactory();
-
     @Override
     public @NotNull SecretKey generateKey(byte @NotNull [] id) {
         byte[] keyData = Blake3RandomBytesGenerator.getInstance().generateBytes(32);
@@ -49,14 +46,15 @@ public class Ristretto255KeyFactory implements KeyFactory {
             throw new InvalidKeyException("Keys must be 32 bytes");
         }
         byte[] expandedKey = new byte[64];
-        BLAKE3.init(keyData).finish(expandedKey);
+        // TODO: consider using KDF context here?
+        Blake3HashFactory.INSTANCE.init(keyData).finish(expandedKey);
         byte[] lower = Arrays.copyOf(expandedKey, 32);
         byte[] upper = Arrays.copyOfRange(expandedKey, 32, 64);
         lower[0] &= 248;
         lower[31] &= 127;
         lower[31] |= 64;
         Scalar scalar = Scalar.fromBits(lower);
-        CryptoHash challenge = BLAKE3.init(upper);
+        CryptoHash challenge = Blake3HashFactory.INSTANCE.init(upper);
         return new Ristretto255SecretKey(id, scalar, challenge);
     }
 
