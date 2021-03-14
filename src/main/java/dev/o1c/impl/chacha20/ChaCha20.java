@@ -102,7 +102,7 @@ class ChaCha20 {
      *
      * @param state length 16 array of internal state decoded from a little endian byte array
      */
-    static void permute(int[] state) {
+    private void permute(int[] state) {
         for (int i = 0; i < 10; i++) {
             columnRound(state);
             diagonalRound(state);
