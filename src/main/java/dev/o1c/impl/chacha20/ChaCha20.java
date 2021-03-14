@@ -20,7 +20,83 @@
 
 package dev.o1c.impl.chacha20;
 
+import dev.o1c.util.ByteOps;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 class ChaCha20 {
+    private static final int BLOCK_BYTES = 64;
+    private static final int BLOCK_INTS = BLOCK_BYTES / Integer.BYTES;
+    private static final int KEY_OFFSET = 4;
+    private static final int KEY_BYTES = 32;
+    private static final int KEY_INTS = KEY_BYTES / Integer.BYTES;
+    private static final int COUNTER_OFFSET = 12;
+    private static final int HNONCE_OFFSET = 12;
+    private static final int HNONCE_BYTES = 16;
+    private static final int HNONCE_INTS = HNONCE_BYTES / Integer.BYTES;
+    private static final int NONCE_OFFSET = 13;
+    private static final int NONCE_BYTES = 12;
+    private static final int NONCE_INTS = NONCE_BYTES / Integer.BYTES;
+    private static final int[] ENGINE_STATE_HEADER =
+            ByteOps.unpackIntsLE("expand 32-byte k".getBytes(StandardCharsets.US_ASCII), 0, 4);
+
+    private final int[] x = new int[BLOCK_INTS];
+    private final int[] engineState = new int[BLOCK_INTS];
+
+    ChaCha20() {
+        System.arraycopy(ENGINE_STATE_HEADER, 0, engineState, 0, 4);
+    }
+
+    void initKey(byte[] key) {
+        ByteOps.unpackIntsLE(key, 0, KEY_INTS, engineState, KEY_OFFSET);
+    }
+
+    void initNonce(byte[] nonce) {
+        ByteOps.unpackIntsLE(nonce, 0, NONCE_INTS, engineState, NONCE_OFFSET);
+    }
+
+    void initCounter(int counter) {
+        engineState[COUNTER_OFFSET] = counter;
+    }
+
+    // one-shot usage
+    void crypt(byte[] in, int offset, int length, byte[] out, int outOffset) {
+        while (length > 0) {
+            System.arraycopy(engineState, 0, x, 0, BLOCK_INTS);
+            permute(x);
+            int want = Math.min(BLOCK_BYTES, length);
+            for (int i = 0, j = 0; i < want; i += Integer.BYTES, j++) {
+                int keyStream = engineState[j] + x[j];
+                int take = Math.min(Integer.BYTES, length);
+                int input = ByteOps.unpackIntLE(in, offset, take);
+                int output = keyStream ^ input;
+                ByteOps.packIntLE(output, out, outOffset, take);
+                offset += take;
+                outOffset += take;
+                length -= take;
+            }
+            engineState[COUNTER_OFFSET]++;
+        }
+    }
+
+    byte[] polyKey() {
+        byte[] block = new byte[BLOCK_BYTES];
+        initCounter(0);
+        crypt(block, 0, block.length, block, 0);
+        return Arrays.copyOf(block, KEY_BYTES);
+    }
+
+    byte[] hKey(byte[] nonce) {
+        ByteOps.unpackIntsLE(nonce, 0, HNONCE_INTS, engineState, HNONCE_OFFSET);
+        System.arraycopy(engineState, 0, x, 0, BLOCK_INTS);
+        permute(x);
+        byte[] hKey = new byte[KEY_BYTES];
+        ByteOps.packIntsLE(x, 0, 4, hKey, 0);
+        ByteOps.packIntsLE(x, 12, 4, hKey, 16);
+        return hKey;
+    }
+
     /**
      * Performs an in-place ChaCha20 permutation on the provided state array.
      *

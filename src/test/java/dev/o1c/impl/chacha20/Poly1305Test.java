@@ -20,16 +20,23 @@
 
 package dev.o1c.impl.chacha20;
 
-import dev.o1c.spi.CipherKeyFactoryTest;
-import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.TestFactory;
+import dev.o1c.util.ByteOps;
+import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 
-class XChaCha20Poly1305CipherKeyFactoryTest {
-    @TestFactory
-    List<DynamicNode> loadTestVectors() {
-        return CipherKeyFactoryTest
-                .loadAEADTests("xchacha20poly1305.txt.gz", XChaCha20Poly1305CipherKeyFactory.INSTANCE);
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
+class Poly1305Test {
+    @Test
+    void standardTest() {
+        byte[] key = ByteOps.fromHex("85d6be7857556d337f4452fe42d506a80103808afb0db2fd4abff6af4149f51b");
+        byte[] mac = ByteOps.fromHex("a8061dc1305136c6c22b8baf0c0127a9");
+        byte[] message = "Cryptographic Forum Research Group".getBytes(StandardCharsets.US_ASCII);
+
+        Poly1305 poly1305 = new Poly1305();
+        poly1305.init(key);
+        poly1305.update(message, 0, message.length);
+        assertArrayEquals(mac, poly1305.computeMac());
     }
 }

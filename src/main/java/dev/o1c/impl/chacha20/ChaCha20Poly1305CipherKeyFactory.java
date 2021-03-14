@@ -20,16 +20,27 @@
 
 package dev.o1c.impl.chacha20;
 
-import dev.o1c.spi.CipherKeyFactoryTest;
-import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.TestFactory;
+import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
+import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.CipherKeyFactory;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+public enum ChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
+    INSTANCE;
 
-class XChaCha20Poly1305CipherKeyFactoryTest {
-    @TestFactory
-    List<DynamicNode> loadTestVectors() {
-        return CipherKeyFactoryTest
-                .loadAEADTests("xchacha20poly1305.txt.gz", XChaCha20Poly1305CipherKeyFactory.INSTANCE);
+    @Override
+    public int keyLength() {
+        return 32;
+    }
+
+    @Override
+    public CipherKey generateKey() {
+        return new ChaCha20Poly1305CipherKey(Blake3RandomBytesGenerator.getInstance().generateBytes(keyLength()));
+    }
+
+    @Override
+    public CipherKey parseKey(byte @NotNull [] key) {
+        checkKeyLength(key.length);
+        return new ChaCha20Poly1305CipherKey(key);
     }
 }
