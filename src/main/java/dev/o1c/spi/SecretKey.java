@@ -23,19 +23,25 @@ package dev.o1c.spi;
 import org.jetbrains.annotations.NotNull;
 
 public interface SecretKey extends PublicKey {
-    byte @NotNull [] sign(byte @NotNull [] message, int offset, int length);
+    void sign(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
+
+    default byte @NotNull [] sign(byte @NotNull [] message, int offset, int length) {
+        byte[] signature = new byte[signatureLength()];
+        sign(message, offset, length, signature, 0);
+        return signature;
+    }
 
     default byte @NotNull [] sign(byte @NotNull [] message) {
         return sign(message, 0, message.length);
     }
 
-    void clientToServer(
-            @NotNull PublicKey server, byte @NotNull [] context,
-            byte @NotNull [] rx, int rxOffset, byte @NotNull [] tx, int txOffset);
+    void exchangeSecret(@NotNull PublicKey peer, byte @NotNull [] secret, int offset);
 
-    void serverToClient(
-            @NotNull PublicKey client, byte @NotNull [] context,
-            byte @NotNull [] rx, int rxOffset, byte @NotNull [] tx, int txOffset);
+    default byte @NotNull [] exchangeSecret(@NotNull PublicKey peer) {
+        byte[] secret = new byte[keyLength()];
+        exchangeSecret(peer, secret, 0);
+        return secret;
+    }
 
     void encrypt(
             @NotNull PublicKey recipient, byte @NotNull [] nonce, byte @NotNull [] context,

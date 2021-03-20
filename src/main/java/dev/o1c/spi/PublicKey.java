@@ -31,6 +31,20 @@ public interface PublicKey {
     byte @NotNull [] id();
 
     /**
+     * Returns the length of this key in bytes.
+     *
+     * @return the length of this key in bytes
+     */
+    int keyLength();
+
+    /**
+     * Returns the length of signatures this key uses.
+     *
+     * @return the length of signatures in bytes
+     */
+    int signatureLength();
+
+    /**
      * Checks if the given message and signature were signed by this key's private key.
      *
      * @param signature message signature to validate

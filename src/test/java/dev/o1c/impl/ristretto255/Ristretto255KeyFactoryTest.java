@@ -45,15 +45,9 @@ class Ristretto255KeyFactoryTest {
 
     @Test
     void keyExchangeSmokeTest() {
-        byte[] context = "test_kx".getBytes(StandardCharsets.UTF_8);
-        byte[] a2bTx = new byte[32];
-        byte[] a2bRx = new byte[32];
-        byte[] b2aTx = new byte[32];
-        byte[] b2aRx = new byte[32];
-        alice.clientToServer(bob, context, a2bRx, 0, a2bTx, 0);
-        bob.serverToClient(alice, context, b2aRx, 0, b2aTx, 0);
-        assertArrayEquals(a2bTx, b2aRx);
-        assertArrayEquals(b2aTx, a2bRx);
+        byte[] a2b = alice.exchangeSecret(bob);
+        byte[] b2a = bob.exchangeSecret(alice);
+        assertArrayEquals(a2b, b2a);
     }
 
     @Test

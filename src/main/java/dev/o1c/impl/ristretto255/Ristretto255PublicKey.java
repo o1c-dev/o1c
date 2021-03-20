@@ -64,8 +64,20 @@ public class Ristretto255PublicKey implements PublicKey {
     }
 
     @Override
+    public int keyLength() {
+        return 32;
+    }
+
+    @Override
+    public int signatureLength() {
+        return 64;
+    }
+
+    // TODO: add a validation for signcrypted messages
+
+    @Override
     public boolean isValidSignature(byte @NotNull [] signature, byte @NotNull [] message, int offset, int length) {
-        if (signature.length != 64) {
+        if (signature.length != signatureLength()) {
             return false;
         }
         byte[] r = Arrays.copyOf(signature, 32);

@@ -35,6 +35,7 @@ import dev.o1c.spi.PublicKey;
 import dev.o1c.spi.SecretKey;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.BufferOverflowException;
 import java.util.Arrays;
 
 public class Ristretto255SecretKey extends Ristretto255PublicKey implements SecretKey {
@@ -50,7 +51,7 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
     }
 
     @Override
-    public byte @NotNull [] sign(byte @NotNull [] message, int offset, int length) {
+    public void sign(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset) {
         challenge.reset();
         challenge.update(message, offset, length);
         byte[] digest = new byte[64];
@@ -65,44 +66,22 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         Scalar k = Scalar.fromBytesModOrderWide(digest);
         Scalar s = k.multiplyAndAdd(scalar, r);
         byte[] S = s.toByteArray();
-        byte[] signature = new byte[64];
-        System.arraycopy(R, 0, signature, 0, 32);
-        System.arraycopy(S, 0, signature, 32, 32);
-        return signature;
+        System.arraycopy(R, 0, signature, sigOffset, 32);
+        System.arraycopy(S, 0, signature, sigOffset + 32, 32);
     }
 
     @Override
-    public void clientToServer(
-            @NotNull PublicKey server, byte @NotNull [] context, byte @NotNull [] rx, int rxOffset, byte @NotNull [] tx,
-            int txOffset) {
-        if (!(server instanceof Ristretto255PublicKey)) {
-            throw new IllegalArgumentException("Invalid server public key type: " + server.getClass());
+    public void exchangeSecret(@NotNull PublicKey peer, byte @NotNull [] secret, int offset) {
+        if (!(peer instanceof Ristretto255PublicKey)) {
+            throw new IllegalArgumentException(
+                    "Invalid peer public key type; expected Ristretto255PublicKey but got " + peer.getClass());
         }
-        Ristretto255PublicKey serverKey = (Ristretto255PublicKey) server;
-        byte[] k = serverKey.element.multiply(scalar).compress().toByteArray();
-        sharedKeyHash.reset();
-        sharedKeyHash.update(k);
-        sharedKeyHash.updateRLE(id);
-        sharedKeyHash.updateRLE(serverKey.id);
-        sharedKeyHash.finish(rx, rxOffset, 32);
-        sharedKeyHash.finish(tx, txOffset, 32);
-    }
-
-    @Override
-    public void serverToClient(
-            @NotNull PublicKey client, byte @NotNull [] context, byte @NotNull [] rx, int rxOffset, byte @NotNull [] tx,
-            int txOffset) {
-        if (!(client instanceof Ristretto255PublicKey)) {
-            throw new IllegalArgumentException("Invalid client public key type: " + client.getClass());
+        if (offset > secret.length - keyLength()) {
+            throw new BufferOverflowException();
         }
-        Ristretto255PublicKey clientKey = (Ristretto255PublicKey) client;
-        byte[] k = clientKey.element.multiply(scalar).compress().toByteArray();
-        sharedKeyHash.reset();
-        sharedKeyHash.update(k);
-        sharedKeyHash.updateRLE(clientKey.id);
-        sharedKeyHash.updateRLE(id);
-        sharedKeyHash.finish(tx, txOffset, 32);
-        sharedKeyHash.finish(rx, rxOffset, 32);
+        RistrettoElement product = ((Ristretto255PublicKey) peer).element.multiply(scalar);
+        byte[] bytes = product.compress().toByteArray();
+        System.arraycopy(bytes, 0, secret, offset, bytes.length);
     }
 
     @Override
