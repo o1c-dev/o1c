@@ -29,6 +29,7 @@ import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
 import dev.o1c.impl.chacha20.XChaCha20Poly1305CipherKeyFactory;
 import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.PublicKey;
@@ -43,6 +44,7 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
     private final CryptoHash sharedKeyHash = Blake3HashFactory.INSTANCE.initKDF("shared_key");
     private final Scalar scalar;
     private final CryptoHash challenge;
+    private final CipherKeyFactory cipherKeyFactory = XChaCha20Poly1305CipherKeyFactory.INSTANCE;
 
     Ristretto255SecretKey(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull CryptoHash challenge) {
         super(id, Constants.RISTRETTO_GENERATOR_TABLE.multiply(scalar));
@@ -91,7 +93,17 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
             int tagOffset) {
         Validator.checkBufferArgs(plaintext, ptOffset, ptLength);
         Validator.checkBufferArgs(ciphertext, ctOffset, ptLength);
-        throw new UnsupportedOperationException("TODO");
+
+        sharedKeyHash.reset();
+        sharedKeyHash.update(exchangeSecret(recipient));
+        sharedKeyHash.updateRLE(id);
+        sharedKeyHash.updateRLE(recipient.id());
+        sharedKeyHash.updateRLE(context);
+        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        sharedKeyHash.finish(sharedKey);
+
+        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
+        cipherKey.encrypt(nonce, context, plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
     }
 
     @Override
@@ -100,9 +112,34 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
             int ctOffset, int ctLength, byte @NotNull [] tag, int tagOffset, byte @NotNull [] plaintext, int ptOffset) {
         Validator.checkBufferArgs(ciphertext, ctOffset, ctLength);
         Validator.checkBufferArgs(plaintext, ptOffset, ctLength);
-        throw new UnsupportedOperationException("TODO");
+
+        sharedKeyHash.reset();
+        sharedKeyHash.update(exchangeSecret(sender));
+        sharedKeyHash.updateRLE(sender.id());
+        sharedKeyHash.updateRLE(id);
+        sharedKeyHash.updateRLE(context);
+        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        sharedKeyHash.finish(sharedKey);
+
+        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
+        cipherKey.decrypt(nonce, context, ciphertext, ctOffset, ctLength, tag, tagOffset, plaintext, ptOffset);
     }
 
+    /*
+    given sender keys W_a = w_a * G with id_a, and recipient keys W_b = w_b * G with id_b
+    1. validate recipient certificate if used
+    2. select random scalar r
+    3. compute R = r * G where G is the generator element; let R = (x_r, y_r) in compressed x/y coordinates
+    4. given key size in bits f (256 in ed25519), let x_r' = 2^ceil(f/2) + (x_r % 2^ceil(f/2))
+    (or x_r' = 2^128 + (x_r % 2^128)
+    compute K = (r + x_r' * w_a) * W_b, where K = (x_K, y_K) in compressed coordinates
+    if K is the identity element, retry back to #2.
+    let session key k = H(x_K || id_a || y_K || id_b)
+    5. compute ciphertext C = E_k(M)
+    6. compute t = H(C || x_r || id_a || y_r || id_b)
+    compute s = (t * w_a - r) % n
+    7. send signcrypted (R, C, s)
+     */
     @Override
     public void signcrypt(
             @NotNull PublicKey recipient, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] plaintext,
@@ -133,7 +170,9 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         sharedKeyHash.updateRLE(id);
         sharedKeyHash.updateRLE(recipientKey.id);
         sharedKeyHash.updateRLE(context);
-        CipherKey cipherKey = XChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(sharedKeyHash.finish());
+        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        sharedKeyHash.finish(sharedKey);
+        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
 
         signKeyHash.reset();
         signKeyHash.update(R);
@@ -150,6 +189,14 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         System.arraycopy(S, 0, signature, sigOffset + R.length, S.length);
     }
 
+    /*
+    given signcrypted message (R, C, s)
+    compute K = w_b * (R + x_r' * W_a) = (x_K, y_K)
+    compute k = H(x_K || id_a || y_K || id_b)
+    decrypt M = D_k(C)
+    compute t = H(C || x_r || id_a || y_r || id_b)
+    verify that s * G + R = t * W_a
+     */
     @Override
     public void unsigncrypt(
             @NotNull PublicKey sender, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] ciphertext,
@@ -178,7 +225,9 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         sharedKeyHash.updateRLE(senderKey.id);
         sharedKeyHash.updateRLE(id);
         sharedKeyHash.updateRLE(context);
-        CipherKey cipherKey = XChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(sharedKeyHash.finish());
+        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        sharedKeyHash.finish(sharedKey);
+        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
 
         signKeyHash.reset();
         signKeyHash.update(rBytes);

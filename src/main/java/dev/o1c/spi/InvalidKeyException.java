@@ -22,7 +22,6 @@ package dev.o1c.spi;
 
 import dev.o1c.O1CException;
 
-// TODO: update code to use this instead of IllegalArgumentException
 public class InvalidKeyException extends O1CException {
     public InvalidKeyException(String message) {
         super(message);

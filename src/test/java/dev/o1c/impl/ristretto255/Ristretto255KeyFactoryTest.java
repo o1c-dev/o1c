@@ -64,4 +64,18 @@ class Ristretto255KeyFactoryTest {
         bob.unsigncrypt(alice, nonce, context, ciphertext, 0, ciphertext.length, tag, 0, sig, 0, plaintext, 0);
         assertArrayEquals(message, plaintext);
     }
+
+    @Test
+    void encryptSmokeTest() {
+        byte[] message = "Another encryption smoke test".getBytes(StandardCharsets.UTF_8);
+        byte[] context = getClass().getName().getBytes(StandardCharsets.UTF_8);
+        byte[] nonce = Blake3RandomBytesGenerator.getInstance().generateBytes(24);
+        byte[] tag = new byte[16];
+        byte[] ciphertext = new byte[message.length];
+        byte[] plaintext = new byte[message.length];
+
+        alice.encrypt(bob, nonce, context, message, 0, message.length, ciphertext, 0, tag, 0);
+        bob.decrypt(alice, nonce, context, ciphertext, 0, ciphertext.length, tag, 0, plaintext, 0);
+        assertArrayEquals(message, plaintext);
+    }
 }
