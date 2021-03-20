@@ -29,6 +29,7 @@ import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.PublicKey;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -77,6 +78,7 @@ public class Ristretto255PublicKey implements PublicKey {
 
     @Override
     public boolean isValidSignature(byte @NotNull [] signature, byte @NotNull [] message, int offset, int length) {
+        Validator.checkBufferArgs(message, offset, length);
         if (signature.length != signatureLength()) {
             return false;
         }

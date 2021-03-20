@@ -21,6 +21,7 @@
 package dev.o1c.impl.blake3;
 
 import dev.o1c.spi.CryptoHash;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -72,11 +73,13 @@ public class Blake3CryptoHash implements CryptoHash {
 
     @Override
     public void update(byte @NotNull [] in, int offset, int length) {
+        Validator.checkBufferArgs(in, offset, length);
         inputData(in, offset, length);
     }
 
     @Override
     public void finish(byte @NotNull [] out, int offset, int length) {
+        Validator.checkBufferArgs(out, offset, length);
         outputHash(out, offset, length);
     }
 

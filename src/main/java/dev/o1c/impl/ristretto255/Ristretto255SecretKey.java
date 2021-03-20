@@ -33,9 +33,9 @@ import dev.o1c.spi.CryptoHash;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.PublicKey;
 import dev.o1c.spi.SecretKey;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.BufferOverflowException;
 import java.util.Arrays;
 
 public class Ristretto255SecretKey extends Ristretto255PublicKey implements SecretKey {
@@ -52,6 +52,8 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
 
     @Override
     public void sign(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset) {
+        Validator.checkBufferArgs(message, offset, length);
+        Validator.checkBufferArgs(signature, sigOffset, signatureLength());
         challenge.reset();
         challenge.update(message, offset, length);
         byte[] digest = new byte[64];
@@ -76,9 +78,7 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
             throw new IllegalArgumentException(
                     "Invalid peer public key type; expected Ristretto255PublicKey but got " + peer.getClass());
         }
-        if (offset > secret.length - keyLength()) {
-            throw new BufferOverflowException();
-        }
+        Validator.checkBufferArgs(secret, offset, keyLength());
         RistrettoElement product = ((Ristretto255PublicKey) peer).element.multiply(scalar);
         byte[] bytes = product.compress().toByteArray();
         System.arraycopy(bytes, 0, secret, offset, bytes.length);
@@ -89,6 +89,8 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
             @NotNull PublicKey recipient, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] plaintext,
             int ptOffset, int ptLength, byte @NotNull [] ciphertext, int ctOffset, byte @NotNull [] tag,
             int tagOffset) {
+        Validator.checkBufferArgs(plaintext, ptOffset, ptLength);
+        Validator.checkBufferArgs(ciphertext, ctOffset, ptLength);
         throw new UnsupportedOperationException("TODO");
     }
 
@@ -96,6 +98,8 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
     public void decrypt(
             @NotNull PublicKey sender, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] ciphertext,
             int ctOffset, int ctLength, byte @NotNull [] tag, int tagOffset, byte @NotNull [] plaintext, int ptOffset) {
+        Validator.checkBufferArgs(ciphertext, ctOffset, ctLength);
+        Validator.checkBufferArgs(plaintext, ptOffset, ctLength);
         throw new UnsupportedOperationException("TODO");
     }
 
@@ -107,13 +111,15 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         if (!(recipient instanceof Ristretto255PublicKey)) {
             throw new IllegalArgumentException("Invalid recipient key type: " + recipient.getClass());
         }
+        Validator.checkBufferArgs(plaintext, ptOffset, ptLength);
+        Validator.checkBufferArgs(ciphertext, ctOffset, ptLength);
+        Validator.checkBufferArgs(signature, sigOffset, signatureLength());
         Ristretto255PublicKey recipientKey = (Ristretto255PublicKey) recipient;
-        Blake3RandomBytesGenerator random = Blake3RandomBytesGenerator.getInstance();
 
         nonceHash.reset();
         nonceHash.update(scalar.toByteArray());
         nonceHash.update(recipientKey.compressed.toByteArray());
-        nonceHash.update(random.generateBytes(32));
+        nonceHash.update(Blake3RandomBytesGenerator.getInstance().generateBytes(32));
         nonceHash.update(plaintext, ptOffset, ptLength);
         byte[] hash = new byte[64];
         nonceHash.finish(hash);
@@ -152,6 +158,8 @@ public class Ristretto255SecretKey extends Ristretto255PublicKey implements Secr
         if (!(sender instanceof Ristretto255PublicKey)) {
             throw new IllegalArgumentException("Invalid sender public key type: " + sender.getClass());
         }
+        Validator.checkBufferArgs(ciphertext, ctOffset, ctLength);
+        Validator.checkBufferArgs(signature, sigOffset, signatureLength());
         Ristretto255PublicKey senderKey = (Ristretto255PublicKey) sender;
         byte[] rBytes = Arrays.copyOfRange(signature, sigOffset, sigOffset + 32);
         byte[] sBytes = Arrays.copyOfRange(signature, sigOffset + 32, sigOffset + 64);

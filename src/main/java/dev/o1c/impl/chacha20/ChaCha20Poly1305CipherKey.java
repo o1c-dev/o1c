@@ -22,6 +22,7 @@ package dev.o1c.impl.chacha20;
 
 import dev.o1c.spi.CipherKey;
 import dev.o1c.spi.InvalidAuthenticationTagException;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.MessageDigest;
@@ -55,6 +56,9 @@ public class ChaCha20Poly1305CipherKey implements CipherKey {
             byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length,
             byte @NotNull [] out, int outOffset, byte @NotNull [] tag, int tagOffset) {
         checkNonceLength(nonce.length);
+        Validator.checkBufferArgs(in, offset, length);
+        Validator.checkBufferArgs(out, outOffset, length);
+        Validator.checkBufferArgs(tag, tagOffset, tagLength());
         init(nonce, context);
         cipher.crypt(in, offset, length, out, outOffset);
         authenticator.updatePad(out, outOffset, length);
@@ -67,6 +71,9 @@ public class ChaCha20Poly1305CipherKey implements CipherKey {
             byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length,
             byte @NotNull [] tag, int tagOffset, byte @NotNull [] out, int outOffset) {
         checkNonceLength(nonce.length);
+        Validator.checkBufferArgs(in, offset, length);
+        Validator.checkBufferArgs(tag, tagOffset, tagLength());
+        Validator.checkBufferArgs(out, outOffset, length);
         init(nonce, context);
         authenticator.updatePad(in, offset, length);
         authenticator.updateLengths(context.length, length);

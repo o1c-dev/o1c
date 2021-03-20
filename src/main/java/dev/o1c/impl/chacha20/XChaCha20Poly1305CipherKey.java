@@ -22,6 +22,7 @@ package dev.o1c.impl.chacha20;
 
 import dev.o1c.spi.CipherKey;
 import dev.o1c.util.ByteOps;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -52,6 +53,9 @@ public class XChaCha20Poly1305CipherKey implements CipherKey {
             byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] out,
             int outOffset, byte @NotNull [] tag, int tagOffset) {
         checkNonceLength(nonce.length);
+        Validator.checkBufferArgs(in, offset, length);
+        Validator.checkBufferArgs(out, outOffset, length);
+        Validator.checkBufferArgs(tag, tagOffset, tagLength());
         byte[] hNonce = Arrays.copyOf(nonce, 16);
         byte[] sNonce = Arrays.copyOfRange(nonce, 12, 24);
         ByteOps.overwriteWithZeroes(sNonce, 0, 4);
@@ -64,6 +68,9 @@ public class XChaCha20Poly1305CipherKey implements CipherKey {
             byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] tag,
             int tagOffset, byte @NotNull [] out, int outOffset) {
         checkNonceLength(nonce.length);
+        Validator.checkBufferArgs(in, offset, length);
+        Validator.checkBufferArgs(tag, tagOffset, tagLength());
+        Validator.checkBufferArgs(out, outOffset, length);
         byte[] hNonce = Arrays.copyOf(nonce, 16);
         byte[] sNonce = Arrays.copyOfRange(nonce, 12, 24);
         ByteOps.overwriteWithZeroes(sNonce, 0, 4);
