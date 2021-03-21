@@ -98,12 +98,6 @@
       <version>20.1.0</version>
     </dependency>
     <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk15on</artifactId>
-      <version>1.67</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>cafe.cryptography</groupId>
       <artifactId>curve25519-elisabeth</artifactId>
       <version>0.1.0</version>
