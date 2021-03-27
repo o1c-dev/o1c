@@ -40,10 +40,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-public class CipherKeyFactoryTest {
-    public static @NotNull List<DynamicNode> loadAEADTests(@NotNull String testResource, @NotNull CipherKeyFactory keyFactory) {
+public class CipherTest {
+    public static @NotNull List<DynamicNode> loadAEADTests(@NotNull String testResource, @NotNull Cipher cipher) {
         List<DynamicNode> vectors = new ArrayList<>(1088);
-        InputStream stream = keyFactory.getClass().getResourceAsStream(testResource);
+        InputStream stream = cipher.getClass().getResourceAsStream(testResource);
         assertNotNull(stream, "No test resource found: " + testResource);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(stream), StandardCharsets.UTF_8))) {
             Pattern countLine = Pattern.compile("Count = (\\d+)");
@@ -58,7 +58,7 @@ public class CipherKeyFactoryTest {
                 String count = matcher.group(1);
                 matcher = keyLine.matcher(reader.readLine());
                 assertTrue(matcher.matches());
-                CipherKey key = keyFactory.parseKey(ByteOps.fromHex(matcher.group(1)));
+                byte[] key = ByteOps.fromHex(matcher.group(1));
                 matcher = nonceLine.matcher(reader.readLine());
                 assertTrue(matcher.matches());
                 byte[] nonce = ByteOps.fromHex(matcher.group(1));
@@ -77,9 +77,9 @@ public class CipherKeyFactoryTest {
                 reader.readLine(); // empty line
                 vectors.add(dynamicContainer("P[" + pt + "]A[" + ad + "]", Arrays.asList(
                         dynamicTest("encrypt",
-                                () -> assertArrayEquals(ciphertext, key.encrypt(nonce, context, plaintext))),
+                                () -> assertArrayEquals(ciphertext, cipher.encrypt(key, nonce, context, plaintext))),
                         dynamicTest("decrypt",
-                                () -> assertArrayEquals(plaintext, key.decrypt(nonce, context, ciphertext)))
+                                () -> assertArrayEquals(plaintext, cipher.decrypt(key, nonce, context, ciphertext)))
                 )));
             }
         } catch (IOException e) {

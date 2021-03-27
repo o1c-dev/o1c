@@ -21,15 +21,14 @@
 package dev.o1c.lwc.ascon;
 
 import dev.o1c.lwc.NistLwcTestVectors;
-import dev.o1c.lwc.gimli.GimliRandomBytesGenerator;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
 
-class AsconCipherKeyFactoryTest {
+class AsconCipherTest {
     @TestFactory
     List<DynamicNode> testVectors() {
-        return NistLwcTestVectors.loadAEADTestVectors(new AsconCipherKeyFactory(GimliRandomBytesGenerator.getInstance()));
+        return NistLwcTestVectors.loadAEADTestVectors(new AsconCipher());
     }
 }

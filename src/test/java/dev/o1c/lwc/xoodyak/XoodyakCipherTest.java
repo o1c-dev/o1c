@@ -26,9 +26,9 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
 
-class XoodyakCipherKeyFactoryTest {
+class XoodyakCipherTest {
     @TestFactory
     List<DynamicNode> testVectors() {
-        return NistLwcTestVectors.loadAEADTestVectors(new XoodyakCipherKeyFactory());
+        return NistLwcTestVectors.loadAEADTestVectors(new XoodyakCipher());
     }
 }

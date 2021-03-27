@@ -20,19 +20,25 @@
 
 package dev.o1c.lwc.xoodyak;
 
-import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.Cipher;
 import dev.o1c.spi.InvalidAuthenticationTagException;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-class XoodyakCipherKey implements CipherKey {
+class XoodyakCipher implements Cipher {
     private final Xoodyak xoodyak = new Xoodyak();
-    private final byte[] key;
 
-    XoodyakCipherKey(byte @NotNull [] key) {
-        this.key = key;
+    @Override
+    public int keyLength() {
+        return 16;
+    }
+
+    @Override
+    public void setKey(byte @NotNull [] key) {
+        checkKeyLength(key.length);
         xoodyak.initialize(key);
     }
 
@@ -42,32 +48,42 @@ class XoodyakCipherKey implements CipherKey {
     }
 
     @Override
+    public void setNonce(byte @NotNull [] nonce) {
+        checkNonceLength(nonce.length);
+        xoodyak.absorb(nonce, 0, nonce.length);
+    }
+
+    @Override
     public int tagLength() {
         return 16;
     }
 
     @Override
+    public void setContext(byte @NotNull [] context, int offset, int length) {
+        Validator.checkBufferArgs(context, offset, length);
+        xoodyak.absorb(context, offset, length);
+    }
+
+    @Override
     public void encrypt(
-            byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] out,
-            int outOffset, byte @NotNull [] tag, int tagOffset) {
-        checkNonceLength(nonce.length);
-        xoodyak.initialize(key);
-        xoodyak.absorb(nonce, 0, nonce.length);
-        xoodyak.absorb(context, 0, context.length);
-        xoodyak.encrypt(in, offset, length, out, outOffset);
+            byte @NotNull [] plaintext, int ptOffset, int ptLength, byte @NotNull [] ciphertext, int ctOffset,
+            byte @NotNull [] tag, int tagOffset) {
+        Validator.checkBufferArgs(plaintext, ptOffset, ptLength);
+        Validator.checkBufferArgs(ciphertext, ctOffset, ptLength);
+        Validator.checkBufferArgs(tag, tagOffset, tagLength());
+        xoodyak.encrypt(plaintext, ptOffset, ptLength, ciphertext, ctOffset);
         xoodyak.squeeze(tag, tagOffset, tagLength());
         xoodyak.ratchet();
     }
 
     @Override
     public void decrypt(
-            byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] in, int offset, int length, byte @NotNull [] tag,
-            int tagOffset, byte @NotNull [] out, int outOffset) {
-        checkNonceLength(nonce.length);
-        xoodyak.initialize(key);
-        xoodyak.absorb(nonce, 0, nonce.length);
-        xoodyak.absorb(context, 0, context.length);
-        xoodyak.decrypt(in, offset, length, out, outOffset);
+            byte @NotNull [] ciphertext, int ctOffset, int ctLength, byte @NotNull [] tag, int tagOffset,
+            byte @NotNull [] plaintext, int ptOffset) {
+        Validator.checkBufferArgs(ciphertext, ctOffset, ctLength);
+        Validator.checkBufferArgs(tag, tagOffset, tagLength());
+        Validator.checkBufferArgs(plaintext, ptOffset, ctLength);
+        xoodyak.decrypt(ciphertext, ctOffset, ctLength, plaintext, ptOffset);
         byte[] expected = Arrays.copyOfRange(tag, tagOffset, tagOffset + tagLength());
         byte[] actual = new byte[tagLength()];
         xoodyak.squeeze(actual, 0, actual.length);

@@ -85,9 +85,17 @@ class Gimli {
         return state.clone();
     }
 
-    void init(byte @NotNull [] key, byte @NotNull [] nonce) {
+    void setKey(byte @NotNull [] key) {
+        ByteOps.unpackIntsLE(key, 0, key.length / Integer.BYTES, state, 4);
+    }
+
+    void setNonce(byte @NotNull [] nonce) {
         ByteOps.unpackIntsLE(nonce, 0, nonce.length / Integer.BYTES, state, 0);
-        ByteOps.unpackIntsLE(key, 0, key.length / Integer.BYTES, state, nonce.length / Integer.BYTES);
+    }
+
+    void init(byte @NotNull [] key, byte @NotNull [] nonce) {
+        setKey(key);
+        setNonce(nonce);
         permute();
     }
 

@@ -27,13 +27,12 @@ import cafe.cryptography.curve25519.RistrettoElement;
 import cafe.cryptography.curve25519.Scalar;
 import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
-import dev.o1c.impl.chacha20.XChaCha20Poly1305CipherKeyFactory;
-import dev.o1c.spi.CipherKey;
-import dev.o1c.spi.CipherKeyFactory;
+import dev.o1c.impl.chacha20.XChaCha20Poly1305Cipher;
+import dev.o1c.spi.Cipher;
 import dev.o1c.spi.Hash;
 import dev.o1c.spi.InvalidSignatureException;
-import dev.o1c.spi.PublicKey;
 import dev.o1c.spi.KeyPair;
+import dev.o1c.spi.PublicKey;
 import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +43,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
     private final Hash sharedKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("shared_key");
     private final Scalar scalar;
     private final Hash challenge;
-    private final CipherKeyFactory cipherKeyFactory = XChaCha20Poly1305CipherKeyFactory.INSTANCE;
+    private final Cipher cipher = new XChaCha20Poly1305Cipher();
 
     Ristretto255KeyPair(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull Hash challenge) {
         super(id, Constants.RISTRETTO_GENERATOR_TABLE.multiply(scalar));
@@ -99,11 +98,13 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.updateRLE(id);
         sharedKeyHash.updateRLE(recipient.id());
         sharedKeyHash.updateRLE(context);
-        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
 
-        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
-        cipherKey.encrypt(nonce, context, plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
+        cipher.setKey(sharedKey);
+        cipher.setNonce(nonce);
+        cipher.setContext(context);
+        cipher.encrypt(plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
     }
 
     @Override
@@ -118,11 +119,13 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.updateRLE(sender.id());
         sharedKeyHash.updateRLE(id);
         sharedKeyHash.updateRLE(context);
-        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
 
-        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
-        cipherKey.decrypt(nonce, context, ciphertext, ctOffset, ctLength, tag, tagOffset, plaintext, ptOffset);
+        cipher.setKey(sharedKey);
+        cipher.setNonce(nonce);
+        cipher.setContext(context);
+        cipher.decrypt(ciphertext, ctOffset, ctLength, tag, tagOffset, plaintext, ptOffset);
     }
 
     /*
@@ -170,16 +173,18 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.updateRLE(id);
         sharedKeyHash.updateRLE(recipientKey.id);
         sharedKeyHash.updateRLE(context);
-        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
-        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
+        cipher.setKey(sharedKey);
+        cipher.setNonce(nonce);
+        cipher.setContext(context);
 
         signKeyHash.reset();
         signKeyHash.update(R);
         signKeyHash.updateRLE(id);
         signKeyHash.updateRLE(recipientKey.id);
         signKeyHash.updateRLE(context);
-        cipherKey.encrypt(nonce, context, plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
+        cipher.encrypt(plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
         signKeyHash.update(ciphertext, ctOffset, ptLength);
         signKeyHash.doFinalize(hash);
         Scalar t = Scalar.fromBytesModOrderWide(hash);
@@ -225,9 +230,11 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.updateRLE(senderKey.id);
         sharedKeyHash.updateRLE(id);
         sharedKeyHash.updateRLE(context);
-        byte[] sharedKey = new byte[cipherKeyFactory.keyLength()];
+        byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
-        CipherKey cipherKey = cipherKeyFactory.parseKey(sharedKey);
+        cipher.setKey(sharedKey);
+        cipher.setNonce(nonce);
+        cipher.setContext(context);
 
         signKeyHash.reset();
         signKeyHash.update(rBytes);
@@ -241,6 +248,6 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         if (!senderKey.element.multiply(t).equals(Constants.RISTRETTO_GENERATOR_TABLE.multiply(s).add(R))) {
             throw new InvalidSignatureException("Signature mismatch");
         }
-        cipherKey.decrypt(nonce, context, ciphertext, ctOffset, ctLength, tag, tagOffset, plaintext, ptOffset);
+        cipher.decrypt(ciphertext, ctOffset, ctLength, tag, tagOffset, plaintext, ptOffset);
     }
 }

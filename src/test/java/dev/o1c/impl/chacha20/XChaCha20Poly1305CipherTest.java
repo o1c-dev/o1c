@@ -18,27 +18,17 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.lwc.xoodyak;
+package dev.o1c.impl.chacha20;
 
-import dev.o1c.spi.CipherKey;
-import dev.o1c.spi.CipherKeyFactory;
-import org.jetbrains.annotations.NotNull;
+import dev.o1c.spi.CipherTest;
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.TestFactory;
 
-public class XoodyakCipherKeyFactory implements CipherKeyFactory {
+import java.util.List;
 
-    @Override
-    public int keyLength() {
-        return 16;
-    }
-
-    @Override
-    public CipherKey generateKey() {
-        return parseKey(XoodyakRandomBytesGenerator.getInstance().generateBytes(keyLength()));
-    }
-
-    @Override
-    public CipherKey parseKey(byte @NotNull [] key) {
-        checkKeyLength(key.length);
-        return new XoodyakCipherKey(key);
+class XChaCha20Poly1305CipherTest {
+    @TestFactory
+    List<DynamicNode> loadTestVectors() {
+        return CipherTest.loadAEADTests("xchacha20poly1305.txt.gz", new XChaCha20Poly1305Cipher());
     }
 }

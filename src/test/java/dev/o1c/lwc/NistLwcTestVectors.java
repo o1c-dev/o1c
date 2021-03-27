@@ -20,10 +20,10 @@
 
 package dev.o1c.lwc;
 
-import dev.o1c.spi.CipherKeyFactory;
-import dev.o1c.spi.CipherKeyFactoryTest;
-import dev.o1c.spi.Hash;
+import dev.o1c.spi.Cipher;
+import dev.o1c.spi.CipherTest;
 import dev.o1c.spi.CryptoHashTest;
+import dev.o1c.spi.Hash;
 import org.junit.jupiter.api.DynamicNode;
 
 import java.util.List;
@@ -36,8 +36,8 @@ public class NistLwcTestVectors {
         return CryptoHashTest.loadHashTests(filename, hash);
     }
 
-    public static List<DynamicNode> loadAEADTestVectors(CipherKeyFactory factory) {
-        String filename = String.format("LWC_AEAD_KAT_%d_128.txt.gz", factory.keyLength() * Byte.SIZE);
-        return CipherKeyFactoryTest.loadAEADTests(filename, factory);
+    public static List<DynamicNode> loadAEADTestVectors(Cipher cipher) {
+        String filename = String.format("LWC_AEAD_KAT_%d_128.txt.gz", cipher.keyLength() * Byte.SIZE);
+        return CipherTest.loadAEADTests(filename, cipher);
     }
 }

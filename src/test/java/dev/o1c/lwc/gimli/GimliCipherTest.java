@@ -18,29 +18,17 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.impl.chacha20;
+package dev.o1c.lwc.gimli;
 
-import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
-import dev.o1c.spi.CipherKey;
-import dev.o1c.spi.CipherKeyFactory;
-import org.jetbrains.annotations.NotNull;
+import dev.o1c.lwc.NistLwcTestVectors;
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.TestFactory;
 
-public enum ChaCha20Poly1305CipherKeyFactory implements CipherKeyFactory {
-    INSTANCE;
+import java.util.List;
 
-    @Override
-    public int keyLength() {
-        return 32;
-    }
-
-    @Override
-    public CipherKey generateKey() {
-        return new ChaCha20Poly1305CipherKey(Blake3RandomBytesGenerator.getInstance().generateBytes(keyLength()));
-    }
-
-    @Override
-    public CipherKey parseKey(byte @NotNull [] key) {
-        checkKeyLength(key.length);
-        return new ChaCha20Poly1305CipherKey(key);
+class GimliCipherTest {
+    @TestFactory
+    List<DynamicNode> testVectors() {
+        return NistLwcTestVectors.loadAEADTestVectors(new GimliCipher());
     }
 }

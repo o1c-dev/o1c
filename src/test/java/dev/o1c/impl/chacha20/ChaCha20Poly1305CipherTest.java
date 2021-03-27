@@ -20,7 +20,7 @@
 
 package dev.o1c.impl.chacha20;
 
-import dev.o1c.spi.CipherKey;
+import dev.o1c.spi.Cipher;
 import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-class ChaCha20Poly1305CipherKeyFactoryTest {
+class ChaCha20Poly1305CipherTest {
     @Test
     void standardTest() {
         byte[] plaintext =
@@ -48,15 +48,20 @@ class ChaCha20Poly1305CipherKeyFactoryTest {
                 "61 16");
         byte[] tag = ByteOps.fromHex("1ae10b594f09e26a7e902ecbd0600691");
 
-        CipherKey cipherKey = ChaCha20Poly1305CipherKeyFactory.INSTANCE.parseKey(key);
+        Cipher cipher = new ChaCha20Poly1305Cipher();
+        cipher.setKey(key);
+        cipher.setNonce(nonce);
+        cipher.setContext(aad);
         byte[] actualCiphertext = new byte[ciphertext.length];
         byte[] actualTag = new byte[tag.length];
-        cipherKey.encrypt(nonce, aad, plaintext, 0, plaintext.length, actualCiphertext, 0, actualTag, 0);
+        cipher.encrypt(plaintext, 0, plaintext.length, actualCiphertext, 0, actualTag, 0);
         assertArrayEquals(ciphertext, actualCiphertext);
         assertArrayEquals(tag, actualTag);
 
         byte[] actualPlaintext = new byte[plaintext.length];
-        cipherKey.decrypt(nonce, aad, ciphertext,0, ciphertext.length, tag, 0, actualPlaintext, 0);
+        cipher.setNonce(nonce);
+        cipher.setContext(aad);
+        cipher.decrypt(ciphertext,0, ciphertext.length, tag, 0, actualPlaintext, 0);
         assertArrayEquals(plaintext, actualPlaintext);
     }
 }
