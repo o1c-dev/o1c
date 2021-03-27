@@ -47,7 +47,7 @@ public class XoodyakHash implements Hash {
     }
 
     @Override
-    public void finish(byte @NotNull [] out, int offset, int length) {
+    public void doFinalize(byte @NotNull [] out, int offset, int length) {
         xoodyak.squeeze(out, offset, length);
     }
 }

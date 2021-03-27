@@ -40,7 +40,7 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
     private void reseed() {
         counter = 0;
         byte[] seed = SeedGenerator.getInstance().generateSeed(32);
-        hash = Blake3HashFactory.INSTANCE.init(seed);
+        hash = Blake3HashFactory.INSTANCE.newKeyedHash(seed);
     }
 
     private void ratchet() {
@@ -48,8 +48,8 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
             reseed();
         } else {
             byte[] nextKey = new byte[32];
-            hash.finish(nextKey);
-            hash = Blake3HashFactory.INSTANCE.init(nextKey);
+            hash.doFinalize(nextKey);
+            hash = Blake3HashFactory.INSTANCE.newKeyedHash(nextKey);
         }
     }
 
@@ -57,9 +57,9 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
     public byte @NotNull [] generateBytes(int nrBytes) {
         // skip over ratchet key
         byte[] skip = new byte[64];
-        hash.finish(skip);
+        hash.doFinalize(skip);
         byte[] bytes = new byte[nrBytes];
-        hash.finish(bytes);
+        hash.doFinalize(bytes);
         ratchet();
         return bytes;
     }

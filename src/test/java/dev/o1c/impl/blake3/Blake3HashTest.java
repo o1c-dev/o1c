@@ -46,7 +46,7 @@ class Blake3HashTest {
         byte[] context = testVector.context_string.getBytes(StandardCharsets.UTF_8);
         List<DynamicNode> tests = new ArrayList<>();
         HashFactory hashFactory = Blake3HashFactory.INSTANCE;
-        Hash hasher = hashFactory.init();
+        Hash hasher = hashFactory.newHash();
         for (Case testCase : testVector.cases) {
             byte[] input = new byte[testCase.input_len];
             for (int i = 0; i < input.length; i++) {
@@ -63,29 +63,29 @@ class Blake3HashTest {
                         hasher.reset();
                         hasher.update(input);
                         byte[] actual = new byte[hash.length];
-                        hasher.finish(actual);
+                        hasher.doFinalize(actual);
                         assertArrayEquals(hash, actual);
                     }),
                     dynamicTest("hash 256",
                             () -> assertArrayEquals(truncatedHash, hasher.hash(input))),
                     dynamicTest("keyed hash xof", () -> {
-                        Hash blake3 = hashFactory.init(key);
+                        Hash blake3 = hashFactory.newKeyedHash(key);
                         blake3.update(input);
                         byte[] actual = new byte[keyedHash.length];
-                        blake3.finish(actual);
+                        blake3.doFinalize(actual);
                         assertArrayEquals(keyedHash, actual);
                     }),
                     dynamicTest("keyed hash 256",
-                            () -> assertArrayEquals(truncatedKeyedHash, hashFactory.init(key).hash(input))),
+                            () -> assertArrayEquals(truncatedKeyedHash, hashFactory.newKeyedHash(key).hash(input))),
                     dynamicTest("derive key xof", () -> {
-                        Hash blake3 = hashFactory.initKDF(context);
+                        Hash blake3 = hashFactory.newKeyDerivationFunction(context);
                         blake3.update(input);
                         byte[] actual = new byte[deriveKey.length];
-                        blake3.finish(actual);
+                        blake3.doFinalize(actual);
                         assertArrayEquals(deriveKey, actual);
                     }),
                     dynamicTest("derive key 256",
-                            () -> assertArrayEquals(truncatedDeriveKey, hashFactory.initKDF(context).hash(input)))
+                            () -> assertArrayEquals(truncatedDeriveKey, hashFactory.newKeyDerivationFunction(context).hash(input)))
             )));
         }
         return tests;

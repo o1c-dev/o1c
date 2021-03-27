@@ -21,19 +21,39 @@
 package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Creates cryptographic hash instance variants for various use cases.
+ */
 public interface HashFactory {
-    @NotNull Hash init();
 
-    @NotNull Hash init(int hashLength);
+    /**
+     * Creates a new plain Hash instance with an algorithm-specific default hash output length.
+     */
+    @NotNull Hash newHash();
 
-    @NotNull Hash init(byte @NotNull [] key);
+    /**
+     * Creates a new plain Hash instance with the provided default hash output length.
+     */
+    @NotNull Hash newHash(@Range(from = 0, to = Integer.MAX_VALUE) int hashLength);
 
-    @NotNull Hash initKDF(byte @NotNull [] context);
+    /**
+     * Creates a new keyed Hash instance using the provided secret key.
+     */
+    @NotNull Hash newKeyedHash(byte @NotNull [] key);
 
-    default @NotNull Hash initKDF(@NotNull String context) {
-        return initKDF(context.getBytes(StandardCharsets.UTF_8));
+    /**
+     * Creates a new key derivation function (KDF) Hash instance for the provided key derivation context.
+     */
+    @NotNull Hash newKeyDerivationFunction(byte @NotNull [] context);
+
+    /**
+     * Creates a new key derivation function (KDF) Hash instance for the provided key derivation context.
+     */
+    default @NotNull Hash newKeyDerivationFunction(@NotNull String context) {
+        return newKeyDerivationFunction(context.getBytes(StandardCharsets.UTF_8));
     }
 }

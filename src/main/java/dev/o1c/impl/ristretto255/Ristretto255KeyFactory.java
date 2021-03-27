@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255KeyFactory implements KeyFactory {
-    private final Hash expandHash = Blake3HashFactory.INSTANCE.initKDF("expand_key");
+    private final Hash expandHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("expand_key");
 
     @Override
     public @NotNull KeyPair generateKey(byte @NotNull [] id) {
@@ -50,14 +50,14 @@ public class Ristretto255KeyFactory implements KeyFactory {
         byte[] expandedKey = new byte[64];
         expandHash.reset();
         expandHash.update(keyData);
-        expandHash.finish(expandedKey);
+        expandHash.doFinalize(expandedKey);
         byte[] lower = Arrays.copyOf(expandedKey, 32);
         byte[] upper = Arrays.copyOfRange(expandedKey, 32, 64);
         lower[0] &= 248;
         lower[31] &= 127;
         lower[31] |= 64;
         Scalar scalar = Scalar.fromBits(lower);
-        Hash challenge = Blake3HashFactory.INSTANCE.init(upper);
+        Hash challenge = Blake3HashFactory.INSTANCE.newKeyedHash(upper);
         return new Ristretto255KeyPair(id, scalar, challenge);
     }
 

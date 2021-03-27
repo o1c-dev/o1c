@@ -90,7 +90,7 @@ public class AsconHash implements Hash {
     }
 
     @Override
-    public void finish(byte @NotNull [] out, int offset, int length) {
+    public void doFinalize(byte @NotNull [] out, int offset, int length) {
         buffer.put(PAD);
         buffer.flip();
         state[0] ^= ByteOps.unpackLongBE(buffer.array(), buffer.arrayOffset(), buffer.remaining());

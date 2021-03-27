@@ -66,7 +66,7 @@ public class CryptoHashTest {
                         dynamicTest("reset/update/finish", () -> {
                             hash.reset();
                             hash.update(message);
-                            assertArrayEquals(md, hash.finish());
+                            assertArrayEquals(md, hash.doFinalize());
                         })
                         // TODO: test out hashing per-byte and other partial hashing
                 )));

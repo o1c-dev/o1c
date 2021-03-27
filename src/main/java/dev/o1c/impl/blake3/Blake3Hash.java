@@ -78,7 +78,7 @@ public class Blake3Hash implements Hash {
     }
 
     @Override
-    public void finish(byte @NotNull [] out, int offset, int length) {
+    public void doFinalize(byte @NotNull [] out, int offset, int length) {
         Validator.checkBufferArgs(out, offset, length);
         outputHash(out, offset, length);
     }

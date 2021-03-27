@@ -41,18 +41,18 @@ public enum Blake3HashFactory implements HashFactory {
      * @return new hasher
      */
     @Override
-    public @NotNull Hash init() {
+    public @NotNull Hash newHash() {
         return new Blake3Hash(Constants.IV, 0);
     }
 
     /**
      * Creates a fresh BLAKE3 hasher in hash mode using the specified default output hash length.
      *
-     * @param hashLength default hash length to use in {@link Hash#finish()}
+     * @param hashLength default hash length to use in {@link Hash#doFinalize()}
      * @return new hasher
      */
     @Override
-    public @NotNull Hash init(int hashLength) {
+    public @NotNull Hash newHash(int hashLength) {
         return new Blake3Hash(Constants.IV, 0, hashLength);
     }
 
@@ -63,7 +63,7 @@ public enum Blake3HashFactory implements HashFactory {
      * @return new hasher using the provided key
      */
     @Override
-    public @NotNull Hash init(byte @NotNull [] key) {
+    public @NotNull Hash newKeyedHash(byte @NotNull [] key) {
         if (key.length != 32) {
             throw new InvalidKeyException("Keys must be 32 bytes");
         }
@@ -77,7 +77,7 @@ public enum Blake3HashFactory implements HashFactory {
      * @return new hasher for performing key derivation
      */
     @Override
-    public @NotNull Hash initKDF(byte @NotNull [] context) {
+    public @NotNull Hash newKeyDerivationFunction(byte @NotNull [] context) {
         Blake3Hash ctxHasher = new Blake3Hash(Constants.IV, Constants.DERIVE_KEY_CONTEXT);
         ctxHasher.inputData(context, 0, context.length);
         byte[] key = new byte[Constants.KEY_LEN];

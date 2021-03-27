@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255PublicKey implements PublicKey {
-    final Hash signKeyHash = Blake3HashFactory.INSTANCE.initKDF("sign_key");
+    final Hash signKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("sign_key");
     final byte[] id;
     final RistrettoElement element;
     private final RistrettoElement negatedElement; // TODO: this should be lazily initialized when first verifying
@@ -97,7 +97,7 @@ public class Ristretto255PublicKey implements PublicKey {
         signKeyHash.update(compressed.toByteArray());
         signKeyHash.update(message, offset, length);
         byte[] hash = new byte[64];
-        signKeyHash.finish(hash);
+        signKeyHash.doFinalize(hash);
         Scalar k = Scalar.fromBytesModOrderWide(hash);
         RistrettoElement checkR = negatedElement.multiply(k).add(S);
         return R.equals(checkR);

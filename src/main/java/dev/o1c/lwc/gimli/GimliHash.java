@@ -63,7 +63,7 @@ public class GimliHash implements Hash {
     }
 
     @Override
-    public void finish(byte @NotNull [] out, int offset, int length) {
+    public void doFinalize(byte @NotNull [] out, int offset, int length) {
         gimli.absorb(stateOffset, (byte) 1);
         gimli.absorb(47, (byte) 1);
         stateOffset = 0;
