@@ -20,34 +20,19 @@
 
 package dev.o1c.lwc.xoodyak;
 
-import dev.o1c.spi.Hash;
-import org.jetbrains.annotations.NotNull;
+class ExtensibleOutputFunction extends XoodyakHash {
+    private final int hashLength;
 
-class XoodyakHash implements Hash {
-    final Xoodyak xoodyak = new Xoodyak();
+    ExtensibleOutputFunction() {
+        this(32);
+    }
+
+    ExtensibleOutputFunction(int hashLength) {
+        this.hashLength = hashLength;
+    }
 
     @Override
     public int hashLength() {
-        return 32;
-    }
-
-    @Override
-    public void reset() {
-        xoodyak.initialize();
-    }
-
-    @Override
-    public void update(byte b) {
-        xoodyak.absorb(new byte[] { b }, 0, 1);
-    }
-
-    @Override
-    public void update(byte @NotNull [] in, int offset, int length) {
-        xoodyak.absorb(in, offset, length);
-    }
-
-    @Override
-    public void doFinalize(byte @NotNull [] out, int offset, int length) {
-        xoodyak.squeeze(out, offset, length);
+        return hashLength;
     }
 }

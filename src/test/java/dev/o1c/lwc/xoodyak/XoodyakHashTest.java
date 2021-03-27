@@ -21,6 +21,7 @@
 package dev.o1c.lwc.xoodyak;
 
 import dev.o1c.lwc.NistLwcTestVectors;
+import dev.o1c.spi.HashFactory;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 
@@ -29,6 +30,7 @@ import java.util.List;
 class XoodyakHashTest {
     @TestFactory
     List<DynamicNode> testVectors() {
-        return NistLwcTestVectors.loadHashTestVectors(new XoodyakHash());
+        HashFactory hashFactory = new XoodyakHashFactory();
+        return NistLwcTestVectors.loadHashTestVectors(hashFactory.newHash());
     }
 }

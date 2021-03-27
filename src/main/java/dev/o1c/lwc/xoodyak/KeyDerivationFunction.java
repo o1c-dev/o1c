@@ -20,34 +20,23 @@
 
 package dev.o1c.lwc.xoodyak;
 
-import dev.o1c.spi.Hash;
 import org.jetbrains.annotations.NotNull;
 
-class XoodyakHash implements Hash {
-    final Xoodyak xoodyak = new Xoodyak();
+class KeyDerivationFunction extends XoodyakHash {
+    private final byte[] context;
 
-    @Override
-    public int hashLength() {
-        return 32;
+    KeyDerivationFunction(byte[] context) {
+        this.context = context.clone();
     }
 
     @Override
     public void reset() {
         xoodyak.initialize();
-    }
-
-    @Override
-    public void update(byte b) {
-        xoodyak.absorb(new byte[] { b }, 0, 1);
-    }
-
-    @Override
-    public void update(byte @NotNull [] in, int offset, int length) {
-        xoodyak.absorb(in, offset, length);
+        xoodyak.absorb(context, 0, context.length);
     }
 
     @Override
     public void doFinalize(byte @NotNull [] out, int offset, int length) {
-        xoodyak.squeeze(out, offset, length);
+        xoodyak.squeezeKey(out, offset, length);
     }
 }
