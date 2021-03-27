@@ -20,7 +20,7 @@
 
 package dev.o1c.impl.blake3;
 
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.RandomBytesGenerator;
 import dev.o1c.spi.SeedGenerator;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
     private static final ThreadLocal<Blake3RandomBytesGenerator> CURRENT = new ThreadLocal<>();
     private static final long RESEED_INTERVAL = 1L << 48;
-    private CryptoHash hash;
+    private Hash hash;
     private long counter;
 
     public Blake3RandomBytesGenerator() {

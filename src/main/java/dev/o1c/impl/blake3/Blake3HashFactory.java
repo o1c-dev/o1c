@@ -20,14 +20,14 @@
 
 package dev.o1c.impl.blake3;
 
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.HashFactory;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Produces {@link CryptoHash} instances using the <a href="https://github.com/BLAKE3-team/BLAKE3">BLAKE3 hash function</a>.
+ * Produces {@link Hash} instances using the <a href="https://github.com/BLAKE3-team/BLAKE3">BLAKE3 hash function</a>.
  */
 public enum Blake3HashFactory implements HashFactory {
     /**
@@ -41,19 +41,19 @@ public enum Blake3HashFactory implements HashFactory {
      * @return new hasher
      */
     @Override
-    public @NotNull CryptoHash init() {
-        return new Blake3CryptoHash(Constants.IV, 0);
+    public @NotNull Hash init() {
+        return new Blake3Hash(Constants.IV, 0);
     }
 
     /**
      * Creates a fresh BLAKE3 hasher in hash mode using the specified default output hash length.
      *
-     * @param hashLength default hash length to use in {@link CryptoHash#finish()}
+     * @param hashLength default hash length to use in {@link Hash#finish()}
      * @return new hasher
      */
     @Override
-    public @NotNull CryptoHash init(int hashLength) {
-        return new Blake3CryptoHash(Constants.IV, 0, hashLength);
+    public @NotNull Hash init(int hashLength) {
+        return new Blake3Hash(Constants.IV, 0, hashLength);
     }
 
     /**
@@ -63,11 +63,11 @@ public enum Blake3HashFactory implements HashFactory {
      * @return new hasher using the provided key
      */
     @Override
-    public @NotNull CryptoHash init(byte @NotNull [] key) {
+    public @NotNull Hash init(byte @NotNull [] key) {
         if (key.length != 32) {
             throw new InvalidKeyException("Keys must be 32 bytes");
         }
-        return new Blake3CryptoHash(ByteOps.unpackIntsLE(key, 0, 8), Constants.KEYED_HASH);
+        return new Blake3Hash(ByteOps.unpackIntsLE(key, 0, 8), Constants.KEYED_HASH);
     }
 
     /**
@@ -77,11 +77,11 @@ public enum Blake3HashFactory implements HashFactory {
      * @return new hasher for performing key derivation
      */
     @Override
-    public @NotNull CryptoHash initKDF(byte @NotNull [] context) {
-        Blake3CryptoHash ctxHasher = new Blake3CryptoHash(Constants.IV, Constants.DERIVE_KEY_CONTEXT);
+    public @NotNull Hash initKDF(byte @NotNull [] context) {
+        Blake3Hash ctxHasher = new Blake3Hash(Constants.IV, Constants.DERIVE_KEY_CONTEXT);
         ctxHasher.inputData(context, 0, context.length);
         byte[] key = new byte[Constants.KEY_LEN];
         ctxHasher.outputHash(key, 0, Constants.KEY_LEN);
-        return new Blake3CryptoHash(ByteOps.unpackIntsLE(key, 0, 8), Constants.DERIVE_KEY_MATERIAL);
+        return new Blake3Hash(ByteOps.unpackIntsLE(key, 0, 8), Constants.DERIVE_KEY_MATERIAL);
     }
 }

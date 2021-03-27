@@ -25,15 +25,15 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.StandardCharsets;
 
 public interface HashFactory {
-    @NotNull CryptoHash init();
+    @NotNull Hash init();
 
-    @NotNull CryptoHash init(int hashLength);
+    @NotNull Hash init(int hashLength);
 
-    @NotNull CryptoHash init(byte @NotNull [] key);
+    @NotNull Hash init(byte @NotNull [] key);
 
-    @NotNull CryptoHash initKDF(byte @NotNull [] context);
+    @NotNull Hash initKDF(byte @NotNull [] context);
 
-    default @NotNull CryptoHash initKDF(@NotNull String context) {
+    default @NotNull Hash initKDF(@NotNull String context) {
         return initKDF(context.getBytes(StandardCharsets.UTF_8));
     }
 }

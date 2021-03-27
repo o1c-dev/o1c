@@ -60,7 +60,7 @@ class ChunkState {
                 // If the block buffer is full, compress it and clear it. More
                 // input is coming, so this compression is not CHUNK_END.
                 int[] blockWords = ByteOps.unpackIntsLE(block, 0, 16);
-                chainingValue = Arrays.copyOf(Blake3CryptoHash.compress(
+                chainingValue = Arrays.copyOf(Blake3Hash.compress(
                         chainingValue, blockWords, Constants.BLOCK_LEN, chunkCounter, flags | startFlag()), 8);
                 blocksCompressed++;
                 blockLength = 0;

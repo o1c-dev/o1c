@@ -30,7 +30,7 @@ import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
 import dev.o1c.impl.chacha20.XChaCha20Poly1305CipherKeyFactory;
 import dev.o1c.spi.CipherKey;
 import dev.o1c.spi.CipherKeyFactory;
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.PublicKey;
 import dev.o1c.spi.SecretKey;
@@ -40,13 +40,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255SecretKey extends Ristretto255PublicKey implements SecretKey {
-    private final CryptoHash nonceHash = Blake3HashFactory.INSTANCE.initKDF("nonce");
-    private final CryptoHash sharedKeyHash = Blake3HashFactory.INSTANCE.initKDF("shared_key");
+    private final Hash nonceHash = Blake3HashFactory.INSTANCE.initKDF("nonce");
+    private final Hash sharedKeyHash = Blake3HashFactory.INSTANCE.initKDF("shared_key");
     private final Scalar scalar;
-    private final CryptoHash challenge;
+    private final Hash challenge;
     private final CipherKeyFactory cipherKeyFactory = XChaCha20Poly1305CipherKeyFactory.INSTANCE;
 
-    Ristretto255SecretKey(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull CryptoHash challenge) {
+    Ristretto255SecretKey(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull Hash challenge) {
         super(id, Constants.RISTRETTO_GENERATOR_TABLE.multiply(scalar));
         this.scalar = scalar;
         this.challenge = challenge;

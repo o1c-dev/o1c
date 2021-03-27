@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.lwc.ascon;
+package dev.o1c.lwc.xoodyak;
 
 import dev.o1c.lwc.NistLwcTestVectors;
 import org.junit.jupiter.api.DynamicNode;
@@ -26,9 +26,9 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
 
-class AsconCryptoHashTest {
+class XoodyakHashTest {
     @TestFactory
     List<DynamicNode> testVectors() {
-        return NistLwcTestVectors.loadHashTestVectors(new AsconCryptoHash(32));
+        return NistLwcTestVectors.loadHashTestVectors(new XoodyakHash());
     }
 }

@@ -26,9 +26,9 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
 
-class GimliCryptoHashTest {
+class GimliHashTest {
     @TestFactory
     List<DynamicNode> testVectors() {
-        return NistLwcTestVectors.loadHashTestVectors(new GimliCryptoHash());
+        return NistLwcTestVectors.loadHashTestVectors(new GimliHash());
     }
 }

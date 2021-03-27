@@ -23,7 +23,7 @@ package dev.o1c.spi;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
-public interface CryptoHash {
+public interface Hash {
     int hashLength();
 
     void reset();

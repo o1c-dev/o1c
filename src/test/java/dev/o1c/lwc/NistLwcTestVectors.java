@@ -22,7 +22,7 @@ package dev.o1c.lwc;
 
 import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.CipherKeyFactoryTest;
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.CryptoHashTest;
 import org.junit.jupiter.api.DynamicNode;
 
@@ -31,7 +31,7 @@ import java.util.List;
 // https://csrc.nist.gov/projects/lightweight-cryptography/round-2-candidates
 // test vectors can be regenerated from reference implementations
 public class NistLwcTestVectors {
-    public static List<DynamicNode> loadHashTestVectors(CryptoHash hash) {
+    public static List<DynamicNode> loadHashTestVectors(Hash hash) {
         String filename = String.format("LWC_HASH_KAT_%d.txt.gz", hash.hashLength() * Byte.SIZE);
         return CryptoHashTest.loadHashTests(filename, hash);
     }

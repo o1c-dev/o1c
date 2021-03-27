@@ -20,14 +20,14 @@
 
 package dev.o1c.lwc.ascon;
 
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.util.ByteOps;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class AsconCryptoHash implements CryptoHash {
+public class AsconHash implements Hash {
     private static final int RATE = 8;
     private static final byte PAD = (byte) 0x80;
     // 0 || rate in bits (1 byte) || # rounds (1 byte) || 0 || || hash size (32-bit)
@@ -39,12 +39,12 @@ public class AsconCryptoHash implements CryptoHash {
     private final int hashSize;
     private final long iv;
 
-    public AsconCryptoHash() {
+    public AsconHash() {
         hashSize = 0;
         iv = XOF_IV;
     }
 
-    public AsconCryptoHash(int hashSize) {
+    public AsconHash(int hashSize) {
         this.hashSize = hashSize;
         iv = HASH_IV;
     }

@@ -20,10 +20,10 @@
 
 package dev.o1c.lwc.gimli;
 
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import org.jetbrains.annotations.NotNull;
 
-public class GimliCryptoHash implements CryptoHash {
+public class GimliHash implements Hash {
     private static final int RATE = 16;
     private final Gimli gimli = new Gimli();
     private int stateOffset;

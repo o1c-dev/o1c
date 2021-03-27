@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class CryptoHashTest {
-    public static @NotNull List<DynamicNode> loadHashTests(@NotNull String testResource, @NotNull CryptoHash hash) {
+    public static @NotNull List<DynamicNode> loadHashTests(@NotNull String testResource, @NotNull Hash hash) {
         List<DynamicNode> vectors = new ArrayList<>(1024);
         InputStream stream = hash.getClass().getResourceAsStream(testResource);
         assertNotNull(stream, "No test resource found: " + testResource);

@@ -20,10 +20,10 @@
 
 package dev.o1c.lwc.xoodyak;
 
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import org.jetbrains.annotations.NotNull;
 
-public class XoodyakCryptoHash implements CryptoHash {
+public class XoodyakHash implements Hash {
     private final Xoodyak xoodyak = new Xoodyak();
 
     @Override

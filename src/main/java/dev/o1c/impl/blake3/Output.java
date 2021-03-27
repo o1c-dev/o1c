@@ -45,7 +45,7 @@ class Output {
     }
 
     int @NotNull [] chainingValue() {
-        return Arrays.copyOf(Blake3CryptoHash.compress(
+        return Arrays.copyOf(Blake3Hash.compress(
                 inputChainingValue, blockWords, blockLength, counter, flags), 8);
     }
 
@@ -54,7 +54,7 @@ class Output {
         while (length > 0) {
             int chunkLength = Math.min(Constants.OUT_LEN * 2, length);
             length -= chunkLength;
-            int[] words = Blake3CryptoHash.compress(
+            int[] words = Blake3Hash.compress(
                     inputChainingValue, blockWords, blockLength, outputBlockCounter++, flags | Constants.ROOT);
             int wordCounter = 0;
             while (chunkLength > 0) {

@@ -26,7 +26,7 @@ import cafe.cryptography.curve25519.InvalidEncodingException;
 import cafe.cryptography.curve25519.RistrettoElement;
 import cafe.cryptography.curve25519.Scalar;
 import dev.o1c.impl.blake3.Blake3HashFactory;
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.PublicKey;
 import dev.o1c.util.Validator;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255PublicKey implements PublicKey {
-    final CryptoHash signKeyHash = Blake3HashFactory.INSTANCE.initKDF("sign_key");
+    final Hash signKeyHash = Blake3HashFactory.INSTANCE.initKDF("sign_key");
     final byte[] id;
     final RistrettoElement element;
     private final RistrettoElement negatedElement; // TODO: this should be lazily initialized when first verifying

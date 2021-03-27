@@ -20,7 +20,7 @@
 
 package dev.o1c.impl.blake3;
 
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ import java.util.Arrays;
  */
 // initially refined along this zig revision
 // https://github.com/ziglang/zig/blob/6c2e0c2046a4c1d01587cc15ea2f59af32743eb4/lib/std/crypto/blake3.zig
-public class Blake3CryptoHash implements CryptoHash {
+public class Blake3Hash implements Hash {
     private final int[] key;
     private final @Flag int flags;
     private final int defaultHashLength;
@@ -43,11 +43,11 @@ public class Blake3CryptoHash implements CryptoHash {
     private int stackLen;
     private ChunkState state;
 
-    Blake3CryptoHash(int @NotNull [] key, @Flag int flags) {
+    Blake3Hash(int @NotNull [] key, @Flag int flags) {
         this(key, flags, Constants.OUT_LEN);
     }
 
-    Blake3CryptoHash(int @NotNull [] key, @Flag int flags, int defaultHashLength) {
+    Blake3Hash(int @NotNull [] key, @Flag int flags, int defaultHashLength) {
         this.key = key;
         this.flags = flags;
         this.defaultHashLength = defaultHashLength;

@@ -21,7 +21,7 @@
 package dev.o1c.impl.blake3;
 
 import com.fasterxml.jackson.jr.ob.JSON;
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.HashFactory;
 import dev.o1c.util.ByteOps;
 import org.junit.jupiter.api.DynamicNode;
@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-class Blake3CryptoHashTest {
+class Blake3HashTest {
     @TestFactory
     List<DynamicNode> testVectors() throws IOException {
         JSON json = JSON.builder().enable(JSON.Feature.USE_FIELDS).build();
@@ -46,7 +46,7 @@ class Blake3CryptoHashTest {
         byte[] context = testVector.context_string.getBytes(StandardCharsets.UTF_8);
         List<DynamicNode> tests = new ArrayList<>();
         HashFactory hashFactory = Blake3HashFactory.INSTANCE;
-        CryptoHash hasher = hashFactory.init();
+        Hash hasher = hashFactory.init();
         for (Case testCase : testVector.cases) {
             byte[] input = new byte[testCase.input_len];
             for (int i = 0; i < input.length; i++) {
@@ -69,7 +69,7 @@ class Blake3CryptoHashTest {
                     dynamicTest("hash 256",
                             () -> assertArrayEquals(truncatedHash, hasher.hash(input))),
                     dynamicTest("keyed hash xof", () -> {
-                        CryptoHash blake3 = hashFactory.init(key);
+                        Hash blake3 = hashFactory.init(key);
                         blake3.update(input);
                         byte[] actual = new byte[keyedHash.length];
                         blake3.finish(actual);
@@ -78,7 +78,7 @@ class Blake3CryptoHashTest {
                     dynamicTest("keyed hash 256",
                             () -> assertArrayEquals(truncatedKeyedHash, hashFactory.init(key).hash(input))),
                     dynamicTest("derive key xof", () -> {
-                        CryptoHash blake3 = hashFactory.initKDF(context);
+                        Hash blake3 = hashFactory.initKDF(context);
                         blake3.update(input);
                         byte[] actual = new byte[deriveKey.length];
                         blake3.finish(actual);

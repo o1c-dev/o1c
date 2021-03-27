@@ -24,7 +24,7 @@ import cafe.cryptography.curve25519.CompressedRistretto;
 import cafe.cryptography.curve25519.Scalar;
 import dev.o1c.impl.blake3.Blake3HashFactory;
 import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
-import dev.o1c.spi.CryptoHash;
+import dev.o1c.spi.Hash;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.KeyFactory;
 import dev.o1c.spi.PublicKey;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public class Ristretto255KeyFactory implements KeyFactory {
-    private final CryptoHash expandHash = Blake3HashFactory.INSTANCE.initKDF("expand_key");
+    private final Hash expandHash = Blake3HashFactory.INSTANCE.initKDF("expand_key");
 
     @Override
     public @NotNull SecretKey generateKey(byte @NotNull [] id) {
@@ -57,7 +57,7 @@ public class Ristretto255KeyFactory implements KeyFactory {
         lower[31] &= 127;
         lower[31] |= 64;
         Scalar scalar = Scalar.fromBits(lower);
-        CryptoHash challenge = Blake3HashFactory.INSTANCE.init(upper);
+        Hash challenge = Blake3HashFactory.INSTANCE.init(upper);
         return new Ristretto255SecretKey(id, scalar, challenge);
     }
 
