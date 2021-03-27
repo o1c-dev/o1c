@@ -22,7 +22,7 @@ package dev.o1c.impl.ristretto255;
 
 import dev.o1c.impl.blake3.Blake3RandomBytesGenerator;
 import dev.o1c.spi.KeyFactory;
-import dev.o1c.spi.SecretKey;
+import dev.o1c.spi.KeyPair;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class Ristretto255KeyFactoryTest {
 
     private final KeyFactory keyFactory = new Ristretto255KeyFactory();
-    private final SecretKey alice = keyFactory.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
-    private final SecretKey bob = keyFactory.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
+    private final KeyPair alice = keyFactory.generateKey("Alice".getBytes(StandardCharsets.UTF_8));
+    private final KeyPair bob = keyFactory.generateKey("Bob".getBytes(StandardCharsets.UTF_8));
 
     @Test
     void signatureSmokeTest() {

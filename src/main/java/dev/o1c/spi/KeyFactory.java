@@ -23,9 +23,9 @@ package dev.o1c.spi;
 import org.jetbrains.annotations.NotNull;
 
 public interface KeyFactory {
-    @NotNull SecretKey generateKey(byte @NotNull [] id);
+    @NotNull KeyPair generateKey(byte @NotNull [] id);
 
-    @NotNull SecretKey parsePrivateKey(byte @NotNull [] id, byte @NotNull [] keyData);
+    @NotNull KeyPair parsePrivateKey(byte @NotNull [] id, byte @NotNull [] keyData);
 
     @NotNull PublicKey parsePublicKey(byte @NotNull [] id, byte @NotNull [] keyData);
 }

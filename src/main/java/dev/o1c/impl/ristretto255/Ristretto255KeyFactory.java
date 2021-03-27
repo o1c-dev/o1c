@@ -28,7 +28,7 @@ import dev.o1c.spi.Hash;
 import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.KeyFactory;
 import dev.o1c.spi.PublicKey;
-import dev.o1c.spi.SecretKey;
+import dev.o1c.spi.KeyPair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -37,13 +37,13 @@ public class Ristretto255KeyFactory implements KeyFactory {
     private final Hash expandHash = Blake3HashFactory.INSTANCE.initKDF("expand_key");
 
     @Override
-    public @NotNull SecretKey generateKey(byte @NotNull [] id) {
+    public @NotNull KeyPair generateKey(byte @NotNull [] id) {
         byte[] keyData = Blake3RandomBytesGenerator.getInstance().generateBytes(32);
         return parsePrivateKey(id, keyData);
     }
 
     @Override
-    public @NotNull SecretKey parsePrivateKey(byte @NotNull [] id, byte @NotNull [] keyData) {
+    public @NotNull KeyPair parsePrivateKey(byte @NotNull [] id, byte @NotNull [] keyData) {
         if (keyData.length != 32) {
             throw new InvalidKeyException("Keys must be 32 bytes");
         }
@@ -58,7 +58,7 @@ public class Ristretto255KeyFactory implements KeyFactory {
         lower[31] |= 64;
         Scalar scalar = Scalar.fromBits(lower);
         Hash challenge = Blake3HashFactory.INSTANCE.init(upper);
-        return new Ristretto255SecretKey(id, scalar, challenge);
+        return new Ristretto255KeyPair(id, scalar, challenge);
     }
 
     @Override

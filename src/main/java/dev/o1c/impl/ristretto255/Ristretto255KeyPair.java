@@ -33,20 +33,20 @@ import dev.o1c.spi.CipherKeyFactory;
 import dev.o1c.spi.Hash;
 import dev.o1c.spi.InvalidSignatureException;
 import dev.o1c.spi.PublicKey;
-import dev.o1c.spi.SecretKey;
+import dev.o1c.spi.KeyPair;
 import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public class Ristretto255SecretKey extends Ristretto255PublicKey implements SecretKey {
+public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPair {
     private final Hash nonceHash = Blake3HashFactory.INSTANCE.initKDF("nonce");
     private final Hash sharedKeyHash = Blake3HashFactory.INSTANCE.initKDF("shared_key");
     private final Scalar scalar;
     private final Hash challenge;
     private final CipherKeyFactory cipherKeyFactory = XChaCha20Poly1305CipherKeyFactory.INSTANCE;
 
-    Ristretto255SecretKey(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull Hash challenge) {
+    Ristretto255KeyPair(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull Hash challenge) {
         super(id, Constants.RISTRETTO_GENERATOR_TABLE.multiply(scalar));
         this.scalar = scalar;
         this.challenge = challenge;

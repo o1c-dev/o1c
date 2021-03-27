@@ -22,7 +22,7 @@ package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface SecretKey extends PublicKey {
+public interface KeyPair extends PublicKey {
     void sign(byte @NotNull [] message, int offset, int length, byte @NotNull [] signature, int sigOffset);
 
     default byte @NotNull [] sign(byte @NotNull [] message, int offset, int length) {
