@@ -37,31 +37,22 @@ class XoodyakCipher implements Cipher {
     }
 
     @Override
-    public void setKey(byte @NotNull [] key) {
-        checkKeyLength(key.length);
-        xoodyak.initialize(key);
-    }
-
-    @Override
     public int nonceLength() {
         return 16;
     }
 
     @Override
-    public void setNonce(byte @NotNull [] nonce) {
+    public void init(byte @NotNull [] key, byte @NotNull [] nonce, byte @NotNull [] context) {
+        checkKeyLength(key.length);
         checkNonceLength(nonce.length);
+        xoodyak.initialize(key);
         xoodyak.absorb(nonce, 0, nonce.length);
+        xoodyak.absorb(context, 0, context.length);
     }
 
     @Override
     public int tagLength() {
         return 16;
-    }
-
-    @Override
-    public void setContext(byte @NotNull [] context, int offset, int length) {
-        Validator.checkBufferArgs(context, offset, length);
-        xoodyak.absorb(context, offset, length);
     }
 
     @Override

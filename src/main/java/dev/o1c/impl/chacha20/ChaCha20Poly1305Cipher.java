@@ -36,19 +36,11 @@ import java.util.Arrays;
 public class ChaCha20Poly1305Cipher implements Cipher {
     private final ChaCha20 cipher = new ChaCha20();
     private final Poly1305 authenticator = new Poly1305();
-    private long contextLength;
-    private State state;
+    private long contextLength = -1;
 
     @Override
     public int keyLength() {
         return 32;
-    }
-
-    @Override
-    public void setKey(byte @NotNull [] key) {
-        checkKeyLength(key.length);
-        cipher.initKey(key);
-        state = State.KeyInitialized;
     }
 
     @Override
@@ -57,27 +49,15 @@ public class ChaCha20Poly1305Cipher implements Cipher {
     }
 
     @Override
-    public void setNonce(byte @NotNull [] nonce) {
+    public void init(byte @NotNull [] key, byte @NotNull [] nonce, byte @NotNull [] context) {
+        checkKeyLength(key.length);
         checkNonceLength(nonce.length);
-        if (state != State.KeyInitialized) {
-            throw new IllegalStateException("Nonce can only be set after key initialization or encryption/decryption");
-        }
+        cipher.initKey(key);
         cipher.initNonce(nonce);
         cipher.initCounter(0);
-        contextLength = 0;
         authenticator.init(cipher.polyKey());
-        state = State.NonceInitialized;
-    }
-
-    @Override
-    public void setContext(byte @NotNull [] context, int offset, int length) {
-        Validator.checkBufferArgs(context, offset, length);
-        if (state != State.NonceInitialized) {
-            throw new IllegalStateException("Nonce must be initialized");
-        }
-        contextLength = length;
-        authenticator.updatePad(context, offset, length);
-        state = State.ContextInitialized;
+        authenticator.updatePad(context, 0, context.length);
+        contextLength = context.length;
     }
 
     @Override
@@ -92,14 +72,14 @@ public class ChaCha20Poly1305Cipher implements Cipher {
         Validator.checkBufferArgs(plaintext, ptOffset, ptLength);
         Validator.checkBufferArgs(ciphertext, ctOffset, ptLength);
         Validator.checkBufferArgs(tag, tagOffset, tagLength());
-        if (state != State.NonceInitialized && state != State.ContextInitialized) {
-            throw new IllegalStateException("Nonce must be initialized");
+        if (contextLength < 0) {
+            throw new IllegalStateException("Cipher must be initialized");
         }
         cipher.crypt(plaintext, ptOffset, ptLength, ciphertext, ctOffset);
         authenticator.updatePad(ciphertext, ctOffset, ptLength);
         authenticator.updateLengths(contextLength, ptLength);
         authenticator.computeMac(tag, tagOffset);
-        state = State.KeyInitialized;
+        contextLength = -1;
     }
 
     @Override
@@ -109,8 +89,8 @@ public class ChaCha20Poly1305Cipher implements Cipher {
         Validator.checkBufferArgs(ciphertext, ctOffset, ctLength);
         Validator.checkBufferArgs(tag, tagOffset, tagLength());
         Validator.checkBufferArgs(plaintext, ptOffset, ctLength);
-        if (state != State.NonceInitialized && state != State.ContextInitialized) {
-            throw new IllegalStateException("Nonce must be initialized");
+        if (contextLength < 0) {
+            throw new IllegalStateException("Cipher must be initialized");
         }
         authenticator.updatePad(ciphertext, ctOffset, ctLength);
         authenticator.updateLengths(contextLength, ctLength);
@@ -120,10 +100,6 @@ public class ChaCha20Poly1305Cipher implements Cipher {
             throw new InvalidAuthenticationTagException("Tag mismatch");
         }
         cipher.crypt(ciphertext, ctOffset, ctLength, plaintext, ptOffset);
-        state = State.KeyInitialized;
-    }
-
-    private enum State {
-        KeyInitialized, NonceInitialized, ContextInitialized
+        contextLength = -1;
     }
 }

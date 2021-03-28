@@ -101,9 +101,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
 
-        cipher.setKey(sharedKey);
-        cipher.setNonce(nonce);
-        cipher.setContext(context);
+        cipher.init(sharedKey, nonce, context);
         cipher.encrypt(plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
     }
 
@@ -122,9 +120,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
 
-        cipher.setKey(sharedKey);
-        cipher.setNonce(nonce);
-        cipher.setContext(context);
+        cipher.init(sharedKey, nonce, context);
         cipher.decrypt(ciphertext, ctOffset, ctLength, tag, tagOffset, plaintext, ptOffset);
     }
 
@@ -175,9 +171,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.updateRLE(context);
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
-        cipher.setKey(sharedKey);
-        cipher.setNonce(nonce);
-        cipher.setContext(context);
+        cipher.init(sharedKey, nonce, context);
 
         signKeyHash.reset();
         signKeyHash.update(R);
@@ -232,9 +226,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.updateRLE(context);
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
-        cipher.setKey(sharedKey);
-        cipher.setNonce(nonce);
-        cipher.setContext(context);
+        cipher.init(sharedKey, nonce, context);
 
         signKeyHash.reset();
         signKeyHash.update(rBytes);

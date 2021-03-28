@@ -27,11 +27,9 @@ public interface Cipher {
 
     default void checkKeyLength(int keyLength) {
         if (keyLength != keyLength()) {
-            throw new IllegalArgumentException("Key must be " + keyLength() + " bytes but got " + keyLength);
+            throw new InvalidKeyException("Key must be " + keyLength() + " bytes but got " + keyLength);
         }
     }
-
-    void setKey(byte @NotNull [] key);
 
     int nonceLength();
 
@@ -41,13 +39,7 @@ public interface Cipher {
         }
     }
 
-    void setNonce(byte @NotNull [] nonce);
-
-    void setContext(byte @NotNull [] context, int offset, int length);
-
-    default void setContext(byte @NotNull [] context) {
-        setContext(context, 0, context.length);
-    }
+    void init(byte @NotNull [] key, byte @NotNull [] nonce, byte @NotNull [] context);
 
     int tagLength();
 
@@ -64,9 +56,7 @@ public interface Cipher {
 
     default byte @NotNull [] encrypt(
             byte @NotNull [] key, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] plaintext) {
-        setKey(key);
-        setNonce(nonce);
-        setContext(context);
+        init(key, nonce, context);
         return encrypt(plaintext);
     }
 
@@ -86,9 +76,7 @@ public interface Cipher {
 
     default byte @NotNull [] decrypt(
             byte @NotNull [] key, byte @NotNull [] nonce, byte @NotNull [] context, byte @NotNull [] ciphertext) {
-        setKey(key);
-        setNonce(nonce);
-        setContext(context);
+        init(key, nonce, context);
         return decrypt(ciphertext);
     }
 

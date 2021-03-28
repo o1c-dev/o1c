@@ -49,9 +49,7 @@ class ChaCha20Poly1305CipherTest {
         byte[] tag = ByteOps.fromHex("1ae10b594f09e26a7e902ecbd0600691");
 
         Cipher cipher = new ChaCha20Poly1305Cipher();
-        cipher.setKey(key);
-        cipher.setNonce(nonce);
-        cipher.setContext(aad);
+        cipher.init(key, nonce, aad);
         byte[] actualCiphertext = new byte[ciphertext.length];
         byte[] actualTag = new byte[tag.length];
         cipher.encrypt(plaintext, 0, plaintext.length, actualCiphertext, 0, actualTag, 0);
@@ -59,8 +57,7 @@ class ChaCha20Poly1305CipherTest {
         assertArrayEquals(tag, actualTag);
 
         byte[] actualPlaintext = new byte[plaintext.length];
-        cipher.setNonce(nonce);
-        cipher.setContext(aad);
+        cipher.init(key, nonce, aad);
         cipher.decrypt(ciphertext,0, ciphertext.length, tag, 0, actualPlaintext, 0);
         assertArrayEquals(plaintext, actualPlaintext);
     }

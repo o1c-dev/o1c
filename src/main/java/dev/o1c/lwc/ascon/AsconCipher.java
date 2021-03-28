@@ -40,31 +40,23 @@ class AsconCipher implements Cipher {
     }
 
     @Override
-    public void setKey(byte @NotNull [] key) {
-        checkKeyLength(key.length);
-        keyHigh = ByteOps.unpackLongBE(key, 0);
-        keyLow = ByteOps.unpackLongBE(key, Long.BYTES);
-        state[0] = IV;
-        state[1] = keyHigh;
-        state[2] = keyLow;
-    }
-
-    @Override
     public int nonceLength() {
         return 16;
     }
 
     @Override
-    public void setNonce(byte @NotNull [] nonce) {
+    public void init(byte @NotNull [] key, byte @NotNull [] nonce, byte @NotNull [] context) {
+        checkKeyLength(key.length);
         checkNonceLength(nonce.length);
+        keyHigh = ByteOps.unpackLongBE(key, 0);
+        keyLow = ByteOps.unpackLongBE(key, Long.BYTES);
+        state[0] = IV;
+        state[1] = keyHigh;
+        state[2] = keyLow;
         ByteOps.unpackLongsBE(nonce, 0, 2, state, 3);
         Ascon.ascon12(state);
         state[3] ^= keyHigh;
         state[4] ^= keyLow;
-    }
-
-    @Override
-    public void setContext(byte @NotNull [] context, int offset, int length) {
         int ad = 0, adLen = context.length;
         if (adLen > 0) {
             while (adLen >= RATE) {
