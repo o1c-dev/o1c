@@ -42,12 +42,10 @@ public final class GimliRandomBytesGenerator implements RandomBytesGenerator {
     }
 
     @Override
-    public byte @NotNull [] generateBytes(int nrBytes) {
-        byte[] bytes = new byte[nrBytes];
+    public void generateBytes(byte @NotNull [] out, int offset, int length) {
         state.permute();
-        state.squeeze(bytes);
+        state.squeeze(out, offset, length);
         ratchet();
-        return bytes;
     }
 
     private void ratchet() {

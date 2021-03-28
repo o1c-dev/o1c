@@ -54,14 +54,12 @@ public class Blake3RandomBytesGenerator implements RandomBytesGenerator {
     }
 
     @Override
-    public byte @NotNull [] generateBytes(int nrBytes) {
+    public void generateBytes(byte @NotNull [] out, int offset, int length) {
         // skip over ratchet key
         byte[] skip = new byte[64];
         hash.doFinalize(skip);
-        byte[] bytes = new byte[nrBytes];
-        hash.doFinalize(bytes);
+        hash.doFinalize(out, offset, length);
         ratchet();
-        return bytes;
     }
 
     public static @NotNull Blake3RandomBytesGenerator getInstance() {

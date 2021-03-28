@@ -45,10 +45,7 @@ public class XoodyakRandomBytesGenerator implements RandomBytesGenerator {
         counter = 0;
     }
 
-    @Override
-    public byte @NotNull [] generateBytes(int nrBytes) {
-        byte[] bytes = new byte[nrBytes];
-        xoodyak.squeeze(bytes, 0, bytes.length);
+    private void ratchet() {
         if (++counter == 0) {
             reseed();
         } else {
@@ -63,7 +60,12 @@ public class XoodyakRandomBytesGenerator implements RandomBytesGenerator {
             xoodyak.absorbAny(Cyclist.DomainConstant.Block, 1, counterBuf, offset, Long.BYTES - offset);
             xoodyak.ratchet();
         }
-        return bytes;
+    }
+
+    @Override
+    public void generateBytes(byte @NotNull [] out, int offset, int length) {
+        xoodyak.squeeze(out, offset, length);
+        ratchet();
     }
 
     public static @NotNull XoodyakRandomBytesGenerator getInstance() {

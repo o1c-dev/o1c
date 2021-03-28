@@ -22,6 +22,7 @@ package dev.o1c.internal;
 
 import dev.o1c.spi.InvalidProviderException;
 import dev.o1c.spi.RandomBytesGenerator;
+import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.NoSuchAlgorithmException;
@@ -41,10 +42,16 @@ public class SystemRandomBytesGenerator implements RandomBytesGenerator {
     }
 
     @Override
-    public byte @NotNull [] generateBytes(int nrBytes) {
-        byte[] bytes = new byte[nrBytes];
+    public void generateBytes(byte @NotNull [] out) {
+        random.nextBytes(out);
+    }
+
+    @Override
+    public void generateBytes(byte @NotNull [] out, int offset, int length) {
+        Validator.checkBufferArgs(out, offset, length);
+        byte[] bytes = new byte[length];
         random.nextBytes(bytes);
-        return bytes;
+        System.arraycopy(bytes, 0, out, offset, length);
     }
 
     public static @NotNull SystemRandomBytesGenerator getInstance() {
