@@ -58,7 +58,7 @@ public interface Cipher {
      * Checks the provided nonce length and throws an {@link IllegalArgumentException} if the length is incorrect.
      */
     default void checkNonceLength(int nonceLength) {
-        if (nonceLength != nonceLength()) {
+        if (nonceLength < nonceLength()) {
             throw new IllegalArgumentException("Nonce must be " + nonceLength() + " bytes but got " + nonceLength);
         }
     }
