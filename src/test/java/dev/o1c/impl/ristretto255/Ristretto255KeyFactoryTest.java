@@ -77,5 +77,7 @@ class Ristretto255KeyFactoryTest {
         alice.encrypt(bob, nonce, context, message, 0, message.length, ciphertext, 0, tag, 0);
         bob.decrypt(alice, nonce, context, ciphertext, 0, ciphertext.length, tag, 0, plaintext, 0);
         assertArrayEquals(message, plaintext);
+
+        assertArrayEquals(message, alice.decrypt(bob, nonce, context, bob.encrypt(alice, nonce, context, message)));
     }
 }

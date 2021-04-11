@@ -35,9 +35,11 @@ import dev.o1c.spi.KeyPair;
 import dev.o1c.spi.PublicKey;
 import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
+// TODO: make serializable in some fashion
 public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPair {
     private final Hash nonceHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("nonce");
     private final Hash sharedKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("shared_key");
@@ -45,10 +47,20 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
     private final Hash challenge;
     private final Cipher cipher = new XChaCha20Poly1305Cipher();
 
-    Ristretto255KeyPair(byte @NotNull [] id, @NotNull Scalar scalar, @NotNull Hash challenge) {
+    Ristretto255KeyPair(byte @Nullable [] id, @NotNull Scalar scalar, @NotNull Hash challenge) {
         super(id, Constants.RISTRETTO_GENERATOR_TABLE.multiply(scalar));
         this.scalar = scalar;
         this.challenge = challenge;
+    }
+
+    @Override
+    public int nonceLength() {
+        return cipher.nonceLength();
+    }
+
+    @Override
+    public int tagLength() {
+        return cipher.tagLength();
     }
 
     @Override
@@ -95,7 +107,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
 
         sharedKeyHash.reset();
         sharedKeyHash.update(exchangeSecret(recipient));
-        sharedKeyHash.updateRLE(id);
+        sharedKeyHash.updateRLE(id());
         sharedKeyHash.updateRLE(recipient.id());
         sharedKeyHash.updateRLE(context);
         byte[] sharedKey = new byte[cipher.keyLength()];
@@ -115,7 +127,7 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         sharedKeyHash.reset();
         sharedKeyHash.update(exchangeSecret(sender));
         sharedKeyHash.updateRLE(sender.id());
-        sharedKeyHash.updateRLE(id);
+        sharedKeyHash.updateRLE(id());
         sharedKeyHash.updateRLE(context);
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
@@ -166,8 +178,8 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
                 recipientKey.element.multiply(Scalar.fromBits(R).multiplyAndAdd(scalar, r)).compress().toByteArray();
         sharedKeyHash.reset();
         sharedKeyHash.update(k);
-        sharedKeyHash.updateRLE(id);
-        sharedKeyHash.updateRLE(recipientKey.id);
+        sharedKeyHash.updateRLE(id());
+        sharedKeyHash.updateRLE(recipientKey.id());
         sharedKeyHash.updateRLE(context);
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
@@ -175,8 +187,8 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
 
         signKeyHash.reset();
         signKeyHash.update(R);
-        signKeyHash.updateRLE(id);
-        signKeyHash.updateRLE(recipientKey.id);
+        signKeyHash.updateRLE(id());
+        signKeyHash.updateRLE(recipientKey.id());
         signKeyHash.updateRLE(context);
         cipher.encrypt(plaintext, ptOffset, ptLength, ciphertext, ctOffset, tag, tagOffset);
         signKeyHash.update(ciphertext, ctOffset, ptLength);
@@ -221,8 +233,8 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
         byte[] k = senderKey.element.multiply(reduced).add(R).multiply(scalar).compress().toByteArray();
         sharedKeyHash.reset();
         sharedKeyHash.update(k);
-        sharedKeyHash.updateRLE(senderKey.id);
-        sharedKeyHash.updateRLE(id);
+        sharedKeyHash.updateRLE(senderKey.id());
+        sharedKeyHash.updateRLE(id());
         sharedKeyHash.updateRLE(context);
         byte[] sharedKey = new byte[cipher.keyLength()];
         sharedKeyHash.doFinalize(sharedKey);
@@ -230,8 +242,8 @@ public class Ristretto255KeyPair extends Ristretto255PublicKey implements KeyPai
 
         signKeyHash.reset();
         signKeyHash.update(rBytes);
-        signKeyHash.updateRLE(senderKey.id);
-        signKeyHash.updateRLE(id);
+        signKeyHash.updateRLE(senderKey.id());
+        signKeyHash.updateRLE(id());
         signKeyHash.updateRLE(context);
         signKeyHash.update(ciphertext, ctOffset, ctLength);
         byte[] tHash = new byte[64];

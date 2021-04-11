@@ -24,9 +24,11 @@ import org.jetbrains.annotations.NotNull;
 
 public interface PublicKey {
     /**
-     * Identifies this public key with a unique byte string such as the public key itself or some other principal identifier.
+     * Identifies this public key with a unique byte string such as a principal identifier. This can be used for
+     * allowing multiple principals to use the same underlying keypair (such as separate devices) while securing
+     * data for specific principals.
      *
-     * @return identifier of this key
+     * @return identifier of this key if defined or the public key itself otherwise
      */
     byte @NotNull [] id();
 

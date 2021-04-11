@@ -21,11 +21,24 @@
 package dev.o1c.spi;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface KeyFactory {
-    @NotNull KeyPair generateKey(byte @NotNull [] id);
+    default @NotNull KeyPair generateKey() {
+        return generateKey(null);
+    }
 
-    @NotNull KeyPair parsePrivateKey(byte @NotNull [] id, byte @NotNull [] keyData);
+    @NotNull KeyPair generateKey(byte @Nullable [] id);
 
-    @NotNull PublicKey parsePublicKey(byte @NotNull [] id, byte @NotNull [] keyData);
+    default @NotNull KeyPair parsePrivateKey(byte @NotNull [] keyData) {
+        return parsePrivateKey(null, keyData);
+    }
+
+    @NotNull KeyPair parsePrivateKey(byte @Nullable [] id, byte @NotNull [] keyData);
+
+    default @NotNull PublicKey parsePublicKey(byte @NotNull [] keyData) {
+        return parsePublicKey(null, keyData);
+    }
+
+    @NotNull PublicKey parsePublicKey(byte @Nullable [] id, byte @NotNull [] keyData);
 }

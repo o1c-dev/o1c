@@ -31,24 +31,25 @@ import dev.o1c.spi.InvalidKeyException;
 import dev.o1c.spi.PublicKey;
 import dev.o1c.util.Validator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
 public class Ristretto255PublicKey implements PublicKey {
     final Hash signKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("sign_key");
-    final byte[] id;
+    private final byte[] id;
     final RistrettoElement element;
     private final RistrettoElement negatedElement; // TODO: this should be lazily initialized when first verifying
     final CompressedRistretto compressed;
 
-    Ristretto255PublicKey(byte @NotNull [] id, @NotNull RistrettoElement element) {
+    Ristretto255PublicKey(byte @Nullable [] id, @NotNull RistrettoElement element) {
         this.id = id;
         this.element = element;
         negatedElement = element.negate();
         compressed = element.compress();
     }
 
-    Ristretto255PublicKey(byte @NotNull [] id, @NotNull CompressedRistretto compressed) {
+    Ristretto255PublicKey(byte @Nullable [] id, @NotNull CompressedRistretto compressed) {
         this.id = id;
         this.compressed = compressed;
         try {
@@ -61,6 +62,7 @@ public class Ristretto255PublicKey implements PublicKey {
 
     @Override
     public byte @NotNull [] id() {
+        byte[] id = this.id == null ? compressed.toByteArray() : this.id;
         return id.clone();
     }
 
