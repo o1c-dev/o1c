@@ -57,7 +57,7 @@ class DefaultKeyPair extends DefaultPublicKey implements KeyPair {
         hash.update(exchangeSecret(peer));
         hash.update(compressedElement.toByteArray());
         hash.update(peer.compressedElement.toByteArray());
-        // TODO: consider hashing in context as well (like in signcryption)
+        hash.updateRLE(context);
         DefaultSecretKey key = new DefaultSecretKey(hash.doFinalize());
         return key.box(message, context);
     }
@@ -72,6 +72,7 @@ class DefaultKeyPair extends DefaultPublicKey implements KeyPair {
         hash.update(exchangeSecret(peer));
         hash.update(peer.compressedElement.toByteArray());
         hash.update(compressedElement.toByteArray());
+        hash.updateRLE(context);
         DefaultSecretKey key = new DefaultSecretKey(hash.doFinalize());
         return key.openBox(box, context);
     }
