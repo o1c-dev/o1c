@@ -18,27 +18,14 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.spi;
+package dev.o1c;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface KeyFactory {
-    default @NotNull KeyPair generateKey() {
-        return generateKey(null);
-    }
+public interface SecretKey {
 
-    @NotNull KeyPair generateKey(byte @Nullable [] id);
+    byte @NotNull [] box(byte @NotNull [] data, byte @NotNull [] context);
 
-    default @NotNull KeyPair parsePrivateKey(byte @NotNull [] keyData) {
-        return parsePrivateKey(null, keyData);
-    }
+    byte @NotNull [] openBox(byte @NotNull [] box, byte @NotNull [] context);
 
-    @NotNull KeyPair parsePrivateKey(byte @Nullable [] id, byte @NotNull [] keyData);
-
-    default @NotNull PublicKey parsePublicKey(byte @NotNull [] keyData) {
-        return parsePublicKey(null, keyData);
-    }
-
-    @NotNull PublicKey parsePublicKey(byte @Nullable [] id, byte @NotNull [] keyData);
 }
