@@ -20,19 +20,74 @@
 
 package dev.o1c;
 
+import dev.o1c.spi.InvalidProviderException;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ServiceLoader;
+
+/**
+ * Central management of cryptographic keys.
+ */
 public interface KeyManager {
 
-    // todo: batch generate apis
+    /**
+     * Obtains an instance of the default KeyManager service.
+     *
+     * @return default KeyManager
+     */
+    static KeyManager getInstance() {
+        for (KeyManager keyManager : ServiceLoader.load(KeyManager.class)) {
+            return keyManager;
+        }
+        throw new InvalidProviderException("No KeyManager services found");
+    }
+
+    /**
+     * Generates a fresh keypair. A keypair consists of a private key and its corresponding public key. These
+     * are used for {@linkplain KeyPair#sign(byte[]) message signing},
+     * {@linkplain KeyPair#box(PublicKey, byte[], byte[]) authenticated public key encryption (box)},
+     * {@linkplain KeyPair#sealedBox(PublicKey, byte[], byte[]) authenticated public key signcryption (sealed box)},
+     * and their dual methods.
+     *
+     * @return fresh keypair
+     */
     @NotNull KeyPair generateKeyPair();
 
+    /**
+     * Generates a fresh secret key. A secret key is used for
+     * {@linkplain SecretKey#box(byte[], byte[]) authenticated encryption (secret box)}.
+     *
+     * @return fresh secret key
+     */
     @NotNull SecretKey generateSecretKey();
 
+    /**
+     * Parses secret key data.
+     *
+     * @param secretKey secret key data
+     * @return parsed secret key
+     * @throws dev.o1c.spi.InvalidKeyException if provided key is not valid
+     */
     @NotNull SecretKey parseSecretKey(byte @NotNull [] secretKey);
 
+    /**
+     * Parses public key data. A public key is used for
+     * {@linkplain PublicKey#openSignedMessage(byte[]) verifying signed messages} and as the sender or recipient
+     * parameter in various public key cryptography methods.
+     *
+     * @param publicKey public key data
+     * @return parsed public key
+     * @throws dev.o1c.spi.InvalidKeyException if provided key is not valid
+     */
     @NotNull PublicKey parsePublicKey(byte @NotNull [] publicKey);
 
+    /**
+     * Parses private key data and generates its corresponding public key.
+     *
+     * @param privateKey private key data
+     * @return parsed private key and its corresponding public key
+     * @throws dev.o1c.spi.InvalidKeyException if provided key is not valid
+     */
     @NotNull KeyPair parsePrivateKey(byte @NotNull [] privateKey);
 
 }

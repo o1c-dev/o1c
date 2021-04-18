@@ -18,18 +18,15 @@
  * SPDX-License-Identifier: ISC
  */
 
-package dev.o1c.impl;
+package dev.o1c;
 
-import dev.o1c.KeyManager;
-import dev.o1c.KeyPair;
-import dev.o1c.SecretKey;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-class DefaultKeyManagerTest {
+class KeyManagerTest {
 
-    private final KeyManager keyManager = new DefaultKeyManager();
+    private final KeyManager keyManager = KeyManager.getInstance();
 
     @Test
     void signatureSmokeTest() {
