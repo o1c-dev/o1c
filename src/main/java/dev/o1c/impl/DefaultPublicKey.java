@@ -93,4 +93,36 @@ class DefaultPublicKey implements PublicKey {
         }
         return Arrays.copyOfRange(signedMessage, 32, length - 32);
     }
+
+    @Override
+    public void validateSealedBox(@NotNull PublicKey sender, byte @NotNull [] sealedBox, byte @NotNull [] context) {
+        if (!(sender instanceof DefaultPublicKey)) {
+            throw new InvalidKeyException("Sender key incompatible with this key");
+        }
+        if (sealedBox.length < 64) {
+            throw new InvalidSignatureException("Sealed box data too short to have a signature");
+        }
+        DefaultPublicKey peer = (DefaultPublicKey) sender;
+        byte[] r = Arrays.copyOf(sealedBox, 32);
+        RistrettoElement R;
+        try {
+            R = new CompressedRistretto(r).decompress();
+        } catch (InvalidEncodingException e) {
+            throw new InvalidSignatureException(e);
+        }
+        byte[] s = Arrays.copyOfRange(sealedBox, sealedBox.length - 32, sealedBox.length);
+        RistrettoElement check = Constants.RISTRETTO_GENERATOR_TABLE.multiply(Scalar.fromCanonicalBytes(s)).add(R);
+        Hash signKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("sign_key");
+        signKeyHash.update(r);
+        signKeyHash.update(peer.compressedElement.toByteArray());
+        signKeyHash.update(compressedElement.toByteArray());
+        signKeyHash.updateRLE(context);
+        signKeyHash.update(sealedBox, 32 + 24, sealedBox.length - SIGNATURE_LENGTH - 24 - 16);
+        byte[] tHash = new byte[64];
+        signKeyHash.doFinalize(tHash);
+        Scalar t = Scalar.fromBytesModOrderWide(tHash);
+        if (!check.equals(peer.element.multiply(t))) {
+            throw new InvalidSignatureException("Signature mismatch");
+        }
+    }
 }

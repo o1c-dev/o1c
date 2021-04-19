@@ -162,12 +162,7 @@ class DefaultKeyPair extends DefaultPublicKey implements KeyPair {
      */
     @Override
     public byte @NotNull [] openSealedBox(@NotNull PublicKey sender, byte @NotNull [] sealedBox, byte @NotNull [] context) {
-        if (!(sender instanceof DefaultPublicKey)) {
-            throw new InvalidKeyException("Sender key incompatible with this key");
-        }
-        if (sealedBox.length < 64) {
-            throw new InvalidSignatureException("Sealed box data too short to have a signature");
-        }
+        validateSealedBox(sender, sealedBox, context);
         DefaultPublicKey peer = (DefaultPublicKey) sender;
         byte[] r = Arrays.copyOf(sealedBox, 32);
         RistrettoElement R;
@@ -177,9 +172,6 @@ class DefaultKeyPair extends DefaultPublicKey implements KeyPair {
             throw new InvalidSignatureException(e);
         }
         Scalar reduced = Scalar.fromBits(r);
-        byte[] s = Arrays.copyOfRange(sealedBox, sealedBox.length - 32, sealedBox.length);
-        RistrettoElement check = Constants.RISTRETTO_GENERATOR_TABLE.multiply(Scalar.fromCanonicalBytes(s)).add(R);
-
         byte[] k = peer.element.multiply(reduced).add(R).multiply(scalar).compress().toByteArray();
         Hash sharedKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("shared_key");
         sharedKeyHash.update(k);
@@ -187,21 +179,6 @@ class DefaultKeyPair extends DefaultPublicKey implements KeyPair {
         sharedKeyHash.update(compressedElement.toByteArray());
         sharedKeyHash.updateRLE(context);
         DefaultSecretKey key = new DefaultSecretKey(sharedKeyHash.doFinalize());
-
-        Hash signKeyHash = Blake3HashFactory.INSTANCE.newKeyDerivationFunction("sign_key");
-        signKeyHash.update(r);
-        signKeyHash.update(peer.compressedElement.toByteArray());
-        signKeyHash.update(compressedElement.toByteArray());
-        signKeyHash.updateRLE(context);
-        signKeyHash.update(sealedBox, 32 + key.nonceLength(), sealedBox.length - 64 - key.nonceLength() - key
-                .tagLength());
-        byte[] tHash = new byte[64];
-        signKeyHash.doFinalize(tHash);
-        Scalar t = Scalar.fromBytesModOrderWide(tHash);
-        if (!check.equals(peer.element.multiply(t))) {
-            throw new InvalidSignatureException("Signature mismatch");
-        }
-
         return key.openBox(Arrays.copyOfRange(sealedBox, 32, sealedBox.length - 32), context);
     }
 }

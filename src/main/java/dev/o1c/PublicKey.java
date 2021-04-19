@@ -22,6 +22,29 @@ package dev.o1c;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Contains the public part of a {@link KeyPair}.
+ */
 public interface PublicKey {
+
+    /**
+     * Opens a signed message and returns its plaintext contents if its signature can be verified with this public key.
+     *
+     * @param signedMessage signed message data containing both plaintext and signature
+     * @return plaintext data if signature matches
+     * @throws dev.o1c.spi.InvalidSignatureException if the signature does not match or is otherwise invalid
+     */
     byte @NotNull [] openSignedMessage(byte @NotNull [] signedMessage);
+
+    /**
+     * Validates the signature of a sealed box created by the given sender to this public key recipient in the given
+     * context.
+     *
+     * @param sender    who created the sealed box
+     * @param sealedBox sealed box data to validate signature
+     * @param context   original context the sealed box was created in
+     * @throws dev.o1c.spi.InvalidSignatureException if the seal is broken (an invalid signature)
+     */
+    void validateSealedBox(@NotNull PublicKey sender, byte @NotNull [] sealedBox, byte @NotNull [] context);
+
 }
