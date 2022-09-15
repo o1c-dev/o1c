@@ -27,6 +27,7 @@ static void drbg_ensure_init(void) {
         drbg.counter = 0;
         uint8_t seed[BLAKE3_KEY_LEN];
         drbg_entropy(seed, BLAKE3_KEY_LEN);
+        blake3_hasher_init_keyed(&drbg.st, seed);
         drbg_ratchet();
         drbg.initialized = true;
     }
